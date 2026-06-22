@@ -47,9 +47,7 @@ button{cursor:pointer}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.primary:active{background:var(--accent2)}
 .btn.small{height:36px;font-size:13px;padding:0 14px;width:auto}
-.btn.icon-btn{width:44px;height:44px;padding:0;flex-shrink:0}
 .btn.danger{border-color:var(--danger);color:var(--danger)}
-.btn.ghost{background:transparent;border-color:transparent;color:var(--text2)}
 .input{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;color:var(--text);outline:none;-webkit-appearance:none}
 .input:focus{border-color:var(--accent)}
 .input::placeholder{color:var(--text3)}
@@ -87,18 +85,24 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .section-label:first-child{margin-top:0}
 .gap{height:12px}
 .row{display:flex;gap:8px;align-items:flex-start}
-/* attachment preview */
 .attach-preview{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;border:0.5px solid var(--border)}
 .attach-preview img{width:44px;height:44px;border-radius:6px;object-fit:cover}
-.attach-preview .attach-info{flex:1;min-width:0}
-.attach-preview .attach-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.attach-preview .attach-type{font-size:11px;color:var(--text3);margin-top:2px}
+.attach-info{flex:1;min-width:0}
+.attach-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.attach-type{font-size:11px;color:var(--text3);margin-top:2px}
 .attach-remove{background:none;border:none;color:var(--text3);font-size:18px;padding:2px;flex-shrink:0}
-.attach-remove:active{color:var(--danger)}
-/* url row */
 .url-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .url-row .input{flex:1;height:44px;padding:0 12px}
 .paste-btn{height:44px;width:44px;flex-shrink:0;font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm)}
+/* attach dropdown */
+.attach-wrap{position:relative;flex-shrink:0}
+.attach-toggle{width:44px;height:44px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:22px;display:flex;align-items:center;justify-content:center}
+.attach-menu{position:absolute;bottom:52px;right:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;width:158px;z-index:50;display:none}
+.attach-menu.open{display:block}
+.attach-menu-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:15px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border)}
+.attach-menu-item:last-child{border-bottom:none}
+.attach-menu-item:active{background:var(--bg3)}
+.attach-menu-item span{font-size:18px}
 </style>
 </head>
 <body>
@@ -131,24 +135,21 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 
   <div id="content">
 
-    <!-- RESEARCH TAB -->
+    <!-- RESEARCH -->
     <div class="pane active" id="pane-research">
       <div class="section-label">Research question</div>
       <div class="row">
         <textarea class="input" id="rq" placeholder="What do you want to research?…" rows="3" style="flex:1"></textarea>
-        <button class="btn icon-btn ghost" onclick="clearResearch()" title="Clear" style="margin-top:0;align-self:flex-start">✕</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearResearch()">✕</button>
       </div>
-
-      <!-- attachment -->
       <div id="r-attach-preview" style="display:none" class="attach-preview">
-        <img id="r-attach-thumb" src="" alt=""/>
+        <img id="r-attach-thumb" src="" alt="" style="display:none"/>
         <div class="attach-info">
           <div class="attach-name" id="r-attach-name"></div>
           <div class="attach-type" id="r-attach-type"></div>
         </div>
         <button class="attach-remove" onclick="removeAttach('r')">×</button>
       </div>
-
       <div class="gap"></div>
       <div class="section-label">Mode</div>
       <select class="input" id="rmode">
@@ -158,13 +159,20 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
         <option value="compare">Compare — contrast approaches or options</option>
       </select>
       <div class="gap"></div>
-
-      <div class="row" style="gap:8px">
+      <div style="display:flex;gap:8px">
         <button class="btn primary" onclick="doResearch()" id="rbtn" style="flex:1">🔍 Research</button>
-        <button class="btn icon-btn" onclick="triggerAttach('r')" title="Attach photo or file" style="font-size:20px">📎</button>
+        <div class="attach-wrap">
+          <button class="attach-toggle" onclick="toggleMenu('r-menu')" aria-label="Add attachment">＋</button>
+          <div class="attach-menu" id="r-menu">
+            <button class="attach-menu-item" onclick="triggerAttach('r','camera')"><span>📷</span> Camera</button>
+            <button class="attach-menu-item" onclick="triggerAttach('r','photos')"><span>🖼️</span> Photos</button>
+            <button class="attach-menu-item" onclick="triggerAttach('r','file')"><span>📄</span> File</button>
+          </div>
+        </div>
       </div>
-      <input type="file" id="r-file-input" accept="image/*,application/pdf" capture="environment" style="display:none" onchange="handleAttach(event,'r')"/>
-
+      <input type="file" id="r-camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleAttach(event,'r')"/>
+      <input type="file" id="r-photos-input" accept="image/*" style="display:none" onchange="handleAttach(event,'r')"/>
+      <input type="file" id="r-file-input" accept="image/*,application/pdf" style="display:none" onchange="handleAttach(event,'r')"/>
       <div id="rstatus" class="status" style="display:none"><span class="dot"></span><span id="rstatus-text">Searching…</span></div>
       <div id="rresult" class="result" style="display:none"></div>
       <div id="rsave" class="save-row" style="display:none">
@@ -183,31 +191,27 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       </div>
     </div>
 
-    <!-- SUMMARIZE TAB -->
+    <!-- SUMMARIZE -->
     <div class="pane" id="pane-summarize">
       <div class="section-label">URL</div>
       <div class="url-row">
         <input class="input" id="surl" placeholder="https://… paste any link" type="url"/>
         <button class="paste-btn" onclick="pasteClipboard()" title="Paste from clipboard">📋</button>
-        <button class="btn icon-btn ghost" onclick="document.getElementById('surl').value=''" style="font-size:16px">✕</button>
+        <button style="width:44px;height:44px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="document.getElementById('surl').value=''">✕</button>
       </div>
-
       <div class="section-label">Or paste text</div>
       <div class="row">
         <textarea class="input" id="stext" placeholder="Paste abstract, article, or any text…" rows="4" style="flex:1"></textarea>
-        <button class="btn icon-btn ghost" onclick="clearSummarize()" style="align-self:flex-start;font-size:16px">✕</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearSummarize()">✕</button>
       </div>
-
-      <!-- attachment -->
       <div id="s-attach-preview" style="display:none" class="attach-preview">
-        <img id="s-attach-thumb" src="" alt=""/>
+        <img id="s-attach-thumb" src="" alt="" style="display:none"/>
         <div class="attach-info">
           <div class="attach-name" id="s-attach-name"></div>
           <div class="attach-type" id="s-attach-type"></div>
         </div>
         <button class="attach-remove" onclick="removeAttach('s')">×</button>
       </div>
-
       <div class="gap"></div>
       <div class="section-label">Output style</div>
       <select class="input" id="stype" style="height:44px">
@@ -218,13 +222,20 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
         <option value="extract">Extract findings &amp; methods</option>
       </select>
       <div class="gap"></div>
-
-      <div class="row" style="gap:8px">
+      <div style="display:flex;gap:8px">
         <button class="btn primary" onclick="doSummarize()" id="sbtn" style="flex:1">📄 Summarize</button>
-        <button class="btn icon-btn" onclick="triggerAttach('s')" title="Attach photo or file" style="font-size:20px">📎</button>
+        <div class="attach-wrap">
+          <button class="attach-toggle" onclick="toggleMenu('s-menu')" aria-label="Add attachment">＋</button>
+          <div class="attach-menu" id="s-menu">
+            <button class="attach-menu-item" onclick="triggerAttach('s','camera')"><span>📷</span> Camera</button>
+            <button class="attach-menu-item" onclick="triggerAttach('s','photos')"><span>🖼️</span> Photos</button>
+            <button class="attach-menu-item" onclick="triggerAttach('s','file')"><span>📄</span> File</button>
+          </div>
+        </div>
       </div>
-      <input type="file" id="s-file-input" accept="image/*,application/pdf" capture="environment" style="display:none" onchange="handleAttach(event,'s')"/>
-
+      <input type="file" id="s-camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleAttach(event,'s')"/>
+      <input type="file" id="s-photos-input" accept="image/*" style="display:none" onchange="handleAttach(event,'s')"/>
+      <input type="file" id="s-file-input" accept="image/*,application/pdf" style="display:none" onchange="handleAttach(event,'s')"/>
       <div id="sstatus" class="status" style="display:none"><span class="dot"></span><span id="sstatus-text">Processing…</span></div>
       <div id="sresult" class="result" style="display:none"></div>
       <div id="ssave" class="save-row" style="display:none">
@@ -243,29 +254,23 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       </div>
     </div>
 
-    <!-- KNOWLEDGE BASE TAB -->
+    <!-- KNOWLEDGE BASE -->
     <div class="pane" id="pane-kb">
       <input class="input" id="kbsearch" placeholder="Search your knowledge base…" oninput="renderKB()" style="height:44px;margin-bottom:12px"/>
       <div class="filter-row" id="tag-filters"></div>
       <div id="kb-list"></div>
     </div>
 
-    <!-- SETTINGS TAB -->
+    <!-- SETTINGS -->
     <div class="pane" id="pane-settings">
       <div class="section-label">API key</div>
       <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
         <div class="settings-row" style="padding-top:0">
-          <div>
-            <div class="settings-label">Anthropic API key</div>
-            <div class="settings-sub" id="key-status">Checking…</div>
-          </div>
+          <div><div class="settings-label">Anthropic API key</div><div class="settings-sub" id="key-status">Checking…</div></div>
           <button class="btn small" onclick="changeKey()">Change</button>
         </div>
         <div class="settings-row" style="padding-bottom:0">
-          <div>
-            <div class="settings-label">Pricing</div>
-            <div class="settings-sub">~$0.01–0.03 per query</div>
-          </div>
+          <div><div class="settings-label">Pricing</div><div class="settings-sub">~$0.01–0.03 per query</div></div>
           <button class="btn small" onclick="openLink('https://console.anthropic.com')">Console ↗</button>
         </div>
       </div>
@@ -293,7 +298,7 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 
 <script>
 let kb=[],activeTag=null,lastR='',lastS='';
-let rAttach=null,sAttach=null; // {base64, mediaType, name, isImage}
+let rAttach=null,sAttach=null;
 
 function getKey(){return localStorage.getItem('ra-api-key')||'';}
 function saveKey(){
@@ -318,6 +323,64 @@ function init(){
   document.getElementById('setup').style.display=k?'none':'flex';
   document.getElementById('app').style.display=k?'flex':'none';
   if(k){loadKB();updateKeyStatus();}
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.attach-wrap'))closeAllMenus();
+  });
+}
+
+function toggleMenu(id){
+  const menu=document.getElementById(id);
+  const wasOpen=menu.classList.contains('open');
+  closeAllMenus();
+  if(!wasOpen)menu.classList.add('open');
+}
+function closeAllMenus(){
+  document.querySelectorAll('.attach-menu').forEach(m=>m.classList.remove('open'));
+}
+
+function triggerAttach(tab,type){
+  closeAllMenus();
+  document.getElementById(tab+'-'+type+'-input').click();
+}
+function removeAttach(tab){
+  if(tab==='r')rAttach=null;else sAttach=null;
+  document.getElementById(tab+'-attach-preview').style.display='none';
+  ['camera','photos','file'].forEach(t=>{
+    const el=document.getElementById(tab+'-'+t+'-input');
+    if(el)el.value='';
+  });
+}
+function handleAttach(event,tab){
+  const file=event.target.files[0];if(!file)return;
+  const isImage=file.type.startsWith('image/');
+  const isPDF=file.type==='application/pdf';
+  if(!isImage&&!isPDF){alert('Please attach an image or PDF.');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const base64=e.target.result.split(',')[1];
+    const attach={base64,mediaType:file.type,name:file.name,isImage};
+    if(tab==='r')rAttach=attach;else sAttach=attach;
+    const preview=document.getElementById(tab+'-attach-preview');
+    const thumb=document.getElementById(tab+'-attach-thumb');
+    if(isImage){thumb.src=e.target.result;thumb.style.display='block';}
+    else{thumb.style.display='none';}
+    document.getElementById(tab+'-attach-name').textContent=file.name;
+    document.getElementById(tab+'-attach-type').textContent=isImage?'Image':'PDF document';
+    preview.style.display='flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function buildContent(text,attach){
+  if(!attach)return text;
+  const parts=[];
+  if(attach.isImage){
+    parts.push({type:'image',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
+  }else{
+    parts.push({type:'document',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
+  }
+  parts.push({type:'text',text});
+  return parts;
 }
 
 function loadKB(){
@@ -332,6 +395,7 @@ function updateKBCount(){
 }
 
 function switchTab(t){
+  closeAllMenus();
   ['research','summarize','kb','settings'].forEach(id=>{
     document.getElementById('pane-'+id).classList.toggle('active',id===t);
     document.getElementById('tab-'+id).classList.toggle('active',id===t);
@@ -339,7 +403,6 @@ function switchTab(t){
   if(t==='kb')renderKB();
 }
 
-// CLEAR FUNCTIONS
 function clearResearch(){
   document.getElementById('rq').value='';
   document.getElementById('rresult').style.display='none';
@@ -356,74 +419,22 @@ function clearSummarize(){
   removeAttach('s');lastS='';
 }
 
-// CLIPBOARD PASTE
 async function pasteClipboard(){
   try{
     const text=await navigator.clipboard.readText();
     if(text)document.getElementById('surl').value=text.trim();
   }catch(e){
-    // fallback - prompt
     const t=prompt('Paste your URL:');
     if(t)document.getElementById('surl').value=t.trim();
   }
 }
 
-// ATTACHMENTS
-function triggerAttach(tab){document.getElementById(tab+'-file-input').click();}
-function removeAttach(tab){
-  if(tab==='r')rAttach=null;else sAttach=null;
-  document.getElementById(tab+'-attach-preview').style.display='none';
-  document.getElementById(tab+'-file-input').value='';
-}
-function handleAttach(event,tab){
-  const file=event.target.files[0];if(!file)return;
-  const isImage=file.type.startsWith('image/');
-  const isPDF=file.type==='application/pdf';
-  if(!isImage&&!isPDF){alert('Please attach an image or PDF.');return;}
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const base64=e.target.result.split(',')[1];
-    const attach={base64,mediaType:file.type,name:file.name,isImage};
-    if(tab==='r')rAttach=attach;else sAttach=attach;
-    // show preview
-    const preview=document.getElementById(tab+'-attach-preview');
-    const thumb=document.getElementById(tab+'-attach-thumb');
-    const nameEl=document.getElementById(tab+'-attach-name');
-    const typeEl=document.getElementById(tab+'-attach-type');
-    if(isImage){thumb.src=e.target.result;thumb.style.display='block';}
-    else{thumb.src='';thumb.style.display='none';}
-    nameEl.textContent=file.name;
-    typeEl.textContent=isImage?'Image':'PDF document';
-    preview.style.display='flex';
-  };
-  reader.readAsDataURL(file);
-}
-
-// BUILD MESSAGE CONTENT WITH OPTIONAL ATTACHMENT
-function buildContent(text,attach){
-  if(!attach)return text;
-  const parts=[];
-  if(attach.isImage){
-    parts.push({type:'image',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
-  } else {
-    parts.push({type:'document',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
-  }
-  parts.push({type:'text',text});
-  return parts;
-}
-
-// API CALL
 async function callAPI(system,userContent,onChunk){
   const key=getKey();
-  const body={
-    model:'claude-sonnet-4-6',max_tokens:1000,stream:true,system,
-    tools:[{type:'web_search_20250305',name:'web_search'}],
-    messages:[{role:'user',content:userContent}]
-  };
   const resp=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify(body)
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,stream:true,system,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:userContent}]})
   });
   if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API error '+resp.status);}
   const reader=resp.body.getReader();const dec=new TextDecoder();let buf='',full='';
@@ -440,7 +451,6 @@ async function callAPI(system,userContent,onChunk){
   return full;
 }
 
-// RESEARCH
 async function doResearch(){
   const q=document.getElementById('rq').value.trim();
   if(!q&&!rAttach){alert('Add a question or attach a file.');return;}
@@ -453,20 +463,11 @@ async function doResearch(){
   status.style.display='flex';statusText.textContent='Searching…';
   resultEl.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
   saveRow.style.display='none';
-  const modes={
-    overview:'Provide a clear comprehensive overview.',
-    deep:'Provide an in-depth analysis with nuance, limitations, and open questions.',
-    papers:'Focus on academic research. Cite key papers, authors, and findings.',
-    compare:'Compare the main approaches, frameworks, or viewpoints on this topic.'
-  };
-  const promptText=rAttach&&!q?`Please analyze this ${rAttach.isImage?'image':'document'} and provide research insights about it.`:rAttach?`${q}\n\nI've also attached a ${rAttach.isImage?'image':'document'} for additional context.`:q;
-  const userContent=buildContent(promptText,rAttach);
+  const modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis with nuance, limitations, and open questions.',papers:'Focus on academic research. Cite key papers, authors, and findings.',compare:'Compare the main approaches, frameworks, or viewpoints on this topic.'};
+  const promptText=rAttach&&!q?`Please analyze this ${rAttach.isImage?'image':'document'} and provide research insights.`:rAttach?`${q}\n\nI've also attached a ${rAttach.isImage?'image':'document'} for context.`:q;
   try{
     statusText.textContent='Generating response…';
-    const full=await callAPI(
-      `You are a rigorous research assistant. ${modes[mode]} Use web_search for current accurate information. Write in clear prose. Be direct. No filler phrases.`,
-      userContent,(chunk)=>{resultEl.textContent=chunk;}
-    );
+    const full=await callAPI(`You are a rigorous research assistant. ${modes[mode]} Use web_search for current accurate information. Write in clear prose. Be direct. No filler phrases.`,buildContent(promptText,rAttach),(chunk)=>{resultEl.textContent=chunk;});
     lastR=full;resultEl.className='result';
     document.getElementById('rsave-title').value=(q||rAttach?.name||'Research').slice(0,60);
     saveRow.style.display='flex';
@@ -474,7 +475,6 @@ async function doResearch(){
   status.style.display='none';btn.disabled=false;
 }
 
-// SUMMARIZE
 async function doSummarize(){
   const url=document.getElementById('surl').value.trim();
   const text=document.getElementById('stext').value.trim();
@@ -488,25 +488,15 @@ async function doSummarize(){
   status.style.display='flex';statusText.textContent='Processing…';
   resultEl.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
   saveRow.style.display='none';
-  const types={
-    summary:'Write a concise accurate 3-5 paragraph summary.',
-    bullets:'Extract the most important points as a structured bullet list.',
-    critique:'Critical analysis: strengths, weaknesses, assumptions, and gaps.',
-    eli5:'Explain in plain language for a curious non-expert.',
-    extract:'Extract and list: main findings, methodology, data sources, and conclusions.'
-  };
+  const types={summary:'Write a concise accurate 3-5 paragraph summary.',bullets:'Extract the most important points as a structured bullet list.',critique:'Critical analysis: strengths, weaknesses, assumptions, and gaps.',eli5:'Explain in plain language for a curious non-expert.',extract:'Extract and list: main findings, methodology, data sources, and conclusions.'};
   let promptText='';
-  if(url&&text) promptText=`URL: ${url}\n\nAdditional content:\n${text}`;
-  else if(url) promptText=`Please find and summarize the content at this URL using web search: ${url}\n\nNote: If this is a social media link like X/Twitter, search for the post content or topic and summarize what you find.`;
-  else if(text) promptText=`Summarize the following:\n\n${text}`;
-  else if(sAttach) promptText=`Please summarize this ${sAttach.isImage?'image':'document'}.`;
-  if(sAttach&&(url||text)) promptText+=`\n\nI've also attached a ${sAttach.isImage?'image':'document'} for additional context.`;
-  const userContent=buildContent(promptText,sAttach);
+  if(url&&text)promptText=`URL: ${url}\n\nAdditional content:\n${text}`;
+  else if(url)promptText=`Find and summarize the content at this URL using web search: ${url}\n\nIf this is a social media link like X/Twitter, search for the post content or topic and summarize what you find.`;
+  else if(text)promptText=`Summarize the following:\n\n${text}`;
+  else if(sAttach)promptText=`Please summarize this ${sAttach.isImage?'image':'document'}.`;
+  if(sAttach&&(url||text))promptText+=`\n\nI've also attached a ${sAttach.isImage?'image':'document'} for additional context.`;
   try{
-    const full=await callAPI(
-      `You are an expert research summarizer. ${types[type]} Be precise and faithful to the source. Use web_search when given a URL to find and read the content. No filler.`,
-      userContent,(chunk)=>{resultEl.textContent=chunk;}
-    );
+    const full=await callAPI(`You are an expert research summarizer. ${types[type]} Be precise and faithful to the source. Use web_search when given a URL. No filler.`,buildContent(promptText,sAttach),(chunk)=>{resultEl.textContent=chunk;});
     lastS=full;resultEl.className='result';
     document.getElementById('ssave-title').value=(url||text||sAttach?.name||'Summary').replace(/^https?:\/\//,'').slice(0,60);
     saveRow.style.display='flex';
@@ -514,7 +504,6 @@ async function doSummarize(){
   status.style.display='none';btn.disabled=false;
 }
 
-// SAVE TO KB
 function saveToKB(src){
   const isR=src==='r';
   const title=(document.getElementById(isR?'rsave-title':'ssave-title').value.trim()||'Untitled');
@@ -533,8 +522,7 @@ function deleteEntry(id){if(!confirm('Delete this entry?'))return;kb=kb.filter(e
 function renderTagFilters(){
   const tags=[...new Set(kb.map(e=>e.tag))].filter(Boolean);
   const c=document.getElementById('tag-filters');if(!c)return;
-  c.innerHTML=tags.map(t=>`<button class="tag-chip${activeTag===t?' active':''}" onclick="toggleTag('${t}')">${t}</button>`).join('')
-    +`<span class="count">${kb.length} entr${kb.length===1?'y':'ies'}</span>`;
+  c.innerHTML=tags.map(t=>`<button class="tag-chip${activeTag===t?' active':''}" onclick="toggleTag('${t}')">${t}</button>`).join('')+`<span class="count">${kb.length} entr${kb.length===1?'y':'ies'}</span>`;
 }
 function toggleTag(tag){activeTag=activeTag===tag?null:tag;renderTagFilters();renderKB();}
 
@@ -551,18 +539,7 @@ function renderKB(){
   }
   listEl.innerHTML=entries.map(e=>{
     const tr=e.content.length>300;
-    return`<div class="kb-card">
-      <div class="kb-card-head">
-        <div class="kb-card-title">${esc(e.title)}</div>
-        <button class="del-btn" onclick="deleteEntry(${e.id})">×</button>
-      </div>
-      <div class="kb-card-meta">
-        <span class="badge">${esc(e.tag)}</span>
-        <span>${e.type==='research'?'🔍':'📄'} ${e.date}</span>
-      </div>
-      <div class="kb-card-body${tr?' trunc':''}" id="kbody-${e.id}">${esc(e.content)}</div>
-      ${tr?`<button class="expand-btn" onclick="toggleExpand(${e.id})">Show more ↓</button>`:''}
-    </div>`;
+    return`<div class="kb-card"><div class="kb-card-head"><div class="kb-card-title">${esc(e.title)}</div><button class="del-btn" onclick="deleteEntry(${e.id})">×</button></div><div class="kb-card-meta"><span class="badge">${esc(e.tag)}</span><span>${e.type==='research'?'🔍':'📄'} ${e.date}</span></div><div class="kb-card-body${tr?' trunc':''}" id="kbody-${e.id}">${esc(e.content)}</div>${tr?`<button class="expand-btn" onclick="toggleExpand(${e.id})">Show more ↓</button>`:''}</div>`;
   }).join('');
 }
 function toggleExpand(id){
