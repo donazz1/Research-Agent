@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Research"/>
+<meta name="theme-color" content="#0f0f0f"/>
+<title>Research Agent</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f0f0f'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle' fill='white'%3E🔬%3C/text%3E%3C/svg%3E"/>
+<style>
+:root{
+  --bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--bg4:#2e2e2e;
+  --text:#f0f0f0;--text2:#a0a0a0;--text3:#666;
+  --border:#333;--border2:#444;
+  --accent:#6c63ff;--accent2:#5a52e0;
+  --success:#2ecc71;--danger:#e74c3c;
+  --radius:12px;--radius-sm:8px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;overscroll-behavior:none}
+input,textarea,select,button{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+#header{padding:calc(var(--safe-top) + 14px) 16px 14px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#header-icon{font-size:22px}
+#header-text{}
+#header-title{font-size:17px;font-weight:600}
+#header-sub{font-size:12px;color:var(--text2);margin-top:1px}
+#tab-bar{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:11px 4px;font-size:13px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;transition:all 0.15s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pane{display:none;padding:16px}
+.pane.active{display:block}
+
+/* SETUP SCREEN */
+#setup{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;padding-top:calc(var(--safe-top) + 32px)}
+#setup h1{font-size:26px;font-weight:700;margin-bottom:8px}
+#setup p{color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:28px}
+#setup .step{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;font-size:14px;color:var(--text2);line-height:1.5}
+#setup .step strong{color:var(--text)}
+#api-key-input{width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:14px;font-size:14px;color:var(--text);margin:20px 0 12px;font-family:monospace}
+#api-key-input::placeholder{color:var(--text3);font-family:-apple-system,sans-serif}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 18px;height:44px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;transition:opacity 0.15s;width:100%}
+.btn:active{opacity:0.7}
+.btn:disabled{opacity:0.35}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:active{background:var(--accent2)}
+.btn.small{height:36px;font-size:13px;padding:0 14px;width:auto}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+
+/* FORM ELEMENTS */
+.input{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;color:var(--text);outline:none;-webkit-appearance:none}
+.input:focus{border-color:var(--accent)}
+.input::placeholder{color:var(--text3)}
+textarea.input{resize:none;line-height:1.6;min-height:100px}
+select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+
+/* RESULT */
+.result{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;margin-top:12px}
+.result.streaming{border-left:2px solid var(--accent)}
+
+/* STATUS */
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:8px 0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.4s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
+
+/* SAVE ROW */
+.save-row{margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:14px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
+.save-row label{font-size:12px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+
+/* KB CARDS */
+.kb-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.kb-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.kb-card-title{font-size:15px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
+.kb-card-meta{font-size:12px;color:var(--text3);margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.kb-card-body{font-size:14px;color:var(--text2);line-height:1.6;max-height:100px;overflow:hidden;position:relative}
+.kb-card-body.expanded{max-height:none}
+.kb-card-body.trunc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--bg2))}
+.expand-btn{font-size:13px;color:var(--accent);background:none;border:none;padding:6px 0 2px;display:block}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--bg3);color:var(--text2);font-weight:500;border:0.5px solid var(--border)}
+.del-btn{background:none;border:none;color:var(--text3);font-size:20px;line-height:1;padding:2px;flex-shrink:0}
+.del-btn:active{color:var(--danger)}
+
+/* FILTER */
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.tag-chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2)}
+.tag-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.count{font-size:12px;color:var(--text3);margin-left:auto}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 16px;color:var(--text3);font-size:15px}
+.empty .icon{font-size:40px;margin-bottom:12px}
+
+/* SETTINGS */
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:0.5px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:15px}
+.settings-sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* SECTION */
+.section-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:20px}
+.section-label:first-child{margin-top:0}
+.gap{height:12px}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup">
+  <div style="font-size:40px;margin-bottom:16px">🔬</div>
+  <h1>Research Agent</h1>
+  <p>Your personal AI research assistant. To get started, paste your Anthropic API key below.</p>
+  <div class="step"><strong>Where to get it:</strong> Go to console.anthropic.com → API Keys → Create Key. Cost is ~$0.01–0.03 per search. You control the spending limit.</div>
+  <input class="input" id="api-key-input" type="password" placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+  <button class="btn primary" onclick="saveKey()">Save &amp; Start →</button>
+  <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Your key is saved only on this device. It never goes anywhere except directly to Anthropic's API.</p>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <div id="header">
+    <div id="header-icon">🔬</div>
+    <div id="header-text">
+      <div id="header-title">Research Agent</div>
+      <div id="header-sub">0 saved entries</div>
+    </div>
+  </div>
+
+  <div id="tab-bar">
+    <button class="tab active" onclick="switchTab('research')" id="tab-research">Research</button>
+    <button class="tab" onclick="switchTab('summarize')" id="tab-summarize">Summarize</button>
+    <button class="tab" onclick="switchTab('kb')" id="tab-kb">Knowledge Base</button>
+    <button class="tab" onclick="switchTab('settings')" id="tab-settings">Settings</button>
+  </div>
+
+  <div id="content">
+
+    <!-- RESEARCH -->
+    <div class="pane active" id="pane-research">
+      <div class="section-label">Research question</div>
+      <textarea class="input" id="rq" placeholder="What do you want to research?…" rows="3"></textarea>
+      <div class="gap"></div>
+      <div class="section-label">Mode</div>
+      <select class="input" id="rmode">
+        <option value="overview">Overview — clear comprehensive summary</option>
+        <option value="deep">Deep dive — detailed analysis &amp; nuance</option>
+        <option value="papers">Academic — focus on research &amp; papers</option>
+        <option value="compare">Compare — contrast approaches or options</option>
+      </select>
+      <div class="gap"></div>
+      <button class="btn primary" onclick="doResearch()" id="rbtn">🔍 Research</button>
+      <div id="rstatus" class="status" style="display:none"><span class="dot"></span><span id="rstatus-text">Searching…</span></div>
+      <div id="rresult" class="result" style="display:none"></div>
+      <div id="rsave" class="save-row" style="display:none">
+        <label>Save to knowledge base</label>
+        <input class="input" id="rsave-title" placeholder="Title…" style="height:44px"/>
+        <select class="input" id="rsave-tag" style="height:44px">
+          <option value="general">General</option>
+          <option value="ai-ml">AI / ML</option>
+          <option value="science">Science</option>
+          <option value="tech">Tech</option>
+          <option value="business">Business</option>
+          <option value="health">Health</option>
+          <option value="other">Other</option>
+        </select>
+        <button class="btn" onclick="saveToKB('r')" id="rsave-btn">📌 Save to KB</button>
+      </div>
+    </div>
+
+    <!-- SUMMARIZE -->
+    <div class="pane" id="pane-summarize">
+      <div class="section-label">URL (optional)</div>
+      <input class="input" id="surl" placeholder="https://arxiv.org/abs/…" type="url" style="height:44px"/>
+      <div class="gap"></div>
+      <div class="section-label">Paste text</div>
+      <textarea class="input" id="stext" placeholder="Paste abstract, article, or any text…" rows="5"></textarea>
+      <div class="gap"></div>
+      <div class="section-label">Output style</div>
+      <select class="input" id="stype" style="height:44px">
+        <option value="summary">Concise summary</option>
+        <option value="bullets">Key bullet points</option>
+        <option value="critique">Critical analysis</option>
+        <option value="eli5">Plain-language explanation</option>
+        <option value="extract">Extract findings &amp; methods</option>
+      </select>
+      <div class="gap"></div>
+      <button class="btn primary" onclick="doSummarize()" id="sbtn">📄 Summarize</button>
+      <div id="sstatus" class="status" style="display:none"><span class="dot"></span><span id="sstatus-text">Processing…</span></div>
+      <div id="sresult" class="result" style="display:none"></div>
+      <div id="ssave" class="save-row" style="display:none">
+        <label>Save to knowledge base</label>
+        <input class="input" id="ssave-title" placeholder="Title…" style="height:44px"/>
+        <select class="input" id="ssave-tag" style="height:44px">
+          <option value="general">General</option>
+          <option value="ai-ml">AI / ML</option>
+          <option value="science">Science</option>
+          <option value="tech">Tech</option>
+          <option value="business">Business</option>
+          <option value="health">Health</option>
+          <option value="other">Other</option>
+        </select>
+        <button class="btn" onclick="saveToKB('s')" id="ssave-btn">📌 Save to KB</button>
+      </div>
+    </div>
+
+    <!-- KNOWLEDGE BASE -->
+    <div class="pane" id="pane-kb">
+      <input class="input" id="kbsearch" placeholder="Search your knowledge base…" oninput="renderKB()" style="height:44px;margin-bottom:12px"/>
+      <div class="filter-row" id="tag-filters"></div>
+      <div id="kb-list"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="pane" id="pane-settings">
+      <div class="section-label">API key</div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
+        <div class="settings-row" style="padding-top:0">
+          <div>
+            <div class="settings-label">Anthropic API key</div>
+            <div class="settings-sub" id="key-status">Checking…</div>
+          </div>
+          <button class="btn small" onclick="changeKey()">Change</button>
+        </div>
+        <div class="settings-row" style="padding-bottom:0">
+          <div>
+            <div class="settings-label">Pricing</div>
+            <div class="settings-sub">~$0.01–0.03 per query</div>
+          </div>
+          <button class="btn small" onclick="openLink('https://console.anthropic.com')">Console ↗</button>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:20px">Knowledge base</div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
+        <div class="settings-row" style="padding-top:0">
+          <div>
+            <div class="settings-label">Saved entries</div>
+            <div class="settings-sub" id="settings-kb-count">0 entries</div>
+          </div>
+        </div>
+        <div class="settings-row" style="padding-bottom:0">
+          <div>
+            <div class="settings-label">Storage</div>
+            <div class="settings-sub">Saved on this device only</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:20px">Danger zone</div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
+        <div class="settings-row" style="padding-top:0;padding-bottom:0">
+          <div>
+            <div class="settings-label">Clear all saved data</div>
+            <div class="settings-sub">Deletes KB and API key from this device</div>
+          </div>
+          <button class="btn small danger" onclick="clearAll()">Clear</button>
+        </div>
+      </div>
+      <div style="height:40px"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let kb=[],activeTag=null,lastR='',lastS='';
+
+function getKey(){return localStorage.getItem('ra-api-key')||'';}
+function saveKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  if(!k||!k.startsWith('sk-ant')){alert('That doesn\'t look right. Your key should start with sk-ant-api03-');return;}
+  localStorage.setItem('ra-api-key',k);
+  init();
+}
+function changeKey(){
+  const k=prompt('Paste your new API key:');
+  if(k&&k.startsWith('sk-ant')){localStorage.setItem('ra-api-key',k);updateKeyStatus();}
+}
+function clearAll(){
+  if(!confirm('Delete everything? This cannot be undone.'))return;
+  localStorage.clear();
+  location.reload();
+}
+function updateKeyStatus(){
+  const k=getKey();
+  const el=document.getElementById('key-status');
+  if(el)el.textContent=k?'Connected — ends in …'+k.slice(-4):'Not set';
+}
+function openLink(u){window.open(u,'_blank');}
+
+function init(){
+  const k=getKey();
+  document.getElementById('setup').style.display=k?'none':'flex';
+  document.getElementById('app').style.display=k?'flex':'none';
+  if(k){loadKB();updateKeyStatus();}
+}
+
+function loadKB(){
+  try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}
+  updateKBCount();
+}
+function saveKB(){
+  localStorage.setItem('ra-kb',JSON.stringify(kb));
+  updateKBCount();
+}
+function updateKBCount(){
+  const n=kb.length;
+  const s=`${n} saved entr${n===1?'y':'ies'}`;
+  const h=document.getElementById('header-sub');if(h)h.textContent=s;
+  const sc=document.getElementById('settings-kb-count');if(sc)sc.textContent=s;
+  const kbc=document.getElementById('kb-count');if(kbc)kbc.textContent=`${n} entr${n===1?'y':'ies'}`;
+}
+
+function switchTab(t){
+  ['research','summarize','kb','settings'].forEach(id=>{
+    document.getElementById('pane-'+id).classList.toggle('active',id===t);
+    document.getElementById('tab-'+id).classList.toggle('active',id===t);
+  });
+  if(t==='kb')renderKB();
+}
+
+async function callAPI(system,userMsg,onChunk){
+  const key=getKey();
+  const body={model:'claude-sonnet-4-6',max_tokens:1000,stream:true,system,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:userMsg}]};
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify(body)
+  });
+  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API error '+resp.status);}
+  const reader=resp.body.getReader();const dec=new TextDecoder();let buf='',full='';
+  while(true){
+    const{done,value}=await reader.read();if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n');buf=lines.pop();
+    for(const line of lines){
+      if(!line.startsWith('data: '))continue;
+      const d=line.slice(6).trim();if(d==='[DONE]')continue;
+      try{const j=JSON.parse(d);if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){full+=j.delta.text;onChunk(full);}}catch(e){}
+    }
+  }
+  return full;
+}
+
+async function doResearch(){
+  const q=document.getElementById('rq').value.trim();if(!q)return;
+  const mode=document.getElementById('rmode').value;
+  const btn=document.getElementById('rbtn');btn.disabled=true;
+  const status=document.getElementById('rstatus');
+  const statusText=document.getElementById('rstatus-text');
+  const resultEl=document.getElementById('rresult');
+  const saveRow=document.getElementById('rsave');
+  status.style.display='flex';statusText.textContent='Searching the web…';
+  resultEl.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
+  saveRow.style.display='none';
+  const modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis with nuance, limitations, and open questions.',papers:'Focus on academic research. Cite key papers, authors, and findings.',compare:'Compare the main approaches, frameworks, or viewpoints on this topic.'};
+  try{
+    statusText.textContent='Generating response…';
+    const full=await callAPI(`You are a rigorous research assistant. ${modes[mode]} Use web_search for current accurate information. Write in clear prose. Be direct. No filler phrases.`,q,(chunk)=>{resultEl.textContent=chunk;});
+    lastR=full;resultEl.className='result';
+    document.getElementById('rsave-title').value=q.length>60?q.slice(0,60)+'…':q;
+    saveRow.style.display='flex';
+  }catch(e){resultEl.textContent='Error: '+e.message;resultEl.className='result';}
+  status.style.display='none';btn.disabled=false;
+}
+
+async function doSummarize(){
+  const url=document.getElementById('surl').value.trim();
+  const text=document.getElementById('stext').value.trim();
+  if(!url&&!text){alert('Add a URL or paste some text first.');return;}
+  const type=document.getElementById('stype').value;
+  const btn=document.getElementById('sbtn');btn.disabled=true;
+  const status=document.getElementById('sstatus');
+  const statusText=document.getElementById('sstatus-text');
+  const resultEl=document.getElementById('sresult');
+  const saveRow=document.getElementById('ssave');
+  status.style.display='flex';statusText.textContent='Processing…';
+  resultEl.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
+  saveRow.style.display='none';
+  const types={summary:'Write a concise accurate 3-5 paragraph summary.',bullets:'Extract the most important points as a structured bullet list.',critique:'Critical analysis: strengths, weaknesses, assumptions, and gaps.',eli5:'Explain in plain language for a curious non-expert.',extract:'Extract and list: main findings, methodology, data sources, and conclusions.'};
+  const msg=url&&text?`URL: ${url}\n\nContent:\n${text}`:url?`Summarize the content at this URL: ${url}`:`Summarize the following:\n\n${text}`;
+  try{
+    const full=await callAPI(`You are an expert research summarizer. ${types[type]} Be precise and faithful to the source. No filler.`,msg,(chunk)=>{resultEl.textContent=chunk;});
+    lastS=full;resultEl.className='result';
+    document.getElementById('ssave-title').value=(url||text).replace(/^https?:\/\//,'').slice(0,60);
+    saveRow.style.display='flex';
+  }catch(e){resultEl.textContent='Error: '+e.message;resultEl.className='result';}
+  status.style.display='none';btn.disabled=false;
+}
+
+function saveToKB(src){
+  const isR=src==='r';
+  const title=(document.getElementById(isR?'rsave-title':'ssave-title').value.trim()||'Untitled');
+  const tag=document.getElementById(isR?'rsave-tag':'ssave-tag').value;
+  const content=isR?lastR:lastS;
+  if(!content)return;
+  kb.unshift({id:Date.now(),title,tag,content,date:new Date().toLocaleDateString('en-CA'),type:isR?'research':'summary'});
+  saveKB();
+  const btnId=isR?'rsave-btn':'ssave-btn';
+  const btn=document.getElementById(btnId);
+  const orig=btn.textContent;btn.textContent='✅ Saved!';
+  setTimeout(()=>{btn.textContent=orig;},2000);
+}
+
+function deleteEntry(id){
+  if(!confirm('Delete this entry?'))return;
+  kb=kb.filter(e=>e.id!==id);saveKB();renderKB();
+}
+
+function renderTagFilters(){
+  const tags=[...new Set(kb.map(e=>e.tag))].filter(Boolean);
+  const c=document.getElementById('tag-filters');if(!c)return;
+  c.innerHTML=tags.map(t=>`<button class="tag-chip${activeTag===t?' active':''}" onclick="toggleTag('${t}')">${t}</button>`).join('')+`<span class="count" id="kb-count">${kb.length} entr${kb.length===1?'y':'ies'}</span>`;
+}
+function toggleTag(tag){activeTag=activeTag===tag?null:tag;renderTagFilters();renderKB();}
+
+function renderKB(){
+  renderTagFilters();
+  const listEl=document.getElementById('kb-list');if(!listEl)return;
+  const q=(document.getElementById('kbsearch')?.value||'').toLowerCase();
+  let entries=kb;
+  if(activeTag)entries=entries.filter(e=>e.tag===activeTag);
+  if(q)entries=entries.filter(e=>e.title.toLowerCase().includes(q)||e.content.toLowerCase().includes(q));
+  if(!entries.length){
+    listEl.innerHTML=`<div class="empty"><div class="icon">${kb.length?'🔍':'📭'}</div>${kb.length?'No results for this filter.':'Nothing saved yet. Research something and tap Save to KB.'}</div>`;
+    return;
+  }
+  listEl.innerHTML=entries.map(e=>{
+    const tr=e.content.length>300;
+    return`<div class="kb-card">
+      <div class="kb-card-head">
+        <div class="kb-card-title">${esc(e.title)}</div>
+        <button class="del-btn" onclick="deleteEntry(${e.id})" aria-label="Delete">×</button>
+      </div>
+      <div class="kb-card-meta">
+        <span class="badge">${esc(e.tag)}</span>
+        <span>${e.type==='research'?'🔍 Research':'📄 Summary'}</span>
+        <span>${e.date}</span>
+      </div>
+      <div class="kb-card-body${tr?' trunc':''}" id="kbody-${e.id}">${esc(e.content)}</div>
+      ${tr?`<button class="expand-btn" onclick="toggleExpand(${e.id})">Show more ↓</button>`:''}
+    </div>`;
+  }).join('');
+}
+function toggleExpand(id){
+  const b=document.getElementById('kbody-'+id);const btn=b.nextElementSibling;
+  const exp=b.classList.toggle('expanded');b.classList.toggle('trunc',!exp);
+  if(btn)btn.textContent=exp?'Show less ↑':'Show more ↓';
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+init();
+</script>
+</body>
+</html>
