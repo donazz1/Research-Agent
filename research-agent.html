@@ -28,19 +28,20 @@ button{cursor:pointer}
 #header{padding:calc(var(--safe-top) + 14px) 16px 14px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
 #header-title{font-size:17px;font-weight:600}
 #header-sub{font-size:12px;color:var(--text2);margin-top:1px}
+#header-sync{font-size:11px;color:var(--text3);margin-top:1px}
 #tab-bar{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0}
 .tab{flex:1;padding:11px 4px;font-size:13px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;transition:all 0.15s}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 #content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .pane{display:none;padding:16px 16px calc(var(--safe-bottom) + 16px)}
 .pane.active{display:block}
-#setup{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;padding-top:calc(var(--safe-top) + 32px)}
+#setup{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;padding-top:calc(var(--safe-top) + 32px);overflow-y:auto}
 #setup h1{font-size:26px;font-weight:700;margin-bottom:8px}
-#setup p{color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:28px}
-#setup .step{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;font-size:14px;color:var(--text2);line-height:1.5}
+#setup p{color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:20px}
+#setup .step{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;font-size:14px;color:var(--text2);line-height:1.5}
 #setup .step strong{color:var(--text)}
-#api-key-input{width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:14px;font-size:14px;color:var(--text);margin:20px 0 12px;font-family:monospace}
-#api-key-input::placeholder{color:var(--text3);font-family:-apple-system,sans-serif}
+.setup-input{width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:14px;font-size:14px;color:var(--text);margin-bottom:10px;font-family:monospace}
+.setup-input::placeholder{color:var(--text3);font-family:-apple-system,sans-serif}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 18px;height:44px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;transition:opacity 0.15s;width:100%}
 .btn:active{opacity:0.7}
 .btn:disabled{opacity:0.35}
@@ -86,7 +87,6 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .gap{height:12px}
 .row{display:flex;gap:8px;align-items:flex-start}
 .attach-preview{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;border:0.5px solid var(--border)}
-.attach-preview img{width:44px;height:44px;border-radius:6px;object-fit:cover}
 .attach-info{flex:1;min-width:0}
 .attach-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .attach-type{font-size:11px;color:var(--text3);margin-top:2px}
@@ -94,7 +94,6 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .url-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .url-row .input{flex:1;height:44px;padding:0 12px}
 .paste-btn{height:44px;width:44px;flex-shrink:0;font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm)}
-/* attach dropdown */
 .attach-wrap{position:relative;flex-shrink:0}
 .attach-toggle{width:44px;height:44px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:22px;display:flex;align-items:center;justify-content:center}
 .attach-menu{position:absolute;bottom:52px;right:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;width:158px;z-index:50;display:none}
@@ -103,6 +102,9 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .attach-menu-item:last-child{border-bottom:none}
 .attach-menu-item:active{background:var(--bg3)}
 .attach-menu-item span{font-size:18px}
+.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:4px}
+.sync-dot.syncing{background:#f39c12;animation:pulse 1s infinite}
+.sync-dot.error{background:var(--danger)}
 </style>
 </head>
 <body>
@@ -110,19 +112,24 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 <div id="setup">
   <div style="font-size:40px;margin-bottom:16px">🧠</div>
   <h1>Research Agent</h1>
-  <p>Your personal AI research assistant. Paste your Anthropic API key to get started.</p>
-  <div class="step"><strong>Get your key:</strong> Go to console.anthropic.com → API Keys → Create Key. Costs ~$0.01–0.03 per search.</div>
-  <input class="input" id="api-key-input" type="password" placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" spellcheck="false"/>
-  <button class="btn primary" onclick="saveKey()">Save &amp; Start →</button>
-  <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Your key is saved only on this device and sent only to Anthropic's API.</p>
+  <p>Enter your keys to get started. Both are saved only on this device.</p>
+  <div class="step"><strong>Anthropic API key</strong> — from console.anthropic.com → API Keys</div>
+  <input class="setup-input" id="setup-anthropic" type="password" placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+  <div class="step"><strong>Firebase Project ID</strong> — your Firestore project ID for cloud sync across devices</div>
+  <input class="setup-input" id="setup-firebase" type="text" placeholder="research-agent-83fe8" autocomplete="off" autocorrect="off" spellcheck="false"/>
+  <div class="step"><strong>Firebase API Key</strong> — from your Firebase project settings</div>
+  <input class="setup-input" id="setup-fbkey" type="password" placeholder="AIzaSy…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+  <button class="btn primary" onclick="saveSetup()" style="margin-top:8px">Save &amp; Start →</button>
+  <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Your knowledge base syncs automatically across all your devices via Firebase.</p>
 </div>
 
 <div id="app" style="display:none">
   <div id="header">
     <div style="font-size:22px">🧠</div>
-    <div>
+    <div style="flex:1">
       <div id="header-title">Research Agent</div>
-      <div id="header-sub">0 saved entries</div>
+      <div id="header-sub">Loading…</div>
+      <div id="header-sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Connecting…</span></div>
     </div>
   </div>
 
@@ -143,11 +150,8 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
         <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearResearch()">✕</button>
       </div>
       <div id="r-attach-preview" style="display:none" class="attach-preview">
-        <img id="r-attach-thumb" src="" alt="" style="display:none"/>
-        <div class="attach-info">
-          <div class="attach-name" id="r-attach-name"></div>
-          <div class="attach-type" id="r-attach-type"></div>
-        </div>
+        <img id="r-attach-thumb" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
+        <div class="attach-info"><div class="attach-name" id="r-attach-name"></div><div class="attach-type" id="r-attach-type"></div></div>
         <button class="attach-remove" onclick="removeAttach('r')">×</button>
       </div>
       <div class="gap"></div>
@@ -162,7 +166,7 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div style="display:flex;gap:8px">
         <button class="btn primary" onclick="doResearch()" id="rbtn" style="flex:1">🔍 Research</button>
         <div class="attach-wrap">
-          <button class="attach-toggle" onclick="toggleMenu('r-menu')" aria-label="Add attachment">＋</button>
+          <button class="attach-toggle" onclick="toggleMenu('r-menu')">＋</button>
           <div class="attach-menu" id="r-menu">
             <button class="attach-menu-item" onclick="triggerAttach('r','camera')"><span>📷</span> Camera</button>
             <button class="attach-menu-item" onclick="triggerAttach('r','photos')"><span>🖼️</span> Photos</button>
@@ -196,7 +200,7 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div class="section-label">URL</div>
       <div class="url-row">
         <input class="input" id="surl" placeholder="https://… paste any link" type="url"/>
-        <button class="paste-btn" onclick="pasteClipboard()" title="Paste from clipboard">📋</button>
+        <button class="paste-btn" onclick="pasteClipboard()">📋</button>
         <button style="width:44px;height:44px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="document.getElementById('surl').value=''">✕</button>
       </div>
       <div class="section-label">Or paste text</div>
@@ -205,11 +209,8 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
         <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearSummarize()">✕</button>
       </div>
       <div id="s-attach-preview" style="display:none" class="attach-preview">
-        <img id="s-attach-thumb" src="" alt="" style="display:none"/>
-        <div class="attach-info">
-          <div class="attach-name" id="s-attach-name"></div>
-          <div class="attach-type" id="s-attach-type"></div>
-        </div>
+        <img id="s-attach-thumb" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
+        <div class="attach-info"><div class="attach-name" id="s-attach-name"></div><div class="attach-type" id="s-attach-type"></div></div>
         <button class="attach-remove" onclick="removeAttach('s')">×</button>
       </div>
       <div class="gap"></div>
@@ -225,7 +226,7 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div style="display:flex;gap:8px">
         <button class="btn primary" onclick="doSummarize()" id="sbtn" style="flex:1">📄 Summarize</button>
         <div class="attach-wrap">
-          <button class="attach-toggle" onclick="toggleMenu('s-menu')" aria-label="Add attachment">＋</button>
+          <button class="attach-toggle" onclick="toggleMenu('s-menu')">＋</button>
           <div class="attach-menu" id="s-menu">
             <button class="attach-menu-item" onclick="triggerAttach('s','camera')"><span>📷</span> Camera</button>
             <button class="attach-menu-item" onclick="triggerAttach('s','photos')"><span>🖼️</span> Photos</button>
@@ -263,14 +264,18 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 
     <!-- SETTINGS -->
     <div class="pane" id="pane-settings">
-      <div class="section-label">API key</div>
+      <div class="section-label">API keys</div>
       <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
         <div class="settings-row" style="padding-top:0">
           <div><div class="settings-label">Anthropic API key</div><div class="settings-sub" id="key-status">Checking…</div></div>
-          <button class="btn small" onclick="changeKey()">Change</button>
+          <button class="btn small" onclick="changeAnthropicKey()">Change</button>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Firebase sync</div><div class="settings-sub" id="fb-status">Checking…</div></div>
+          <button class="btn small" onclick="changeFBKey()">Change</button>
         </div>
         <div class="settings-row" style="padding-bottom:0">
-          <div><div class="settings-label">Pricing</div><div class="settings-sub">~$0.01–0.03 per query</div></div>
+          <div><div class="settings-label">Pricing</div><div class="settings-sub">~$0.01–0.05 per query</div></div>
           <button class="btn small" onclick="openLink('https://console.anthropic.com')">Console ↗</button>
         </div>
       </div>
@@ -280,114 +285,135 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
           <div><div class="settings-label">Saved entries</div><div class="settings-sub" id="settings-kb-count">0 entries</div></div>
         </div>
         <div class="settings-row" style="padding-bottom:0">
-          <div><div class="settings-label">Storage</div><div class="settings-sub">Saved on this device only</div></div>
+          <div><div class="settings-label">Storage</div><div class="settings-sub">Synced via Firebase across all devices</div></div>
         </div>
       </div>
       <div class="section-label">Danger zone</div>
       <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
         <div class="settings-row" style="padding-top:0;padding-bottom:0">
-          <div><div class="settings-label">Clear all saved data</div><div class="settings-sub">Deletes KB and API key from this device</div></div>
+          <div><div class="settings-label">Clear all local data</div><div class="settings-sub">Removes keys from this device only</div></div>
           <button class="btn small danger" onclick="clearAll()">Clear</button>
         </div>
       </div>
       <div style="height:40px"></div>
     </div>
-
   </div>
 </div>
 
-<script>
-let kb=[],activeTag=null,lastR='',lastS='';
-let rAttach=null,sAttach=null;
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-function getKey(){return localStorage.getItem('ra-api-key')||'';}
-function saveKey(){
-  const k=document.getElementById('api-key-input').value.trim();
-  if(!k||!k.startsWith('sk-ant')){alert('Key should start with sk-ant-api03-');return;}
-  localStorage.setItem('ra-api-key',k);init();
+let db=null,kb=[],activeTag=null,lastR='',lastS='',rAttach=null,sAttach=null;
+
+function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'';}
+function getFBProjectId(){return localStorage.getItem('ra-fb-project')||'';}
+function getFBApiKey(){return localStorage.getItem('ra-fb-apikey')||'';}
+
+function saveSetup(){
+  const ak=document.getElementById('setup-anthropic').value.trim();
+  const fp=document.getElementById('setup-firebase').value.trim();
+  const fk=document.getElementById('setup-fbkey').value.trim();
+  if(!ak||!ak.startsWith('sk-ant')){alert('Anthropic key should start with sk-ant-api03-');return;}
+  if(!fp){alert('Please enter your Firebase Project ID');return;}
+  if(!fk||!fk.startsWith('AIza')){alert('Firebase API key should start with AIza');return;}
+  localStorage.setItem('ra-api-key',ak);
+  localStorage.setItem('ra-fb-project',fp);
+  localStorage.setItem('ra-fb-apikey',fk);
+  init();
 }
-function changeKey(){
-  const k=prompt('Paste your new API key:');
+
+function changeAnthropicKey(){
+  const k=prompt('Paste your new Anthropic API key:');
   if(k&&k.startsWith('sk-ant')){localStorage.setItem('ra-api-key',k);updateKeyStatus();}
 }
-function clearAll(){if(!confirm('Delete everything?'))return;localStorage.clear();location.reload();}
-function updateKeyStatus(){
-  const k=getKey();
-  const el=document.getElementById('key-status');
-  if(el)el.textContent=k?'Connected — ends in …'+k.slice(-4):'Not set';
+function changeFBKey(){
+  const p=prompt('Firebase Project ID:');
+  const k=prompt('Firebase API Key:');
+  if(p&&k){localStorage.setItem('ra-fb-project',p);localStorage.setItem('ra-fb-apikey',k);location.reload();}
 }
+function clearAll(){if(!confirm('Remove all keys from this device?'))return;localStorage.clear();location.reload();}
 function openLink(u){window.open(u,'_blank');}
 
-function init(){
-  const k=getKey();
-  document.getElementById('setup').style.display=k?'none':'flex';
-  document.getElementById('app').style.display=k?'flex':'none';
-  if(k){loadKB();updateKeyStatus();}
-  document.addEventListener('click',function(e){
-    if(!e.target.closest('.attach-wrap'))closeAllMenus();
-  });
+function updateKeyStatus(){
+  const k=getAnthropicKey();
+  const el=document.getElementById('key-status');
+  if(el)el.textContent=k?'Connected — ends in …'+k.slice(-4):'Not set';
+  const fb=document.getElementById('fb-status');
+  if(fb)fb.textContent=db?'Synced via Firebase ✓':'Not connected';
 }
 
-function toggleMenu(id){
-  const menu=document.getElementById(id);
-  const wasOpen=menu.classList.contains('open');
-  closeAllMenus();
-  if(!wasOpen)menu.classList.add('open');
-}
-function closeAllMenus(){
-  document.querySelectorAll('.attach-menu').forEach(m=>m.classList.remove('open'));
+function setSyncStatus(state,text){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-text');
+  if(!dot||!txt)return;
+  dot.className='sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');
+  txt.textContent=text;
 }
 
-function triggerAttach(tab,type){
-  closeAllMenus();
-  document.getElementById(tab+'-'+type+'-input').click();
-}
-function removeAttach(tab){
-  if(tab==='r')rAttach=null;else sAttach=null;
-  document.getElementById(tab+'-attach-preview').style.display='none';
-  ['camera','photos','file'].forEach(t=>{
-    const el=document.getElementById(tab+'-'+t+'-input');
-    if(el)el.value='';
-  });
-}
-function handleAttach(event,tab){
-  const file=event.target.files[0];if(!file)return;
-  const isImage=file.type.startsWith('image/');
-  const isPDF=file.type==='application/pdf';
-  if(!isImage&&!isPDF){alert('Please attach an image or PDF.');return;}
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const base64=e.target.result.split(',')[1];
-    const attach={base64,mediaType:file.type,name:file.name,isImage};
-    if(tab==='r')rAttach=attach;else sAttach=attach;
-    const preview=document.getElementById(tab+'-attach-preview');
-    const thumb=document.getElementById(tab+'-attach-thumb');
-    if(isImage){thumb.src=e.target.result;thumb.style.display='block';}
-    else{thumb.style.display='none';}
-    document.getElementById(tab+'-attach-name').textContent=file.name;
-    document.getElementById(tab+'-attach-type').textContent=isImage?'Image':'PDF document';
-    preview.style.display='flex';
-  };
-  reader.readAsDataURL(file);
-}
-
-function buildContent(text,attach){
-  if(!attach)return text;
-  const parts=[];
-  if(attach.isImage){
-    parts.push({type:'image',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
-  }else{
-    parts.push({type:'document',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
+async function initFirebase(){
+  const projectId=getFBProjectId();
+  const apiKey=getFBApiKey();
+  if(!projectId||!apiKey)return;
+  try{
+    setSyncStatus('syncing','Connecting…');
+    const app=initializeApp({
+      apiKey,
+      authDomain:`${projectId}.firebaseapp.com`,
+      projectId,
+      storageBucket:`${projectId}.firebasestorage.app`,
+      messagingSenderId:'',
+      appId:''
+    });
+    db=getFirestore(app);
+    setSyncStatus('ok','Synced');
+    updateKeyStatus();
+  }catch(e){
+    setSyncStatus('error','Sync error');
+    console.error('Firebase init error:',e);
   }
-  parts.push({type:'text',text});
-  return parts;
 }
 
-function loadKB(){
-  try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}
-  updateKBCount();
+async function loadKB(){
+  if(!db){
+    try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}
+    updateKBCount();
+    renderKB();
+    return;
+  }
+  try{
+    setSyncStatus('syncing','Loading…');
+    const q=query(collection(db,'knowledge_base'),orderBy('id','desc'));
+    const snap=await getDocs(q);
+    kb=snap.docs.map(d=>({...d.data(),_docId:d.id}));
+    setSyncStatus('ok','Synced');
+    updateKBCount();
+    renderKB();
+  }catch(e){
+    setSyncStatus('error','Load error');
+    try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e2){kb=[];}
+    updateKBCount();
+    renderKB();
+  }
 }
-function saveKB(){localStorage.setItem('ra-kb',JSON.stringify(kb));updateKBCount();}
+
+async function saveEntryToFirebase(entry){
+  if(!db)return null;
+  try{
+    const ref=await addDoc(collection(db,'knowledge_base'),entry);
+    return ref.id;
+  }catch(e){
+    console.error('Save error:',e);
+    return null;
+  }
+}
+
+async function deleteEntryFromFirebase(docId){
+  if(!db||!docId)return;
+  try{await deleteDoc(doc(db,'knowledge_base',docId));}
+  catch(e){console.error('Delete error:',e);}
+}
+
 function updateKBCount(){
   const n=kb.length,s=`${n} saved entr${n===1?'y':'ies'}`;
   const h=document.getElementById('header-sub');if(h)h.textContent=s;
@@ -429,12 +455,62 @@ async function pasteClipboard(){
   }
 }
 
+function toggleMenu(id){
+  const menu=document.getElementById(id);
+  const wasOpen=menu.classList.contains('open');
+  closeAllMenus();
+  if(!wasOpen)menu.classList.add('open');
+}
+function closeAllMenus(){
+  document.querySelectorAll('.attach-menu').forEach(m=>m.classList.remove('open'));
+}
+function triggerAttach(tab,type){
+  closeAllMenus();
+  document.getElementById(tab+'-'+type+'-input').click();
+}
+function removeAttach(tab){
+  if(tab==='r')rAttach=null;else sAttach=null;
+  document.getElementById(tab+'-attach-preview').style.display='none';
+  ['camera','photos','file'].forEach(t=>{
+    const el=document.getElementById(tab+'-'+t+'-input');if(el)el.value='';
+  });
+}
+function handleAttach(event,tab){
+  const file=event.target.files[0];if(!file)return;
+  const isImage=file.type.startsWith('image/');
+  const isPDF=file.type==='application/pdf';
+  if(!isImage&&!isPDF){alert('Please attach an image or PDF.');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const base64=e.target.result.split(',')[1];
+    const attach={base64,mediaType:file.type,name:file.name,isImage};
+    if(tab==='r')rAttach=attach;else sAttach=attach;
+    const preview=document.getElementById(tab+'-attach-preview');
+    const thumb=document.getElementById(tab+'-attach-thumb');
+    if(isImage){thumb.src=e.target.result;thumb.style.display='block';}
+    else{thumb.style.display='none';}
+    document.getElementById(tab+'-attach-name').textContent=file.name;
+    document.getElementById(tab+'-attach-type').textContent=isImage?'Image':'PDF document';
+    preview.style.display='flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function buildContent(text,attach){
+  if(!attach)return text;
+  const parts=[];
+  if(attach.isImage){parts.push({type:'image',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});}
+  else{parts.push({type:'document',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});}
+  parts.push({type:'text',text});
+  return parts;
+}
+
 async function callAPI(system,userContent,onChunk){
-  const key=getKey();
+  const key=getAnthropicKey();
   const resp=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,stream:true,system,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:userContent}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,stream:true,system,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:userContent}]})
   });
   if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API error '+resp.status);}
   const reader=resp.body.getReader();const dec=new TextDecoder();let buf='',full='';
@@ -504,27 +580,48 @@ async function doSummarize(){
   status.style.display='none';btn.disabled=false;
 }
 
-function saveToKB(src){
+async function saveToKB(src){
   const isR=src==='r';
   const title=(document.getElementById(isR?'rsave-title':'ssave-title').value.trim()||'Untitled');
   const tag=document.getElementById(isR?'rsave-tag':'ssave-tag').value;
   const content=isR?lastR:lastS;
   if(!content)return;
-  kb.unshift({id:Date.now(),title,tag,content,date:new Date().toLocaleDateString('en-CA'),type:isR?'research':'summary'});
-  saveKB();
+  const entry={id:Date.now(),title,tag,content,date:new Date().toLocaleDateString('en-CA'),type:isR?'research':'summary'};
+  setSyncStatus('syncing','Saving…');
+  const docId=await saveEntryToFirebase(entry);
+  if(docId)entry._docId=docId;
+  else{
+    const local=JSON.parse(localStorage.getItem('ra-kb')||'[]');
+    local.unshift(entry);
+    localStorage.setItem('ra-kb',JSON.stringify(local));
+  }
+  kb.unshift(entry);
+  updateKBCount();
+  setSyncStatus('ok','Saved ✓');
   const btnEl=document.getElementById(isR?'rsave-btn':'ssave-btn');
   const orig=btnEl.textContent;btnEl.textContent='✅ Saved!';
-  setTimeout(()=>{btnEl.textContent=orig;},2000);
+  setTimeout(()=>{btnEl.textContent=orig;setSyncStatus('ok','Synced');},2000);
 }
 
-function deleteEntry(id){if(!confirm('Delete this entry?'))return;kb=kb.filter(e=>e.id!==id);saveKB();renderKB();}
+window.saveToKB=saveToKB;
+
+async function deleteEntry(id){
+  if(!confirm('Delete this entry?'))return;
+  const entry=kb.find(e=>e.id===id);
+  if(entry?._docId)await deleteEntryFromFirebase(entry._docId);
+  kb=kb.filter(e=>e.id!==id);
+  updateKBCount();
+  renderKB();
+  setSyncStatus('ok','Synced');
+}
+window.deleteEntry=deleteEntry;
 
 function renderTagFilters(){
   const tags=[...new Set(kb.map(e=>e.tag))].filter(Boolean);
   const c=document.getElementById('tag-filters');if(!c)return;
   c.innerHTML=tags.map(t=>`<button class="tag-chip${activeTag===t?' active':''}" onclick="toggleTag('${t}')">${t}</button>`).join('')+`<span class="count">${kb.length} entr${kb.length===1?'y':'ies'}</span>`;
 }
-function toggleTag(tag){activeTag=activeTag===tag?null:tag;renderTagFilters();renderKB();}
+window.toggleTag=function(tag){activeTag=activeTag===tag?null:tag;renderTagFilters();renderKB();};
 
 function renderKB(){
   renderTagFilters();
@@ -542,12 +639,47 @@ function renderKB(){
     return`<div class="kb-card"><div class="kb-card-head"><div class="kb-card-title">${esc(e.title)}</div><button class="del-btn" onclick="deleteEntry(${e.id})">×</button></div><div class="kb-card-meta"><span class="badge">${esc(e.tag)}</span><span>${e.type==='research'?'🔍':'📄'} ${e.date}</span></div><div class="kb-card-body${tr?' trunc':''}" id="kbody-${e.id}">${esc(e.content)}</div>${tr?`<button class="expand-btn" onclick="toggleExpand(${e.id})">Show more ↓</button>`:''}</div>`;
   }).join('');
 }
-function toggleExpand(id){
+window.toggleExpand=function(id){
   const b=document.getElementById('kbody-'+id);const btn=b.nextElementSibling;
   const exp=b.classList.toggle('expanded');b.classList.toggle('trunc',!exp);
   if(btn)btn.textContent=exp?'Show less ↑':'Show more ↓';
-}
+};
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// expose globals needed by inline handlers
+window.saveSetup=saveSetup;
+window.changeAnthropicKey=changeAnthropicKey;
+window.changeFBKey=changeFBKey;
+window.clearAll=clearAll;
+window.openLink=openLink;
+window.switchTab=switchTab;
+window.clearResearch=clearResearch;
+window.clearSummarize=clearSummarize;
+window.pasteClipboard=pasteClipboard;
+window.toggleMenu=toggleMenu;
+window.triggerAttach=triggerAttach;
+window.removeAttach=removeAttach;
+window.handleAttach=handleAttach;
+window.doResearch=doResearch;
+window.doSummarize=doSummarize;
+window.renderKB=renderKB;
+
+async function init(){
+  const ak=getAnthropicKey();
+  const fp=getFBProjectId();
+  const fk=getFBApiKey();
+  const hasSetup=ak&&fp&&fk;
+  document.getElementById('setup').style.display=hasSetup?'none':'flex';
+  document.getElementById('app').style.display=hasSetup?'flex':'none';
+  if(hasSetup){
+    await initFirebase();
+    await loadKB();
+    updateKeyStatus();
+  }
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.attach-wrap'))closeAllMenus();
+  });
+}
 
 init();
 </script>
