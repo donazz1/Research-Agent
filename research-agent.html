@@ -165,7 +165,7 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div class="section-label">Research question</div>
       <div class="row">
         <textarea class="input" id="rq" placeholder="What do you want to research?…" rows="3" style="flex:1"></textarea>
-        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearResearch()">✕</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--accent);font-size:20px;flex-shrink:0" onclick="toggleMic('rq')" id="rq-mic">🎤</button><button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearResearch()">✕</button>
       </div>
       <div id="r-attach-preview" style="display:none" class="attach-preview">
         <img id="r-attach-thumb" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
@@ -226,12 +226,13 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div class="url-row">
         <input class="input" id="surl" placeholder="https://… paste any link" type="url"/>
         <button class="paste-btn" onclick="pasteClipboard()">📋</button>
+        <button class="paste-btn" onclick="toggleMic('surl')" id="surl-mic" style="color:var(--accent)">🎤</button>
         <button style="width:44px;height:44px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="document.getElementById('surl').value=''">✕</button>
       </div>
       <div class="section-label">Or paste text</div>
       <div class="row">
         <textarea class="input" id="stext" placeholder="Paste abstract, article, or any text…" rows="4" style="flex:1"></textarea>
-        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearSummarize()">✕</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--accent);font-size:20px;flex-shrink:0" onclick="toggleMic('stext')" id="stext-mic">🎤</button><button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearSummarize()">✕</button>
       </div>
       <div id="s-attach-preview" style="display:none" class="attach-preview">
         <img id="s-attach-thumb" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
@@ -821,6 +822,59 @@ async function init(){
   document.addEventListener('click',function(e){
     if(!e.target.closest('.attach-wrap'))closeAllMenus();
   });
+}
+
+
+// ── VOICE DICTATION ────────────────────────────────────
+let micRecognition=null,activeMicField=null;
+
+function toggleMic(fieldId){
+  if(activeMicField===fieldId){
+    stopMic();return;
+  }
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    alert('Voice dictation is not supported in this browser. Try Safari on iPhone or Chrome on MacBook.');
+    return;
+  }
+  stopMic();
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  micRecognition=new SpeechRecognition();
+  micRecognition.continuous=true;
+  micRecognition.interimResults=true;
+  micRecognition.lang='en-US';
+  const field=document.getElementById(fieldId);
+  const btn=document.getElementById(fieldId+'-mic');
+  let existingText=field.value;
+  if(existingText&&!existingText.endsWith(' '))existingText+=' ';
+  micRecognition.onstart=function(){
+    activeMicField=fieldId;
+    if(btn){btn.textContent='⏹';btn.style.color='var(--danger)';}
+  };
+  micRecognition.onresult=function(e){
+    let interim='';let final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    field.value=existingText+final+(interim?interim:'');
+    if(final)existingText=field.value;
+  };
+  micRecognition.onerror=function(e){
+    if(e.error!=='aborted')alert('Mic error: '+e.error+'. Make sure microphone access is allowed.');
+    stopMic();
+  };
+  micRecognition.onend=function(){stopMic();};
+  micRecognition.start();
+}
+window.toggleMic=toggleMic;
+
+function stopMic(){
+  if(micRecognition){try{micRecognition.stop();}catch(e){}micRecognition=null;}
+  if(activeMicField){
+    const btn=document.getElementById(activeMicField+'-mic');
+    if(btn){btn.textContent='🎤';btn.style.color='var(--accent)';}
+  }
+  activeMicField=null;
 }
 
 init();
