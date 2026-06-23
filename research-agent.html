@@ -15,7 +15,7 @@
   --text:#f0f0f0;--text2:#a0a0a0;--text3:#666;
   --border:#333;--border2:#444;
   --accent:#6c63ff;--accent2:#5a52e0;
-  --success:#2ecc71;--danger:#e74c3c;
+  --success:#2ecc71;--danger:#e74c3c;--warn:#f39c12;
   --radius:12px;--radius-sm:8px;
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
@@ -49,12 +49,19 @@ button{cursor:pointer}
 .btn.primary:active{background:var(--accent2)}
 .btn.small{height:36px;font-size:13px;padding:0 14px;width:auto}
 .btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.success{border-color:var(--success);color:var(--success)}
 .input{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;color:var(--text);outline:none;-webkit-appearance:none}
 .input:focus{border-color:var(--accent)}
 .input::placeholder{color:var(--text3)}
 textarea.input{resize:none;line-height:1.6}
 select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
-.result{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;margin-top:12px}
+/* result area */
+.result-wrap{margin-top:12px;display:none}
+.result-actions{display:flex;gap:8px;margin-bottom:8px}
+.result-action-btn{height:36px;padding:0 14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.result-action-btn:active{opacity:0.7}
+.result-action-btn.speaking{border-color:var(--accent);color:var(--accent)}
+.result{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word}
 .result.streaming{border-left:2px solid var(--accent)}
 .status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:8px 0}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.4s infinite;flex-shrink:0}
@@ -103,8 +110,19 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .attach-menu-item:active{background:var(--bg3)}
 .attach-menu-item span{font-size:18px}
 .sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:4px}
-.sync-dot.syncing{background:#f39c12;animation:pulse 1s infinite}
+.sync-dot.syncing{background:var(--warn);animation:pulse 1s infinite}
 .sync-dot.error{background:var(--danger)}
+/* error banner */
+.error-banner{background:#2d1515;border:0.5px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#ff8080;margin-top:8px;line-height:1.5;display:none}
+/* print styles for PDF */
+@media print{
+  #app>*:not(#content){display:none!important}
+  #tab-bar{display:none!important}
+  #content .pane:not(.active){display:none!important}
+  .result-actions,.save-row,button{display:none!important}
+  body{background:#fff;color:#000}
+  .result{background:#fff;color:#000;border:none;padding:0;font-size:12pt;line-height:1.8}
+}
 </style>
 </head>
 <body>
@@ -112,15 +130,15 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 <div id="setup">
   <div style="font-size:40px;margin-bottom:16px">🧠</div>
   <h1>Research Agent</h1>
-  <p>Enter your keys to get started. Both are saved only on this device.</p>
+  <p>Enter your keys once to get started. Everything syncs across your devices.</p>
   <div class="step"><strong>Anthropic API key</strong> — from console.anthropic.com → API Keys</div>
   <input class="setup-input" id="setup-anthropic" type="password" placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" spellcheck="false"/>
-  <div class="step"><strong>Firebase Project ID</strong> — your Firestore project ID for cloud sync across devices</div>
+  <div class="step"><strong>Firebase Project ID</strong> — for cloud sync across all your devices</div>
   <input class="setup-input" id="setup-firebase" type="text" placeholder="research-agent-83fe8" autocomplete="off" autocorrect="off" spellcheck="false"/>
-  <div class="step"><strong>Firebase API Key</strong> — from your Firebase project settings</div>
+  <div class="step"><strong>Firebase API Key</strong> — from Firebase project settings</div>
   <input class="setup-input" id="setup-fbkey" type="password" placeholder="AIzaSy…" autocomplete="off" autocorrect="off" spellcheck="false"/>
   <button class="btn primary" onclick="saveSetup()" style="margin-top:8px">Save &amp; Start →</button>
-  <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Your knowledge base syncs automatically across all your devices via Firebase.</p>
+  <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Keys saved only on this device. Knowledge base syncs via Firebase.</p>
 </div>
 
 <div id="app" style="display:none">
@@ -178,7 +196,14 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <input type="file" id="r-photos-input" accept="image/*" style="display:none" onchange="handleAttach(event,'r')"/>
       <input type="file" id="r-file-input" accept="image/*,application/pdf" style="display:none" onchange="handleAttach(event,'r')"/>
       <div id="rstatus" class="status" style="display:none"><span class="dot"></span><span id="rstatus-text">Searching…</span></div>
-      <div id="rresult" class="result" style="display:none"></div>
+      <div id="r-error" class="error-banner"></div>
+      <div class="result-wrap" id="r-result-wrap">
+        <div class="result-actions">
+          <button class="result-action-btn" id="r-speak-btn" onclick="toggleSpeak('r')">▶ Read aloud</button>
+          <button class="result-action-btn" onclick="exportPDF('r')">📄 Save as PDF</button>
+        </div>
+        <div class="result" id="rresult"></div>
+      </div>
       <div id="rsave" class="save-row" style="display:none">
         <label>Save to knowledge base</label>
         <input class="input" id="rsave-title" placeholder="Title…" style="height:44px"/>
@@ -238,7 +263,14 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <input type="file" id="s-photos-input" accept="image/*" style="display:none" onchange="handleAttach(event,'s')"/>
       <input type="file" id="s-file-input" accept="image/*,application/pdf" style="display:none" onchange="handleAttach(event,'s')"/>
       <div id="sstatus" class="status" style="display:none"><span class="dot"></span><span id="sstatus-text">Processing…</span></div>
-      <div id="sresult" class="result" style="display:none"></div>
+      <div id="s-error" class="error-banner"></div>
+      <div class="result-wrap" id="s-result-wrap">
+        <div class="result-actions">
+          <button class="result-action-btn" id="s-speak-btn" onclick="toggleSpeak('s')">▶ Read aloud</button>
+          <button class="result-action-btn" onclick="exportPDF('s')">📄 Save as PDF</button>
+        </div>
+        <div class="result" id="sresult"></div>
+      </div>
       <div id="ssave" class="save-row" style="display:none">
         <label>Save to knowledge base</label>
         <input class="input" id="ssave-title" placeholder="Title…" style="height:44px"/>
@@ -291,7 +323,7 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div class="section-label">Danger zone</div>
       <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
         <div class="settings-row" style="padding-top:0;padding-bottom:0">
-          <div><div class="settings-label">Clear all local data</div><div class="settings-sub">Removes keys from this device only</div></div>
+          <div><div class="settings-label">Clear local data</div><div class="settings-sub">Removes keys from this device only</div></div>
           <button class="btn small danger" onclick="clearAll()">Clear</button>
         </div>
       </div>
@@ -305,7 +337,9 @@ import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-ap
 import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 let db=null,kb=[],activeTag=null,lastR='',lastS='',rAttach=null,sAttach=null;
+let currentUtterance=null,speakingTab=null;
 
+// ── SETUP ──────────────────────────────────────────────
 function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'';}
 function getFBProjectId(){return localStorage.getItem('ra-fb-project')||'';}
 function getFBApiKey(){return localStorage.getItem('ra-fb-apikey')||'';}
@@ -322,25 +356,33 @@ function saveSetup(){
   localStorage.setItem('ra-fb-apikey',fk);
   init();
 }
+window.saveSetup=saveSetup;
 
 function changeAnthropicKey(){
   const k=prompt('Paste your new Anthropic API key:');
   if(k&&k.startsWith('sk-ant')){localStorage.setItem('ra-api-key',k);updateKeyStatus();}
 }
+window.changeAnthropicKey=changeAnthropicKey;
+
 function changeFBKey(){
   const p=prompt('Firebase Project ID:');
   const k=prompt('Firebase API Key:');
   if(p&&k){localStorage.setItem('ra-fb-project',p);localStorage.setItem('ra-fb-apikey',k);location.reload();}
 }
+window.changeFBKey=changeFBKey;
+
 function clearAll(){if(!confirm('Remove all keys from this device?'))return;localStorage.clear();location.reload();}
+window.clearAll=clearAll;
+
 function openLink(u){window.open(u,'_blank');}
+window.openLink=openLink;
 
 function updateKeyStatus(){
   const k=getAnthropicKey();
   const el=document.getElementById('key-status');
   if(el)el.textContent=k?'Connected — ends in …'+k.slice(-4):'Not set';
   const fb=document.getElementById('fb-status');
-  if(fb)fb.textContent=db?'Synced via Firebase ✓':'Not connected';
+  if(fb)fb.textContent=db?'Synced ✓ — '+getFBProjectId():'Not connected';
 }
 
 function setSyncStatus(state,text){
@@ -351,6 +393,7 @@ function setSyncStatus(state,text){
   txt.textContent=text;
 }
 
+// ── FIREBASE ───────────────────────────────────────────
 async function initFirebase(){
   const projectId=getFBProjectId();
   const apiKey=getFBApiKey();
@@ -362,24 +405,21 @@ async function initFirebase(){
       authDomain:`${projectId}.firebaseapp.com`,
       projectId,
       storageBucket:`${projectId}.firebasestorage.app`,
-      messagingSenderId:'',
-      appId:''
+      messagingSenderId:'',appId:''
     });
     db=getFirestore(app);
     setSyncStatus('ok','Synced');
     updateKeyStatus();
   }catch(e){
     setSyncStatus('error','Sync error');
-    console.error('Firebase init error:',e);
+    console.error('Firebase:',e);
   }
 }
 
 async function loadKB(){
   if(!db){
     try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}
-    updateKBCount();
-    renderKB();
-    return;
+    updateKBCount();renderKB();return;
   }
   try{
     setSyncStatus('syncing','Loading…');
@@ -387,25 +427,18 @@ async function loadKB(){
     const snap=await getDocs(q);
     kb=snap.docs.map(d=>({...d.data(),_docId:d.id}));
     setSyncStatus('ok','Synced');
-    updateKBCount();
-    renderKB();
+    updateKBCount();renderKB();
   }catch(e){
     setSyncStatus('error','Load error');
     try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e2){kb=[];}
-    updateKBCount();
-    renderKB();
+    updateKBCount();renderKB();
   }
 }
 
 async function saveEntryToFirebase(entry){
   if(!db)return null;
-  try{
-    const ref=await addDoc(collection(db,'knowledge_base'),entry);
-    return ref.id;
-  }catch(e){
-    console.error('Save error:',e);
-    return null;
-  }
+  try{const ref=await addDoc(collection(db,'knowledge_base'),entry);return ref.id;}
+  catch(e){console.error('Save error:',e);return null;}
 }
 
 async function deleteEntryFromFirebase(docId){
@@ -420,31 +453,42 @@ function updateKBCount(){
   const sc=document.getElementById('settings-kb-count');if(sc)sc.textContent=s;
 }
 
+// ── TABS ───────────────────────────────────────────────
 function switchTab(t){
-  closeAllMenus();
+  closeAllMenus();stopSpeaking();
   ['research','summarize','kb','settings'].forEach(id=>{
     document.getElementById('pane-'+id).classList.toggle('active',id===t);
     document.getElementById('tab-'+id).classList.toggle('active',id===t);
   });
   if(t==='kb')renderKB();
 }
+window.switchTab=switchTab;
 
+// ── CLEAR ──────────────────────────────────────────────
 function clearResearch(){
+  stopSpeaking();
   document.getElementById('rq').value='';
-  document.getElementById('rresult').style.display='none';
+  document.getElementById('r-result-wrap').style.display='none';
   document.getElementById('rsave').style.display='none';
   document.getElementById('rstatus').style.display='none';
+  document.getElementById('r-error').style.display='none';
   removeAttach('r');lastR='';
 }
+window.clearResearch=clearResearch;
+
 function clearSummarize(){
+  stopSpeaking();
   document.getElementById('stext').value='';
   document.getElementById('surl').value='';
-  document.getElementById('sresult').style.display='none';
+  document.getElementById('s-result-wrap').style.display='none';
   document.getElementById('ssave').style.display='none';
   document.getElementById('sstatus').style.display='none';
+  document.getElementById('s-error').style.display='none';
   removeAttach('s');lastS='';
 }
+window.clearSummarize=clearSummarize;
 
+// ── CLIPBOARD ──────────────────────────────────────────
 async function pasteClipboard(){
   try{
     const text=await navigator.clipboard.readText();
@@ -454,20 +498,27 @@ async function pasteClipboard(){
     if(t)document.getElementById('surl').value=t.trim();
   }
 }
+window.pasteClipboard=pasteClipboard;
 
+// ── ATTACHMENTS ────────────────────────────────────────
 function toggleMenu(id){
   const menu=document.getElementById(id);
   const wasOpen=menu.classList.contains('open');
   closeAllMenus();
   if(!wasOpen)menu.classList.add('open');
 }
+window.toggleMenu=toggleMenu;
+
 function closeAllMenus(){
   document.querySelectorAll('.attach-menu').forEach(m=>m.classList.remove('open'));
 }
+
 function triggerAttach(tab,type){
   closeAllMenus();
   document.getElementById(tab+'-'+type+'-input').click();
 }
+window.triggerAttach=triggerAttach;
+
 function removeAttach(tab){
   if(tab==='r')rAttach=null;else sAttach=null;
   document.getElementById(tab+'-attach-preview').style.display='none';
@@ -475,6 +526,8 @@ function removeAttach(tab){
     const el=document.getElementById(tab+'-'+t+'-input');if(el)el.value='';
   });
 }
+window.removeAttach=removeAttach;
+
 function handleAttach(event,tab){
   const file=event.target.files[0];if(!file)return;
   const isImage=file.type.startsWith('image/');
@@ -495,6 +548,7 @@ function handleAttach(event,tab){
   };
   reader.readAsDataURL(file);
 }
+window.handleAttach=handleAttach;
 
 function buildContent(text,attach){
   if(!attach)return text;
@@ -505,6 +559,46 @@ function buildContent(text,attach){
   return parts;
 }
 
+// ── READ ALOUD ─────────────────────────────────────────
+function stopSpeaking(){
+  if(currentUtterance){window.speechSynthesis.cancel();currentUtterance=null;}
+  speakingTab=null;
+  ['r','s'].forEach(t=>{
+    const btn=document.getElementById(t+'-speak-btn');
+    if(btn){btn.textContent='▶ Read aloud';btn.classList.remove('speaking');}
+  });
+}
+
+function toggleSpeak(tab){
+  const text=tab==='r'?lastR:lastS;
+  if(!text)return;
+  if(speakingTab===tab){stopSpeaking();return;}
+  stopSpeaking();
+  const utter=new SpeechSynthesisUtterance(text);
+  utter.rate=0.95;utter.pitch=1;utter.lang='en-US';
+  utter.onend=()=>{stopSpeaking();};
+  utter.onerror=()=>{stopSpeaking();};
+  currentUtterance=utter;
+  speakingTab=tab;
+  const btn=document.getElementById(tab+'-speak-btn');
+  if(btn){btn.textContent='⏹ Stop reading';btn.classList.add('speaking');}
+  window.speechSynthesis.speak(utter);
+}
+window.toggleSpeak=toggleSpeak;
+
+// ── PDF EXPORT ─────────────────────────────────────────
+function exportPDF(tab){
+  const text=tab==='r'?lastR:lastS;
+  if(!text)return;
+  const title=tab==='r'?(document.getElementById('rsave-title').value||'Research Report'):(document.getElementById('ssave-title').value||'Summary');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>${esc(title)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13pt;line-height:1.8;color:#111;max-width:750px;margin:40px auto;padding:0 24px}h1{font-size:18pt;margin-bottom:8px;color:#111}p.meta{font-size:10pt;color:#666;margin-bottom:32px}pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13pt;line-height:1.8}@media print{body{margin:0;padding:24px}}</style></head><body><h1>${esc(title)}</h1><p class="meta">${new Date().toLocaleDateString('en-CA')} · Research Agent</p><pre>${esc(text)}</pre></body></html>`);
+  win.document.close();
+  setTimeout(()=>{win.focus();win.print();},400);
+}
+window.exportPDF=exportPDF;
+
+// ── API CALL ───────────────────────────────────────────
 async function callAPI(system,userContent,onChunk){
   const key=getAnthropicKey();
   const resp=await fetch('https://api.anthropic.com/v1/messages',{
@@ -521,12 +615,18 @@ async function callAPI(system,userContent,onChunk){
     for(const line of lines){
       if(!line.startsWith('data: '))continue;
       const d=line.slice(6).trim();if(d==='[DONE]')continue;
-      try{const j=JSON.parse(d);if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){full+=j.delta.text;onChunk(full);}}catch(e){}
+      try{
+        const j=JSON.parse(d);
+        if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){
+          full+=j.delta.text;onChunk(full);
+        }
+      }catch(e){}
     }
   }
   return full;
 }
 
+// ── RESEARCH ───────────────────────────────────────────
 async function doResearch(){
   const q=document.getElementById('rq').value.trim();
   if(!q&&!rAttach){alert('Add a question or attach a file.');return;}
@@ -534,23 +634,46 @@ async function doResearch(){
   const btn=document.getElementById('rbtn');btn.disabled=true;
   const status=document.getElementById('rstatus');
   const statusText=document.getElementById('rstatus-text');
+  const resultWrap=document.getElementById('r-result-wrap');
   const resultEl=document.getElementById('rresult');
   const saveRow=document.getElementById('rsave');
-  status.style.display='flex';statusText.textContent='Searching…';
-  resultEl.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
-  saveRow.style.display='none';
-  const modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis with nuance, limitations, and open questions.',papers:'Focus on academic research. Cite key papers, authors, and findings.',compare:'Compare the main approaches, frameworks, or viewpoints on this topic.'};
+  const errEl=document.getElementById('r-error');
+  stopSpeaking();
+  status.style.display='flex';statusText.textContent='Searching the web…';
+  resultWrap.style.display='block';
+  resultEl.className='result streaming';resultEl.textContent='';
+  saveRow.style.display='none';errEl.style.display='none';
+  const modes={
+    overview:'Provide a clear comprehensive overview with key facts, context, and current status.',
+    deep:'Provide an in-depth analysis with nuance, competing perspectives, limitations, and open questions.',
+    papers:'Focus on academic research. Cite key papers, authors, methodologies, and findings.',
+    compare:'Compare the main approaches, frameworks, or viewpoints. Use clear structure.'
+  };
   const promptText=rAttach&&!q?`Please analyze this ${rAttach.isImage?'image':'document'} and provide research insights.`:rAttach?`${q}\n\nI've also attached a ${rAttach.isImage?'image':'document'} for context.`:q;
   try{
     statusText.textContent='Generating response…';
-    const full=await callAPI(`You are a rigorous research assistant. ${modes[mode]} Use web_search for current accurate information. Write in clear prose. Be direct. No filler phrases.`,buildContent(promptText,rAttach),(chunk)=>{resultEl.textContent=chunk;});
-    lastR=full;resultEl.className='result';
+    const full=await callAPI(
+      `You are a rigorous research assistant. ${modes[mode]} Use web_search for current accurate information. Write in clear well-structured prose. Be thorough and complete — do not truncate your response. No filler phrases.`,
+      buildContent(promptText,rAttach),
+      (chunk)=>{resultEl.textContent=chunk;}
+    );
+    if(!full||full.trim().length<20){
+      throw new Error('Response was empty or too short. Please try again.');
+    }
+    lastR=full;
+    resultEl.className='result';
     document.getElementById('rsave-title').value=(q||rAttach?.name||'Research').slice(0,60);
     saveRow.style.display='flex';
-  }catch(e){resultEl.textContent='Error: '+e.message;resultEl.className='result';}
+  }catch(e){
+    resultWrap.style.display='none';
+    errEl.style.display='block';
+    errEl.textContent='Error: '+e.message+'\n\nTip: Check your internet connection and try again. If it keeps failing, your API key may need to be refreshed in Settings.';
+  }
   status.style.display='none';btn.disabled=false;
 }
+window.doResearch=doResearch;
 
+// ── SUMMARIZE ──────────────────────────────────────────
 async function doSummarize(){
   const url=document.getElementById('surl').value.trim();
   const text=document.getElementById('stext').value.trim();
@@ -559,12 +682,22 @@ async function doSummarize(){
   const btn=document.getElementById('sbtn');btn.disabled=true;
   const status=document.getElementById('sstatus');
   const statusText=document.getElementById('sstatus-text');
+  const resultWrap=document.getElementById('s-result-wrap');
   const resultEl=document.getElementById('sresult');
   const saveRow=document.getElementById('ssave');
+  const errEl=document.getElementById('s-error');
+  stopSpeaking();
   status.style.display='flex';statusText.textContent='Processing…';
-  resultEl.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
-  saveRow.style.display='none';
-  const types={summary:'Write a concise accurate 3-5 paragraph summary.',bullets:'Extract the most important points as a structured bullet list.',critique:'Critical analysis: strengths, weaknesses, assumptions, and gaps.',eli5:'Explain in plain language for a curious non-expert.',extract:'Extract and list: main findings, methodology, data sources, and conclusions.'};
+  resultWrap.style.display='block';
+  resultEl.className='result streaming';resultEl.textContent='';
+  saveRow.style.display='none';errEl.style.display='none';
+  const types={
+    summary:'Write a concise accurate 3-5 paragraph summary. Cover the main points completely.',
+    bullets:'Extract the most important points as a structured bullet list. Be thorough.',
+    critique:'Critical analysis: strengths, weaknesses, assumptions, gaps, and implications.',
+    eli5:'Explain in plain language for a curious non-expert. Use simple analogies.',
+    extract:'Extract and list clearly: main findings, methodology, data sources, and conclusions.'
+  };
   let promptText='';
   if(url&&text)promptText=`URL: ${url}\n\nAdditional content:\n${text}`;
   else if(url)promptText=`Find and summarize the content at this URL using web search: ${url}\n\nIf this is a social media link like X/Twitter, search for the post content or topic and summarize what you find.`;
@@ -572,14 +705,28 @@ async function doSummarize(){
   else if(sAttach)promptText=`Please summarize this ${sAttach.isImage?'image':'document'}.`;
   if(sAttach&&(url||text))promptText+=`\n\nI've also attached a ${sAttach.isImage?'image':'document'} for additional context.`;
   try{
-    const full=await callAPI(`You are an expert research summarizer. ${types[type]} Be precise and faithful to the source. Use web_search when given a URL. No filler.`,buildContent(promptText,sAttach),(chunk)=>{resultEl.textContent=chunk;});
-    lastS=full;resultEl.className='result';
+    const full=await callAPI(
+      `You are an expert research summarizer. ${types[type]} Be precise and faithful to the source. Use web_search when given a URL. Complete your response fully — do not truncate. No filler.`,
+      buildContent(promptText,sAttach),
+      (chunk)=>{resultEl.textContent=chunk;}
+    );
+    if(!full||full.trim().length<20){
+      throw new Error('Response was empty or too short. Please try again.');
+    }
+    lastS=full;
+    resultEl.className='result';
     document.getElementById('ssave-title').value=(url||text||sAttach?.name||'Summary').replace(/^https?:\/\//,'').slice(0,60);
     saveRow.style.display='flex';
-  }catch(e){resultEl.textContent='Error: '+e.message;resultEl.className='result';}
+  }catch(e){
+    resultWrap.style.display='none';
+    errEl.style.display='block';
+    errEl.textContent='Error: '+e.message+'\n\nTip: Check your internet connection and try again. If it keeps failing, your API key may need to be refreshed in Settings.';
+  }
   status.style.display='none';btn.disabled=false;
 }
+window.doSummarize=doSummarize;
 
+// ── SAVE TO KB ─────────────────────────────────────────
 async function saveToKB(src){
   const isR=src==='r';
   const title=(document.getElementById(isR?'rsave-title':'ssave-title').value.trim()||'Untitled');
@@ -592,34 +739,32 @@ async function saveToKB(src){
   if(docId)entry._docId=docId;
   else{
     const local=JSON.parse(localStorage.getItem('ra-kb')||'[]');
-    local.unshift(entry);
-    localStorage.setItem('ra-kb',JSON.stringify(local));
+    local.unshift(entry);localStorage.setItem('ra-kb',JSON.stringify(local));
   }
-  kb.unshift(entry);
-  updateKBCount();
+  kb.unshift(entry);updateKBCount();
   setSyncStatus('ok','Saved ✓');
   const btnEl=document.getElementById(isR?'rsave-btn':'ssave-btn');
   const orig=btnEl.textContent;btnEl.textContent='✅ Saved!';
   setTimeout(()=>{btnEl.textContent=orig;setSyncStatus('ok','Synced');},2000);
 }
-
 window.saveToKB=saveToKB;
 
+// ── DELETE ─────────────────────────────────────────────
 async function deleteEntry(id){
   if(!confirm('Delete this entry?'))return;
   const entry=kb.find(e=>e.id===id);
   if(entry?._docId)await deleteEntryFromFirebase(entry._docId);
   kb=kb.filter(e=>e.id!==id);
-  updateKBCount();
-  renderKB();
-  setSyncStatus('ok','Synced');
+  updateKBCount();renderKB();setSyncStatus('ok','Synced');
 }
 window.deleteEntry=deleteEntry;
 
+// ── RENDER KB ──────────────────────────────────────────
 function renderTagFilters(){
   const tags=[...new Set(kb.map(e=>e.tag))].filter(Boolean);
   const c=document.getElementById('tag-filters');if(!c)return;
-  c.innerHTML=tags.map(t=>`<button class="tag-chip${activeTag===t?' active':''}" onclick="toggleTag('${t}')">${t}</button>`).join('')+`<span class="count">${kb.length} entr${kb.length===1?'y':'ies'}</span>`;
+  c.innerHTML=tags.map(t=>`<button class="tag-chip${activeTag===t?' active':''}" onclick="toggleTag('${t}')">${t}</button>`).join('')
+    +`<span class="count">${kb.length} entr${kb.length===1?'y':'ies'}</span>`;
 }
 window.toggleTag=function(tag){activeTag=activeTag===tag?null:tag;renderTagFilters();renderKB();};
 
@@ -636,34 +781,31 @@ function renderKB(){
   }
   listEl.innerHTML=entries.map(e=>{
     const tr=e.content.length>300;
-    return`<div class="kb-card"><div class="kb-card-head"><div class="kb-card-title">${esc(e.title)}</div><button class="del-btn" onclick="deleteEntry(${e.id})">×</button></div><div class="kb-card-meta"><span class="badge">${esc(e.tag)}</span><span>${e.type==='research'?'🔍':'📄'} ${e.date}</span></div><div class="kb-card-body${tr?' trunc':''}" id="kbody-${e.id}">${esc(e.content)}</div>${tr?`<button class="expand-btn" onclick="toggleExpand(${e.id})">Show more ↓</button>`:''}</div>`;
+    return`<div class="kb-card">
+      <div class="kb-card-head">
+        <div class="kb-card-title">${esc(e.title)}</div>
+        <button class="del-btn" onclick="deleteEntry(${e.id})">×</button>
+      </div>
+      <div class="kb-card-meta">
+        <span class="badge">${esc(e.tag)}</span>
+        <span>${e.type==='research'?'🔍':'📄'} ${e.date}</span>
+      </div>
+      <div class="kb-card-body${tr?' trunc':''}" id="kbody-${e.id}">${esc(e.content)}</div>
+      ${tr?`<button class="expand-btn" onclick="toggleExpand(${e.id})">Show more ↓</button>`:''}
+    </div>`;
   }).join('');
 }
+window.renderKB=renderKB;
+
 window.toggleExpand=function(id){
   const b=document.getElementById('kbody-'+id);const btn=b.nextElementSibling;
   const exp=b.classList.toggle('expanded');b.classList.toggle('trunc',!exp);
   if(btn)btn.textContent=exp?'Show less ↑':'Show more ↓';
 };
+
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// expose globals needed by inline handlers
-window.saveSetup=saveSetup;
-window.changeAnthropicKey=changeAnthropicKey;
-window.changeFBKey=changeFBKey;
-window.clearAll=clearAll;
-window.openLink=openLink;
-window.switchTab=switchTab;
-window.clearResearch=clearResearch;
-window.clearSummarize=clearSummarize;
-window.pasteClipboard=pasteClipboard;
-window.toggleMenu=toggleMenu;
-window.triggerAttach=triggerAttach;
-window.removeAttach=removeAttach;
-window.handleAttach=handleAttach;
-window.doResearch=doResearch;
-window.doSummarize=doSummarize;
-window.renderKB=renderKB;
-
+// ── INIT ───────────────────────────────────────────────
 async function init(){
   const ak=getAnthropicKey();
   const fp=getFBProjectId();
