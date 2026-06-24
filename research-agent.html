@@ -20,8 +20,13 @@
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
+body.light{
+  --bg:#f5f5f5;--bg2:#ffffff;--bg3:#efefef;--bg4:#e8e8e8;
+  --text:#111111;--text2:#555555;--text3:#999999;
+  --border:#d0d0d0;--border2:#bbbbbb;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;overscroll-behavior:none}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;overscroll-behavior:none;transition:background 0.2s,color 0.2s}
 input,textarea,select,button{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer}
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
@@ -35,6 +40,7 @@ button{cursor:pointer}
 #content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .pane{display:none;padding:16px 16px calc(var(--safe-bottom) + 16px)}
 .pane.active{display:block}
+/* SETUP */
 #setup{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;padding-top:calc(var(--safe-top) + 32px);overflow-y:auto}
 #setup h1{font-size:26px;font-weight:700;margin-bottom:8px}
 #setup p{color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:20px}
@@ -42,6 +48,7 @@ button{cursor:pointer}
 #setup .step strong{color:var(--text)}
 .setup-input{width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:14px;font-size:14px;color:var(--text);margin-bottom:10px;font-family:monospace}
 .setup-input::placeholder{color:var(--text3);font-family:-apple-system,sans-serif}
+/* BUTTONS */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 18px;height:44px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;transition:opacity 0.15s;width:100%}
 .btn:active{opacity:0.7}
 .btn:disabled{opacity:0.35}
@@ -49,42 +56,74 @@ button{cursor:pointer}
 .btn.primary:active{background:var(--accent2)}
 .btn.small{height:36px;font-size:13px;padding:0 14px;width:auto}
 .btn.danger{border-color:var(--danger);color:var(--danger)}
-.btn.success{border-color:var(--success);color:var(--success)}
+/* INPUTS */
 .input{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;color:var(--text);outline:none;-webkit-appearance:none}
 .input:focus{border-color:var(--accent)}
 .input::placeholder{color:var(--text3)}
 textarea.input{resize:none;line-height:1.6}
-select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
-/* result area */
+select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-color:var(--bg2)}
+/* RESULT */
 .result-wrap{margin-top:12px;display:none}
-.result-actions{display:flex;gap:8px;margin-bottom:8px}
-.result-action-btn{height:36px;padding:0 14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
-.result-action-btn:active{opacity:0.7}
-.result-action-btn.speaking{border-color:var(--accent);color:var(--accent)}
+.result-top-bar{display:flex;justify-content:flex-end;margin-bottom:6px}
+.read-top-btn{height:30px;padding:0 14px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.read-top-btn.speaking{border-color:var(--accent);color:var(--accent);background:rgba(108,99,255,0.1)}
 .result{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word}
 .result.streaming{border-left:2px solid var(--accent)}
+/* PLAYER BAR */
+.player-bar{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:10px 14px;display:none;align-items:center;gap:10px;margin-top:10px}
+.player-bar.active{display:flex}
+.play-pause-btn{width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
+.player-info{flex:1;min-width:0}
+.player-label{font-size:11px;font-weight:500;color:#a099ff;margin-bottom:4px}
+.player-progress{height:3px;background:rgba(108,99,255,0.2);border-radius:99px}
+.player-progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.5s linear}
+.player-stop{background:none;border:none;color:var(--text3);font-size:18px;padding:0;cursor:pointer}
+.player-speed{height:28px;background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;padding:0 8px;flex-shrink:0;appearance:none;-webkit-appearance:none;background-color:var(--bg3)}
+/* BOTTOM ACTIONS */
+.bottom-actions{display:flex;gap:8px;margin-top:10px}
+.export-wrap{position:relative;flex:1}
+.export-btn{width:100%;height:40px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.export-menu{position:absolute;bottom:44px;left:0;right:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;box-shadow:0 -4px 20px rgba(0,0,0,0.3)}
+.export-menu.open{display:block}
+.export-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:14px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
+.export-item:last-child{border-bottom:none}
+.export-item:active{background:var(--bg3)}
+.export-item span{font-size:18px}
+.kb-save-btn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
+/* STATUS */
 .status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:8px 0}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.4s infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
+/* SAVE ROW */
 .save-row{margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:14px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
 .save-row label{font-size:12px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+/* KB CARDS */
 .kb-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
 .kb-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
-.kb-card-title{font-size:15px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
+.kb-card-title{font-size:15px;font-weight:600;color:var(--text);flex:1;line-height:1.4;cursor:pointer}
+.kb-card-title:hover{color:var(--accent)}
 .kb-card-meta{font-size:12px;color:var(--text3);margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.kb-card-body{font-size:14px;color:var(--text2);line-height:1.6;max-height:100px;overflow:hidden;position:relative}
+.kb-card-body{font-size:14px;color:var(--text2);line-height:1.6;max-height:80px;overflow:hidden;position:relative}
 .kb-card-body.expanded{max-height:none}
 .kb-card-body.trunc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--bg2))}
-.expand-btn{font-size:13px;color:var(--accent);background:none;border:none;padding:6px 0 2px;display:block}
+.kb-card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.kb-action-btn{height:32px;padding:0 12px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
+.kb-action-btn:active{opacity:0.7}
+.kb-action-btn.danger{border-color:var(--danger);color:var(--danger)}
+.kb-player-bar{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:8px 12px;display:none;align-items:center;gap:8px;margin-top:8px}
+.kb-player-bar.active{display:flex}
+.kb-play-btn{width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
+.kb-export-wrap{position:relative}
+.kb-export-menu{position:absolute;bottom:36px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;width:180px;box-shadow:0 -4px 20px rgba(0,0,0,0.3)}
+.kb-export-menu.open{display:block}
 .badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--bg3);color:var(--text2);font-weight:500;border:0.5px solid var(--border)}
-.del-btn{background:none;border:none;color:var(--text3);font-size:20px;line-height:1;padding:2px;flex-shrink:0}
-.del-btn:active{color:var(--danger)}
 .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.tag-chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2)}
+.tag-chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer}
 .tag-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .count{font-size:12px;color:var(--text3);margin-left:auto}
 .empty{text-align:center;padding:48px 16px;color:var(--text3);font-size:15px}
 .empty .icon{font-size:40px;margin-bottom:12px}
+/* SETTINGS */
 .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:0.5px solid var(--border)}
 .settings-row:last-child{border-bottom:none}
 .settings-label{font-size:15px}
@@ -93,36 +132,34 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .section-label:first-child{margin-top:0}
 .gap{height:12px}
 .row{display:flex;gap:8px;align-items:flex-start}
+/* ATTACH */
 .attach-preview{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;border:0.5px solid var(--border)}
 .attach-info{flex:1;min-width:0}
 .attach-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .attach-type{font-size:11px;color:var(--text3);margin-top:2px}
-.attach-remove{background:none;border:none;color:var(--text3);font-size:18px;padding:2px;flex-shrink:0}
+.attach-remove{background:none;border:none;color:var(--text3);font-size:18px;padding:2px;flex-shrink:0;cursor:pointer}
 .url-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .url-row .input{flex:1;height:44px;padding:0 12px}
-.paste-btn{height:44px;width:44px;flex-shrink:0;font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm)}
+.icon-btn{height:44px;width:44px;flex-shrink:0;font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer}
 .attach-wrap{position:relative;flex-shrink:0}
-.attach-toggle{width:44px;height:44px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:22px;display:flex;align-items:center;justify-content:center}
+.attach-toggle{width:44px;height:44px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .attach-menu{position:absolute;bottom:52px;right:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;width:158px;z-index:50;display:none}
 .attach-menu.open{display:block}
-.attach-menu-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:15px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border)}
+.attach-menu-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:15px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
 .attach-menu-item:last-child{border-bottom:none}
 .attach-menu-item:active{background:var(--bg3)}
 .attach-menu-item span{font-size:18px}
 .sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:4px}
 .sync-dot.syncing{background:var(--warn);animation:pulse 1s infinite}
 .sync-dot.error{background:var(--danger)}
-/* error banner */
-.error-banner{background:#2d1515;border:0.5px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#ff8080;margin-top:8px;line-height:1.5;display:none}
-/* print styles for PDF */
-@media print{
-  #app>*:not(#content){display:none!important}
-  #tab-bar{display:none!important}
-  #content .pane:not(.active){display:none!important}
-  .result-actions,.save-row,button{display:none!important}
-  body{background:#fff;color:#000}
-  .result{background:#fff;color:#000;border:none;padding:0;font-size:12pt;line-height:1.8}
-}
+.error-banner{background:rgba(231,76,60,0.15);border:0.5px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#ff8080;margin-top:8px;line-height:1.5;display:none}
+/* TOGGLE SWITCH */
+.toggle-switch{position:relative;width:48px;height:28px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border-radius:99px;transition:0.3s;border:0.5px solid var(--border)}
+.toggle-slider:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:0.3s}
+input:checked+.toggle-slider{background:var(--accent)}
+input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
 </style>
 </head>
 <body>
@@ -150,14 +187,12 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div id="header-sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Connecting…</span></div>
     </div>
   </div>
-
   <div id="tab-bar">
     <button class="tab active" onclick="switchTab('research')" id="tab-research">Research</button>
     <button class="tab" onclick="switchTab('summarize')" id="tab-summarize">Summarize</button>
     <button class="tab" onclick="switchTab('kb')" id="tab-kb">Knowledge Base</button>
     <button class="tab" onclick="switchTab('settings')" id="tab-settings">Settings</button>
   </div>
-
   <div id="content">
 
     <!-- RESEARCH -->
@@ -165,7 +200,8 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div class="section-label">Research question</div>
       <div class="row">
         <textarea class="input" id="rq" placeholder="What do you want to research?…" rows="3" style="flex:1"></textarea>
-        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--accent);font-size:20px;flex-shrink:0" onclick="toggleMic('rq')" id="rq-mic">🎤</button><button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearResearch()">✕</button>
+        <button class="icon-btn" onclick="toggleMic('rq','rq-mic')" id="rq-mic" style="color:var(--accent);align-self:flex-start">🎤</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="clearResearch()">✕</button>
       </div>
       <div id="r-attach-preview" style="display:none" class="attach-preview">
         <img id="r-attach-thumb" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
@@ -198,23 +234,32 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div id="rstatus" class="status" style="display:none"><span class="dot"></span><span id="rstatus-text">Searching…</span></div>
       <div id="r-error" class="error-banner"></div>
       <div class="result-wrap" id="r-result-wrap">
-        <div class="result-actions">
-          <button class="result-action-btn" id="r-speak-btn" onclick="toggleSpeak('r')">▶ Read aloud</button>
-          <button class="result-action-btn" onclick="exportPDF('r')">📄 Save as PDF</button>
-        </div>
+        <div class="result-top-bar"><button class="read-top-btn" id="r-read-top" onclick="toggleSpeak('r','r-player','r-playpause','r-progress','r-player-label','r-read-top','r-speed',()=>lastR)">▶ Read</button></div>
         <div class="result" id="rresult"></div>
+        <div class="player-bar" id="r-player">
+          <button class="play-pause-btn" id="r-playpause" onclick="togglePauseResume()">⏸</button>
+          <div class="player-info"><div class="player-label" id="r-player-label">Reading aloud…</div><div class="player-progress"><div class="player-progress-fill" id="r-progress" style="width:0%"></div></div></div>
+          <button class="player-stop" onclick="stopSpeaking()">⏹</button>
+          <select class="player-speed" id="r-speed" onchange="changeSpeed(()=>lastR,'r-player','r-playpause','r-progress','r-player-label','r-read-top','r-speed')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
+        </div>
+        <div class="bottom-actions">
+          <div class="export-wrap">
+            <button class="export-btn" onclick="toggleExportMenu('r-export-menu')">📤 Export ▾</button>
+            <div class="export-menu" id="r-export-menu">
+              <button class="export-item" onclick="exportPDF(()=>lastR,()=>getRTitle());closeExportMenus()"><span>📄</span> Save as PDF</button>
+              <button class="export-item" onclick="exportHTML(()=>lastR,()=>getRTitle());closeExportMenus()"><span>🌐</span> Save as HTML</button>
+              <button class="export-item" onclick="copyText(()=>lastR);closeExportMenus()"><span>📋</span> Copy text</button>
+              <button class="export-item" onclick="copyAndShare(()=>lastR,()=>getRTitle());closeExportMenus()"><span>📤</span> Copy &amp; Share</button>
+            </div>
+          </div>
+          <button class="kb-save-btn" onclick="showKBSave('r')">📌 Save to KB</button>
+        </div>
       </div>
       <div id="rsave" class="save-row" style="display:none">
         <label>Save to knowledge base</label>
         <input class="input" id="rsave-title" placeholder="Title…" style="height:44px"/>
         <select class="input" id="rsave-tag" style="height:44px">
-          <option value="general">General</option>
-          <option value="ai-ml">AI / ML</option>
-          <option value="science">Science</option>
-          <option value="tech">Tech</option>
-          <option value="business">Business</option>
-          <option value="health">Health</option>
-          <option value="other">Other</option>
+          <option value="general">General</option><option value="ai-ml">AI / ML</option><option value="science">Science</option><option value="tech">Tech</option><option value="business">Business</option><option value="health">Health</option><option value="other">Other</option>
         </select>
         <button class="btn" onclick="saveToKB('r')" id="rsave-btn">📌 Save to KB</button>
       </div>
@@ -225,14 +270,15 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div class="section-label">URL</div>
       <div class="url-row">
         <input class="input" id="surl" placeholder="https://… paste any link" type="url"/>
-        <button class="paste-btn" onclick="pasteClipboard()">📋</button>
-        <button class="paste-btn" onclick="toggleMic('surl')" id="surl-mic" style="color:var(--accent)">🎤</button>
-        <button style="width:44px;height:44px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="document.getElementById('surl').value=''">✕</button>
+        <button class="icon-btn" onclick="pasteClipboard()" style="font-size:18px">📋</button>
+        <button class="icon-btn" onclick="toggleMic('surl','surl-mic')" id="surl-mic" style="color:var(--accent);font-size:18px">🎤</button>
+        <button style="width:44px;height:44px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer" onclick="document.getElementById('surl').value=''">✕</button>
       </div>
       <div class="section-label">Or paste text</div>
       <div class="row">
         <textarea class="input" id="stext" placeholder="Paste abstract, article, or any text…" rows="4" style="flex:1"></textarea>
-        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--accent);font-size:20px;flex-shrink:0" onclick="toggleMic('stext')" id="stext-mic">🎤</button><button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0" onclick="clearSummarize()">✕</button>
+        <button class="icon-btn" onclick="toggleMic('stext','stext-mic')" id="stext-mic" style="color:var(--accent);align-self:flex-start;font-size:18px">🎤</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="clearSummarize()">✕</button>
       </div>
       <div id="s-attach-preview" style="display:none" class="attach-preview">
         <img id="s-attach-thumb" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
@@ -242,11 +288,7 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div class="gap"></div>
       <div class="section-label">Output style</div>
       <select class="input" id="stype" style="height:44px">
-        <option value="summary">Concise summary</option>
-        <option value="bullets">Key bullet points</option>
-        <option value="critique">Critical analysis</option>
-        <option value="eli5">Plain-language explanation</option>
-        <option value="extract">Extract findings &amp; methods</option>
+        <option value="summary">Concise summary</option><option value="bullets">Key bullet points</option><option value="critique">Critical analysis</option><option value="eli5">Plain-language explanation</option><option value="extract">Extract findings &amp; methods</option>
       </select>
       <div class="gap"></div>
       <div style="display:flex;gap:8px">
@@ -266,23 +308,32 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
       <div id="sstatus" class="status" style="display:none"><span class="dot"></span><span id="sstatus-text">Processing…</span></div>
       <div id="s-error" class="error-banner"></div>
       <div class="result-wrap" id="s-result-wrap">
-        <div class="result-actions">
-          <button class="result-action-btn" id="s-speak-btn" onclick="toggleSpeak('s')">▶ Read aloud</button>
-          <button class="result-action-btn" onclick="exportPDF('s')">📄 Save as PDF</button>
-        </div>
+        <div class="result-top-bar"><button class="read-top-btn" id="s-read-top" onclick="toggleSpeak('s','s-player','s-playpause','s-progress','s-player-label','s-read-top','s-speed',()=>lastS)">▶ Read</button></div>
         <div class="result" id="sresult"></div>
+        <div class="player-bar" id="s-player">
+          <button class="play-pause-btn" id="s-playpause" onclick="togglePauseResume()">⏸</button>
+          <div class="player-info"><div class="player-label" id="s-player-label">Reading aloud…</div><div class="player-progress"><div class="player-progress-fill" id="s-progress" style="width:0%"></div></div></div>
+          <button class="player-stop" onclick="stopSpeaking()">⏹</button>
+          <select class="player-speed" id="s-speed" onchange="changeSpeed(()=>lastS,'s-player','s-playpause','s-progress','s-player-label','s-read-top','s-speed')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
+        </div>
+        <div class="bottom-actions">
+          <div class="export-wrap">
+            <button class="export-btn" onclick="toggleExportMenu('s-export-menu')">📤 Export ▾</button>
+            <div class="export-menu" id="s-export-menu">
+              <button class="export-item" onclick="exportPDF(()=>lastS,()=>getSTitle());closeExportMenus()"><span>📄</span> Save as PDF</button>
+              <button class="export-item" onclick="exportHTML(()=>lastS,()=>getSTitle());closeExportMenus()"><span>🌐</span> Save as HTML</button>
+              <button class="export-item" onclick="copyText(()=>lastS);closeExportMenus()"><span>📋</span> Copy text</button>
+              <button class="export-item" onclick="copyAndShare(()=>lastS,()=>getSTitle());closeExportMenus()"><span>📤</span> Copy &amp; Share</button>
+            </div>
+          </div>
+          <button class="kb-save-btn" onclick="showKBSave('s')">📌 Save to KB</button>
+        </div>
       </div>
       <div id="ssave" class="save-row" style="display:none">
         <label>Save to knowledge base</label>
         <input class="input" id="ssave-title" placeholder="Title…" style="height:44px"/>
         <select class="input" id="ssave-tag" style="height:44px">
-          <option value="general">General</option>
-          <option value="ai-ml">AI / ML</option>
-          <option value="science">Science</option>
-          <option value="tech">Tech</option>
-          <option value="business">Business</option>
-          <option value="health">Health</option>
-          <option value="other">Other</option>
+          <option value="general">General</option><option value="ai-ml">AI / ML</option><option value="science">Science</option><option value="tech">Tech</option><option value="business">Business</option><option value="health">Health</option><option value="other">Other</option>
         </select>
         <button class="btn" onclick="saveToKB('s')" id="ssave-btn">📌 Save to KB</button>
       </div>
@@ -297,6 +348,13 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 
     <!-- SETTINGS -->
     <div class="pane" id="pane-settings">
+      <div class="section-label">Appearance</div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
+        <div class="settings-row" style="padding-top:0;padding-bottom:0">
+          <div><div class="settings-label">Light mode</div><div class="settings-sub">Switch between dark and light</div></div>
+          <label class="toggle-switch"><input type="checkbox" id="light-toggle" onchange="toggleLightMode(this.checked)"/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
       <div class="section-label">API keys</div>
       <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
         <div class="settings-row" style="padding-top:0">
@@ -338,7 +396,9 @@ import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-ap
 import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 let db=null,kb=[],activeTag=null,lastR='',lastS='',rAttach=null,sAttach=null;
-let currentUtterance=null,speakingTab=null;
+let currentUtterance=null,isPaused=false,progressTimer=null,progressVal=0;
+let activeSpeakCtx=null;
+let micRecognition=null,activeMicField=null;
 
 // ── SETUP ──────────────────────────────────────────────
 function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'';}
@@ -352,43 +412,34 @@ function saveSetup(){
   if(!ak||!ak.startsWith('sk-ant')){alert('Anthropic key should start with sk-ant-api03-');return;}
   if(!fp){alert('Please enter your Firebase Project ID');return;}
   if(!fk||!fk.startsWith('AIza')){alert('Firebase API key should start with AIza');return;}
-  localStorage.setItem('ra-api-key',ak);
-  localStorage.setItem('ra-fb-project',fp);
-  localStorage.setItem('ra-fb-apikey',fk);
+  localStorage.setItem('ra-api-key',ak);localStorage.setItem('ra-fb-project',fp);localStorage.setItem('ra-fb-apikey',fk);
   init();
 }
 window.saveSetup=saveSetup;
 
-function changeAnthropicKey(){
-  const k=prompt('Paste your new Anthropic API key:');
-  if(k&&k.startsWith('sk-ant')){localStorage.setItem('ra-api-key',k);updateKeyStatus();}
-}
+function changeAnthropicKey(){const k=prompt('New Anthropic API key:');if(k&&k.startsWith('sk-ant')){localStorage.setItem('ra-api-key',k);updateKeyStatus();}}
 window.changeAnthropicKey=changeAnthropicKey;
-
-function changeFBKey(){
-  const p=prompt('Firebase Project ID:');
-  const k=prompt('Firebase API Key:');
-  if(p&&k){localStorage.setItem('ra-fb-project',p);localStorage.setItem('ra-fb-apikey',k);location.reload();}
-}
+function changeFBKey(){const p=prompt('Firebase Project ID:');const k=prompt('Firebase API Key:');if(p&&k){localStorage.setItem('ra-fb-project',p);localStorage.setItem('ra-fb-apikey',k);location.reload();}}
 window.changeFBKey=changeFBKey;
-
 function clearAll(){if(!confirm('Remove all keys from this device?'))return;localStorage.clear();location.reload();}
 window.clearAll=clearAll;
-
 function openLink(u){window.open(u,'_blank');}
 window.openLink=openLink;
 
+// ── LIGHT MODE ─────────────────────────────────────────
+function toggleLightMode(on){
+  document.body.classList.toggle('light',on);
+  localStorage.setItem('ra-light',on?'1':'');
+}
+window.toggleLightMode=toggleLightMode;
+
 function updateKeyStatus(){
   const k=getAnthropicKey();
-  const el=document.getElementById('key-status');
-  if(el)el.textContent=k?'Connected — ends in …'+k.slice(-4):'Not set';
-  const fb=document.getElementById('fb-status');
-  if(fb)fb.textContent=db?'Synced ✓ — '+getFBProjectId():'Not connected';
+  const el=document.getElementById('key-status');if(el)el.textContent=k?'Connected — ends in …'+k.slice(-4):'Not set';
+  const fb=document.getElementById('fb-status');if(fb)fb.textContent=db?'Synced ✓ — '+getFBProjectId():'Not connected';
 }
-
 function setSyncStatus(state,text){
-  const dot=document.getElementById('sync-dot');
-  const txt=document.getElementById('sync-text');
+  const dot=document.getElementById('sync-dot');const txt=document.getElementById('sync-text');
   if(!dot||!txt)return;
   dot.className='sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');
   txt.textContent=text;
@@ -396,57 +447,28 @@ function setSyncStatus(state,text){
 
 // ── FIREBASE ───────────────────────────────────────────
 async function initFirebase(){
-  const projectId=getFBProjectId();
-  const apiKey=getFBApiKey();
-  if(!projectId||!apiKey)return;
+  const projectId=getFBProjectId();const apiKey=getFBApiKey();if(!projectId||!apiKey)return;
   try{
     setSyncStatus('syncing','Connecting…');
-    const app=initializeApp({
-      apiKey,
-      authDomain:`${projectId}.firebaseapp.com`,
-      projectId,
-      storageBucket:`${projectId}.firebasestorage.app`,
-      messagingSenderId:'',appId:''
-    });
-    db=getFirestore(app);
-    setSyncStatus('ok','Synced');
-    updateKeyStatus();
-  }catch(e){
-    setSyncStatus('error','Sync error');
-    console.error('Firebase:',e);
-  }
+    const app=initializeApp({apiKey,authDomain:`${projectId}.firebaseapp.com`,projectId,storageBucket:`${projectId}.firebasestorage.app`,messagingSenderId:'',appId:''});
+    db=getFirestore(app);setSyncStatus('ok','Synced');updateKeyStatus();
+  }catch(e){setSyncStatus('error','Sync error');}
 }
-
 async function loadKB(){
-  if(!db){
-    try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}
-    updateKBCount();renderKB();return;
-  }
+  if(!db){try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}updateKBCount();renderKB();return;}
   try{
     setSyncStatus('syncing','Loading…');
     const q=query(collection(db,'knowledge_base'),orderBy('id','desc'));
-    const snap=await getDocs(q);
-    kb=snap.docs.map(d=>({...d.data(),_docId:d.id}));
-    setSyncStatus('ok','Synced');
-    updateKBCount();renderKB();
+    const snap=await getDocs(q);kb=snap.docs.map(d=>({...d.data(),_docId:d.id}));
+    setSyncStatus('ok','Synced');updateKBCount();renderKB();
   }catch(e){
     setSyncStatus('error','Load error');
     try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e2){kb=[];}
     updateKBCount();renderKB();
   }
 }
-
-async function saveEntryToFirebase(entry){
-  if(!db)return null;
-  try{const ref=await addDoc(collection(db,'knowledge_base'),entry);return ref.id;}
-  catch(e){console.error('Save error:',e);return null;}
-}
-
-async function deleteEntryFromFirebase(docId){
-  if(!db||!docId)return;
-  try{await deleteDoc(doc(db,'knowledge_base',docId));}
-  catch(e){console.error('Delete error:',e);}
-}
+async function saveEntryToFirebase(entry){if(!db)return null;try{const ref=await addDoc(collection(db,'knowledge_base'),entry);return ref.id;}catch(e){return null;}}
+async function deleteEntryFromFirebase(docId){if(!db||!docId)return;try{await deleteDoc(doc(db,'knowledge_base',docId));}catch(e){}}
 
 function updateKBCount(){
   const n=kb.length,s=`${n} saved entr${n===1?'y':'ies'}`;
@@ -456,7 +478,7 @@ function updateKBCount(){
 
 // ── TABS ───────────────────────────────────────────────
 function switchTab(t){
-  closeAllMenus();stopSpeaking();
+  closeAllMenus();closeExportMenus();stopSpeaking();stopMic();
   ['research','summarize','kb','settings'].forEach(id=>{
     document.getElementById('pane-'+id).classList.toggle('active',id===t);
     document.getElementById('tab-'+id).classList.toggle('active',id===t);
@@ -467,7 +489,7 @@ window.switchTab=switchTab;
 
 // ── CLEAR ──────────────────────────────────────────────
 function clearResearch(){
-  stopSpeaking();
+  stopSpeaking();stopMic();
   document.getElementById('rq').value='';
   document.getElementById('r-result-wrap').style.display='none';
   document.getElementById('rsave').style.display='none';
@@ -476,11 +498,9 @@ function clearResearch(){
   removeAttach('r');lastR='';
 }
 window.clearResearch=clearResearch;
-
 function clearSummarize(){
-  stopSpeaking();
-  document.getElementById('stext').value='';
-  document.getElementById('surl').value='';
+  stopSpeaking();stopMic();
+  document.getElementById('stext').value='';document.getElementById('surl').value='';
   document.getElementById('s-result-wrap').style.display='none';
   document.getElementById('ssave').style.display='none';
   document.getElementById('sstatus').style.display='none';
@@ -491,48 +511,26 @@ window.clearSummarize=clearSummarize;
 
 // ── CLIPBOARD ──────────────────────────────────────────
 async function pasteClipboard(){
-  try{
-    const text=await navigator.clipboard.readText();
-    if(text)document.getElementById('surl').value=text.trim();
-  }catch(e){
-    const t=prompt('Paste your URL:');
-    if(t)document.getElementById('surl').value=t.trim();
-  }
+  try{const text=await navigator.clipboard.readText();if(text)document.getElementById('surl').value=text.trim();}
+  catch(e){const t=prompt('Paste your URL:');if(t)document.getElementById('surl').value=t.trim();}
 }
 window.pasteClipboard=pasteClipboard;
 
 // ── ATTACHMENTS ────────────────────────────────────────
-function toggleMenu(id){
-  const menu=document.getElementById(id);
-  const wasOpen=menu.classList.contains('open');
-  closeAllMenus();
-  if(!wasOpen)menu.classList.add('open');
-}
+function toggleMenu(id){const menu=document.getElementById(id);const wasOpen=menu.classList.contains('open');closeAllMenus();if(!wasOpen)menu.classList.add('open');}
 window.toggleMenu=toggleMenu;
-
-function closeAllMenus(){
-  document.querySelectorAll('.attach-menu').forEach(m=>m.classList.remove('open'));
-}
-
-function triggerAttach(tab,type){
-  closeAllMenus();
-  document.getElementById(tab+'-'+type+'-input').click();
-}
+function closeAllMenus(){document.querySelectorAll('.attach-menu').forEach(m=>m.classList.remove('open'));}
+function triggerAttach(tab,type){closeAllMenus();document.getElementById(tab+'-'+type+'-input').click();}
 window.triggerAttach=triggerAttach;
-
 function removeAttach(tab){
   if(tab==='r')rAttach=null;else sAttach=null;
   document.getElementById(tab+'-attach-preview').style.display='none';
-  ['camera','photos','file'].forEach(t=>{
-    const el=document.getElementById(tab+'-'+t+'-input');if(el)el.value='';
-  });
+  ['camera','photos','file'].forEach(t=>{const el=document.getElementById(tab+'-'+t+'-input');if(el)el.value='';});
 }
 window.removeAttach=removeAttach;
-
 function handleAttach(event,tab){
   const file=event.target.files[0];if(!file)return;
-  const isImage=file.type.startsWith('image/');
-  const isPDF=file.type==='application/pdf';
+  const isImage=file.type.startsWith('image/'),isPDF=file.type==='application/pdf';
   if(!isImage&&!isPDF){alert('Please attach an image or PDF.');return;}
   const reader=new FileReader();
   reader.onload=function(e){
@@ -541,8 +539,7 @@ function handleAttach(event,tab){
     if(tab==='r')rAttach=attach;else sAttach=attach;
     const preview=document.getElementById(tab+'-attach-preview');
     const thumb=document.getElementById(tab+'-attach-thumb');
-    if(isImage){thumb.src=e.target.result;thumb.style.display='block';}
-    else{thumb.style.display='none';}
+    if(isImage){thumb.src=e.target.result;thumb.style.display='block';}else{thumb.style.display='none';}
     document.getElementById(tab+'-attach-name').textContent=file.name;
     document.getElementById(tab+'-attach-type').textContent=isImage?'Image':'PDF document';
     preview.style.display='flex';
@@ -550,56 +547,180 @@ function handleAttach(event,tab){
   reader.readAsDataURL(file);
 }
 window.handleAttach=handleAttach;
-
 function buildContent(text,attach){
   if(!attach)return text;
   const parts=[];
-  if(attach.isImage){parts.push({type:'image',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});}
-  else{parts.push({type:'document',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});}
-  parts.push({type:'text',text});
-  return parts;
+  if(attach.isImage)parts.push({type:'image',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
+  else parts.push({type:'document',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
+  parts.push({type:'text',text});return parts;
 }
 
-// ── READ ALOUD ─────────────────────────────────────────
+// ── SPEECH ENGINE ──────────────────────────────────────
 function stopSpeaking(){
+  if(progressTimer){clearInterval(progressTimer);progressTimer=null;}
   if(currentUtterance){window.speechSynthesis.cancel();currentUtterance=null;}
-  speakingTab=null;
-  ['r','s'].forEach(t=>{
-    const btn=document.getElementById(t+'-speak-btn');
-    if(btn){btn.textContent='▶ Read aloud';btn.classList.remove('speaking');}
-  });
+  isPaused=false;progressVal=0;
+  if(activeSpeakCtx){
+    const ctx=activeSpeakCtx;
+    const pb=document.getElementById(ctx.playerId);if(pb)pb.classList.remove('active');
+    const rt=document.getElementById(ctx.readTopId);if(rt){rt.textContent='▶ Read';rt.classList.remove('speaking');}
+    const pp=document.getElementById(ctx.playPauseId);if(pp)pp.textContent='⏸';
+    const pf=document.getElementById(ctx.progressId);if(pf)pf.style.width='0%';
+    // also reset kb player if any
+  }
+  document.querySelectorAll('.kb-player-bar').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.kb-play-btn').forEach(b=>{if(b.dataset.playing==='1'){b.textContent='▶';b.dataset.playing='0';}});
+  activeSpeakCtx=null;
 }
+window.stopSpeaking=stopSpeaking;
 
-function toggleSpeak(tab){
-  const text=tab==='r'?lastR:lastS;
-  if(!text)return;
-  if(speakingTab===tab){stopSpeaking();return;}
+function toggleSpeak(tab,playerId,playPauseId,progressId,labelId,readTopId,speedId,getText){
+  const text=getText();if(!text)return;
+  if(activeSpeakCtx&&activeSpeakCtx.tab===tab){stopSpeaking();return;}
   stopSpeaking();
-  const utter=new SpeechSynthesisUtterance(text);
-  utter.rate=0.95;utter.pitch=1;utter.lang='en-US';
-  utter.onend=()=>{stopSpeaking();};
-  utter.onerror=()=>{stopSpeaking();};
-  currentUtterance=utter;
-  speakingTab=tab;
-  const btn=document.getElementById(tab+'-speak-btn');
-  if(btn){btn.textContent='⏹ Stop reading';btn.classList.add('speaking');}
-  window.speechSynthesis.speak(utter);
+  const speed=parseFloat(document.getElementById(speedId).value||'1');
+  startSpeech(text,speed,{tab,playerId,playPauseId,progressId,labelId,readTopId,speedId,getText});
 }
 window.toggleSpeak=toggleSpeak;
 
-// ── PDF EXPORT ─────────────────────────────────────────
-function exportPDF(tab){
-  const text=tab==='r'?lastR:lastS;
-  if(!text)return;
-  const title=tab==='r'?(document.getElementById('rsave-title').value||'Research Report'):(document.getElementById('ssave-title').value||'Summary');
+function startSpeech(text,speed,ctx){
+  const utter=new SpeechSynthesisUtterance(text);
+  utter.rate=speed;utter.lang='en-US';
+  const words=text.split(/\s+/).length;
+  const secs=(words/150)*60/speed;
+  progressVal=0;
+  progressTimer=setInterval(()=>{
+    if(!isPaused){progressVal=Math.min(99,progressVal+(100/secs));const pf=document.getElementById(ctx.progressId);if(pf)pf.style.width=progressVal+'%';}
+  },1000);
+  utter.onend=()=>stopSpeaking();
+  utter.onerror=()=>stopSpeaking();
+  currentUtterance=utter;activeSpeakCtx=ctx;isPaused=false;
+  const pb=document.getElementById(ctx.playerId);if(pb)pb.classList.add('active');
+  const rt=document.getElementById(ctx.readTopId);if(rt){rt.textContent='⏹ Stop';rt.classList.add('speaking');}
+  const pp=document.getElementById(ctx.playPauseId);if(pp)pp.textContent='⏸';
+  window.speechSynthesis.speak(utter);
+}
+
+function togglePauseResume(){
+  if(!activeSpeakCtx)return;
+  const pp=document.getElementById(activeSpeakCtx.playPauseId);
+  const label=document.getElementById(activeSpeakCtx.labelId);
+  if(isPaused){window.speechSynthesis.resume();isPaused=false;if(pp)pp.textContent='⏸';if(label)label.textContent='Reading aloud…';}
+  else{window.speechSynthesis.pause();isPaused=true;if(pp)pp.textContent='▶';if(label)label.textContent='Paused';}
+}
+window.togglePauseResume=togglePauseResume;
+
+function changeSpeed(getText,playerId,playPauseId,progressId,labelId,readTopId,speedId){
+  if(!activeSpeakCtx)return;
+  const text=getText();const speed=parseFloat(document.getElementById(speedId).value||'1');
+  stopSpeaking();
+  setTimeout(()=>{document.getElementById(speedId).value=String(speed);startSpeech(text,speed,{tab:'x',playerId,playPauseId,progressId,labelId,readTopId,speedId,getText});},100);
+}
+window.changeSpeed=changeSpeed;
+
+// KB speech - simple per-card
+function toggleKBSpeak(id,btnId){
+  const entry=kb.find(e=>e.id===id);if(!entry)return;
+  const playerId='kb-player-'+id;const ppId='kb-pp-'+id;const progId='kb-prog-'+id;
+  if(activeSpeakCtx&&activeSpeakCtx.tab==='kb-'+id){stopSpeaking();return;}
+  stopSpeaking();
+  const speed=1;
+  startSpeech(entry.content,speed,{tab:'kb-'+id,playerId,playPauseId:ppId,progressId:progId,labelId:'kb-label-'+id,readTopId:'kb-readtop-'+id,speedId:'kb-speed-'+id,getText:()=>entry.content});
+}
+window.toggleKBSpeak=toggleKBSpeak;
+
+function toggleKBPause(id){togglePauseResume();}
+window.toggleKBPause=toggleKBPause;
+function changeKBSpeed(id){
+  const entry=kb.find(e=>e.id===id);if(!entry||!activeSpeakCtx)return;
+  const speedId='kb-speed-'+id;
+  changeSpeed(()=>entry.content,'kb-player-'+id,'kb-pp-'+id,'kb-prog-'+id,'kb-label-'+id,'kb-readtop-'+id,speedId);
+}
+window.changeKBSpeed=changeKBSpeed;
+
+// ── EXPORT MENUS ───────────────────────────────────────
+function toggleExportMenu(id){const menu=document.getElementById(id);const wasOpen=menu.classList.contains('open');closeExportMenus();if(!wasOpen)menu.classList.add('open');}
+window.toggleExportMenu=toggleExportMenu;
+function closeExportMenus(){document.querySelectorAll('.export-menu,.kb-export-menu').forEach(m=>m.classList.remove('open'));}
+window.closeExportMenus=closeExportMenus;
+
+// ── TITLE HELPERS ──────────────────────────────────────
+function getRTitle(){return(document.getElementById('rsave-title').value||'Research Report').trim();}
+function getSTitle(){return(document.getElementById('ssave-title').value||'Summary').trim();}
+window.getRTitle=getRTitle;window.getSTitle=getSTitle;
+
+// ── PDF ────────────────────────────────────────────────
+function exportPDF(getText,getTitle){
+  const text=getText();if(!text)return;
+  const title=getTitle();
   const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>${esc(title)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13pt;line-height:1.8;color:#111;max-width:750px;margin:40px auto;padding:0 24px}h1{font-size:18pt;margin-bottom:8px;color:#111}p.meta{font-size:10pt;color:#666;margin-bottom:32px}pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13pt;line-height:1.8}@media print{body{margin:0;padding:24px}}</style></head><body><h1>${esc(title)}</h1><p class="meta">${new Date().toLocaleDateString('en-CA')} · Research Agent</p><pre>${esc(text)}</pre></body></html>`);
-  win.document.close();
-  setTimeout(()=>{win.focus();win.print();},400);
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>${esc(title)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13pt;line-height:1.8;color:#111;max-width:750px;margin:40px auto;padding:0 24px}h1{font-size:18pt;margin-bottom:8px}p.meta{font-size:10pt;color:#666;margin-bottom:32px}pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13pt;line-height:1.8}@media print{body{margin:0;padding:24px}}</style></head><body><h1>${esc(title)}</h1><p class="meta">${new Date().toLocaleDateString('en-CA')} · Research Agent</p><pre>${esc(text)}</pre></body></html>`);
+  win.document.close();setTimeout(()=>{win.focus();win.print();},400);
 }
 window.exportPDF=exportPDF;
 
-// ── API CALL ───────────────────────────────────────────
+// ── HTML ───────────────────────────────────────────────
+function exportHTML(getText,getTitle){
+  const text=getText();if(!text)return;
+  const title=getTitle();const date=new Date().toLocaleDateString('en-CA');
+  const htmlContent=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${esc(title)}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#f0f0f0;padding:0}.container{max-width:720px;margin:0 auto;padding:32px 24px 60px}.top-bar{display:flex;align-items:center;gap:10px;margin-bottom:32px;padding-bottom:20px;border-bottom:0.5px solid #333}.logo{font-size:24px}.brand{font-size:15px;font-weight:600}.brand-sub{font-size:12px;color:#666;margin-top:2px}h1{font-size:22px;font-weight:600;margin-bottom:8px;line-height:1.3}.meta{font-size:13px;color:#666;margin-bottom:28px}.player-bar{background:rgba(108,99,255,0.12);border:0.5px solid #6c63ff;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:24px}.play-btn{width:40px;height:40px;border-radius:50%;background:#6c63ff;border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}.player-info{flex:1}.player-status{font-size:12px;color:#a099ff;margin-bottom:5px}.progress-bar{height:3px;background:rgba(255,255,255,0.1);border-radius:99px}.progress-fill{height:100%;background:#6c63ff;border-radius:99px;width:0%;transition:width 0.5s}.player-controls{display:flex;align-items:center;gap:8px}.stop-btn{background:none;border:none;color:#666;font-size:18px;cursor:pointer}.speed-sel{background:#242424;border:0.5px solid #333;border-radius:6px;color:#a0a0a0;font-size:12px;padding:2px 8px;height:28px}.content{font-size:15px;line-height:1.85;color:#d0d0d0;white-space:pre-wrap;word-break:break-word}.share-bar{display:flex;gap:10px;margin-top:32px;padding-top:24px;border-top:0.5px solid #333;flex-wrap:wrap}.share-btn{height:40px;padding:0 18px;border-radius:8px;border:0.5px solid #444;background:#1a1a1a;color:#f0f0f0;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.share-btn:active{opacity:0.7}.disclaimer{font-size:12px;color:#555;margin-top:32px;line-height:1.6;padding-top:20px;border-top:0.5px solid #2a2a2a}</style></head><body><div class="container"><div class="top-bar"><div class="logo">🧠</div><div><div class="brand">Research Agent</div><div class="brand-sub">AI Research Assistant</div></div></div><h1>${esc(title)}</h1><div class="meta">${esc(date)}</div><div class="player-bar"><button class="play-btn" id="playbtn" onclick="togglePlay()">▶</button><div class="player-info"><div class="player-status" id="pstatus">Tap ▶ to read aloud</div><div class="progress-bar"><div class="progress-fill" id="prog"></div></div></div><div class="player-controls"><button class="stop-btn" onclick="stopPlay()">⏹</button><select class="speed-sel" id="spd"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select></div></div><div class="content">${esc(text)}</div><div class="share-bar"><button class="share-btn" onclick="shareThis()">📤 Share</button><button class="share-btn" onclick="copyAll()">📋 Copy text</button><button class="share-btn" onclick="window.print()">🖨 Print / PDF</button></div><div class="disclaimer">⚠ For informational purposes only. Not financial or professional advice. Generated by Research Agent · ${esc(date)}</div></div><script>var u=null,pa=false,ti=null,pr=0,tx=${JSON.stringify(text)};function togglePlay(){if(u&&!pa){speechSynthesis.pause();pa=true;document.getElementById('playbtn').textContent='▶';document.getElementById('pstatus').textContent='Paused';return;}if(u&&pa){speechSynthesis.resume();pa=false;document.getElementById('playbtn').textContent='⏸';document.getElementById('pstatus').textContent='Reading aloud…';return;}startPlay();}function startPlay(){stopPlay();var sp=parseFloat(document.getElementById('spd').value||'1');u=new SpeechSynthesisUtterance(tx);u.rate=sp;u.lang='en-US';var se=(tx.split(/\\s+/).length/150)*60/sp;pr=0;ti=setInterval(function(){pr=Math.min(99,pr+(100/se));document.getElementById('prog').style.width=pr+'%';},1000);u.onend=stopPlay;u.onerror=stopPlay;document.getElementById('playbtn').textContent='⏸';document.getElementById('pstatus').textContent='Reading aloud…';speechSynthesis.speak(u);}function stopPlay(){if(ti){clearInterval(ti);ti=null;}if(u){speechSynthesis.cancel();u=null;}pa=false;pr=0;document.getElementById('playbtn').textContent='▶';document.getElementById('pstatus').textContent='Tap ▶ to read aloud';document.getElementById('prog').style.width='0%';}function shareThis(){if(navigator.share){navigator.share({title:${JSON.stringify(title)},text:tx.substring(0,200)+'…',url:window.location.href}).catch(function(){});}else{navigator.clipboard.writeText(window.location.href).then(function(){alert('Link copied!');});}}function copyAll(){navigator.clipboard.writeText(tx).then(function(){alert('Copied!');});}<\/script></body></html>`;
+  const blob=new Blob([htmlContent],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=(title.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'report')+'.html';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+}
+window.exportHTML=exportHTML;
+
+function copyText(getText){
+  const text=getText();if(!text)return;
+  navigator.clipboard.writeText(text).then(()=>alert('Copied!')).catch(()=>alert('Copy failed — try long-pressing the text.'));
+}
+window.copyText=copyText;
+
+async function copyAndShare(getText,getTitle){
+  const text=getText();if(!text)return;
+  const title=getTitle();
+  try{await navigator.clipboard.writeText(text);}catch(e){}
+  if(navigator.share){try{await navigator.share({title,text:text.substring(0,500)+'…'});return;}catch(e){}}
+  alert('Text copied! Paste it anywhere.');
+}
+window.copyAndShare=copyAndShare;
+
+function showKBSave(tab){
+  const saveRow=document.getElementById(tab==='r'?'rsave':'ssave');
+  if(saveRow){saveRow.style.display='flex';saveRow.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
+window.showKBSave=showKBSave;
+
+// ── MIC ────────────────────────────────────────────────
+function toggleMic(fieldId,btnId){
+  if(activeMicField===fieldId){stopMic();return;}
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){alert('Voice dictation not supported. Try Safari on iPhone or Chrome on MacBook.');return;}
+  stopMic();
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  micRecognition=new SR();micRecognition.continuous=true;micRecognition.interimResults=true;micRecognition.lang='en-US';
+  const field=document.getElementById(fieldId);const btn=document.getElementById(btnId);
+  let existing=field.value;if(existing&&!existing.endsWith(' '))existing+=' ';
+  micRecognition.onstart=()=>{activeMicField=fieldId;if(btn){btn.textContent='⏹';btn.style.color='var(--danger)';}};
+  micRecognition.onresult=(e)=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+    field.value=existing+final+(interim||'');if(final)existing=field.value;
+  };
+  micRecognition.onerror=(e)=>{if(e.error!=='aborted')alert('Mic error: '+e.error);stopMic();};
+  micRecognition.onend=()=>{stopMic();};
+  micRecognition.start();
+}
+window.toggleMic=toggleMic;
+function stopMic(){
+  if(micRecognition){try{micRecognition.stop();}catch(e){}micRecognition=null;}
+  if(activeMicField){const btn=document.getElementById(activeMicField+'-mic');if(btn){btn.textContent='🎤';btn.style.color='var(--accent)';}}
+  activeMicField=null;
+}
+
+// ── API ────────────────────────────────────────────────
 async function callAPI(system,userContent,onChunk){
   const key=getAnthropicKey();
   const resp=await fetch('https://api.anthropic.com/v1/messages',{
@@ -611,17 +732,10 @@ async function callAPI(system,userContent,onChunk){
   const reader=resp.body.getReader();const dec=new TextDecoder();let buf='',full='';
   while(true){
     const{done,value}=await reader.read();if(done)break;
-    buf+=dec.decode(value,{stream:true});
-    const lines=buf.split('\n');buf=lines.pop();
+    buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
     for(const line of lines){
-      if(!line.startsWith('data: '))continue;
-      const d=line.slice(6).trim();if(d==='[DONE]')continue;
-      try{
-        const j=JSON.parse(d);
-        if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){
-          full+=j.delta.text;onChunk(full);
-        }
-      }catch(e){}
+      if(!line.startsWith('data: '))continue;const d=line.slice(6).trim();if(d==='[DONE]')continue;
+      try{const j=JSON.parse(d);if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){full+=j.delta.text;onChunk(full);}}catch(e){}
     }
   }
   return full;
@@ -629,100 +743,53 @@ async function callAPI(system,userContent,onChunk){
 
 // ── RESEARCH ───────────────────────────────────────────
 async function doResearch(){
-  const q=document.getElementById('rq').value.trim();
-  if(!q&&!rAttach){alert('Add a question or attach a file.');return;}
-  const mode=document.getElementById('rmode').value;
+  const q=document.getElementById('rq').value.trim();if(!q&&!rAttach){alert('Add a question or attach a file.');return;}
+  stopMic();const mode=document.getElementById('rmode').value;
   const btn=document.getElementById('rbtn');btn.disabled=true;
-  const status=document.getElementById('rstatus');
-  const statusText=document.getElementById('rstatus-text');
-  const resultWrap=document.getElementById('r-result-wrap');
-  const resultEl=document.getElementById('rresult');
-  const saveRow=document.getElementById('rsave');
-  const errEl=document.getElementById('r-error');
-  stopSpeaking();
-  status.style.display='flex';statusText.textContent='Searching the web…';
-  resultWrap.style.display='block';
-  resultEl.className='result streaming';resultEl.textContent='';
+  const status=document.getElementById('rstatus');const statusText=document.getElementById('rstatus-text');
+  const resultWrap=document.getElementById('r-result-wrap');const resultEl=document.getElementById('rresult');
+  const saveRow=document.getElementById('rsave');const errEl=document.getElementById('r-error');
+  stopSpeaking();status.style.display='flex';statusText.textContent='Searching the web…';
+  resultWrap.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
   saveRow.style.display='none';errEl.style.display='none';
-  const modes={
-    overview:'Provide a clear comprehensive overview with key facts, context, and current status.',
-    deep:'Provide an in-depth analysis with nuance, competing perspectives, limitations, and open questions.',
-    papers:'Focus on academic research. Cite key papers, authors, methodologies, and findings.',
-    compare:'Compare the main approaches, frameworks, or viewpoints. Use clear structure.'
-  };
-  const promptText=rAttach&&!q?`Please analyze this ${rAttach.isImage?'image':'document'} and provide research insights.`:rAttach?`${q}\n\nI've also attached a ${rAttach.isImage?'image':'document'} for context.`:q;
+  const modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis with nuance and open questions.',papers:'Focus on academic research. Cite key papers and findings.',compare:'Compare the main approaches and viewpoints.'};
+  const promptText=rAttach&&!q?`Analyze this ${rAttach.isImage?'image':'document'} and provide research insights.`:rAttach?`${q}\n\nAttached: ${rAttach.isImage?'image':'document'}.`:q;
   try{
     statusText.textContent='Generating response…';
-    const full=await callAPI(
-      `You are a rigorous research assistant. ${modes[mode]} Use web_search for current accurate information. Write in clear well-structured prose. Be thorough and complete — do not truncate your response. No filler phrases.`,
-      buildContent(promptText,rAttach),
-      (chunk)=>{resultEl.textContent=chunk;}
-    );
-    if(!full||full.trim().length<20){
-      throw new Error('Response was empty or too short. Please try again.');
-    }
-    lastR=full;
-    resultEl.className='result';
+    const full=await callAPI(`You are a rigorous research assistant. ${modes[mode]} Use web_search for current info. Write in clear prose. Be thorough. No filler.`,buildContent(promptText,rAttach),(chunk)=>{resultEl.textContent=chunk;});
+    if(!full||full.trim().length<20)throw new Error('Response was empty. Please try again.');
+    lastR=full;resultEl.className='result';
     document.getElementById('rsave-title').value=(q||rAttach?.name||'Research').slice(0,60);
-    saveRow.style.display='flex';
-  }catch(e){
-    resultWrap.style.display='none';
-    errEl.style.display='block';
-    errEl.textContent='Error: '+e.message+'\n\nTip: Check your internet connection and try again. If it keeps failing, your API key may need to be refreshed in Settings.';
-  }
+  }catch(e){resultWrap.style.display='none';errEl.style.display='block';errEl.textContent='Error: '+e.message+'\n\nTip: Check your connection and try again.';}
   status.style.display='none';btn.disabled=false;
 }
 window.doResearch=doResearch;
 
 // ── SUMMARIZE ──────────────────────────────────────────
 async function doSummarize(){
-  const url=document.getElementById('surl').value.trim();
-  const text=document.getElementById('stext').value.trim();
-  if(!url&&!text&&!sAttach){alert('Add a URL, paste some text, or attach a file.');return;}
-  const type=document.getElementById('stype').value;
+  const url=document.getElementById('surl').value.trim();const text=document.getElementById('stext').value.trim();
+  if(!url&&!text&&!sAttach){alert('Add a URL, paste text, or attach a file.');return;}
+  stopMic();const type=document.getElementById('stype').value;
   const btn=document.getElementById('sbtn');btn.disabled=true;
-  const status=document.getElementById('sstatus');
-  const statusText=document.getElementById('sstatus-text');
-  const resultWrap=document.getElementById('s-result-wrap');
-  const resultEl=document.getElementById('sresult');
-  const saveRow=document.getElementById('ssave');
-  const errEl=document.getElementById('s-error');
-  stopSpeaking();
-  status.style.display='flex';statusText.textContent='Processing…';
-  resultWrap.style.display='block';
-  resultEl.className='result streaming';resultEl.textContent='';
+  const status=document.getElementById('sstatus');const statusText=document.getElementById('sstatus-text');
+  const resultWrap=document.getElementById('s-result-wrap');const resultEl=document.getElementById('sresult');
+  const saveRow=document.getElementById('ssave');const errEl=document.getElementById('s-error');
+  stopSpeaking();status.style.display='flex';statusText.textContent='Processing…';
+  resultWrap.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
   saveRow.style.display='none';errEl.style.display='none';
-  const types={
-    summary:'Write a concise accurate 3-5 paragraph summary. Cover the main points completely.',
-    bullets:'Extract the most important points as a structured bullet list. Be thorough.',
-    critique:'Critical analysis: strengths, weaknesses, assumptions, gaps, and implications.',
-    eli5:'Explain in plain language for a curious non-expert. Use simple analogies.',
-    extract:'Extract and list clearly: main findings, methodology, data sources, and conclusions.'
-  };
+  const types={summary:'Write a concise accurate 3-5 paragraph summary.',bullets:'Extract the most important points as a structured bullet list.',critique:'Critical analysis: strengths, weaknesses, assumptions, gaps.',eli5:'Explain in plain language for a non-expert.',extract:'Extract: main findings, methodology, data sources, and conclusions.'};
   let promptText='';
   if(url&&text)promptText=`URL: ${url}\n\nAdditional content:\n${text}`;
-  else if(url)promptText=`Find and summarize the content at this URL using web search: ${url}\n\nIf this is a social media link like X/Twitter, search for the post content or topic and summarize what you find.`;
+  else if(url)promptText=`Find and summarize the content at this URL using web search: ${url}\n\nIf social media, search for the post content and summarize it.`;
   else if(text)promptText=`Summarize the following:\n\n${text}`;
-  else if(sAttach)promptText=`Please summarize this ${sAttach.isImage?'image':'document'}.`;
-  if(sAttach&&(url||text))promptText+=`\n\nI've also attached a ${sAttach.isImage?'image':'document'} for additional context.`;
+  else if(sAttach)promptText=`Summarize this ${sAttach.isImage?'image':'document'}.`;
+  if(sAttach&&(url||text))promptText+=`\n\nAlso attached: ${sAttach.isImage?'image':'document'}.`;
   try{
-    const full=await callAPI(
-      `You are an expert research summarizer. ${types[type]} Be precise and faithful to the source. Use web_search when given a URL. Complete your response fully — do not truncate. No filler.`,
-      buildContent(promptText,sAttach),
-      (chunk)=>{resultEl.textContent=chunk;}
-    );
-    if(!full||full.trim().length<20){
-      throw new Error('Response was empty or too short. Please try again.');
-    }
-    lastS=full;
-    resultEl.className='result';
+    const full=await callAPI(`You are an expert research summarizer. ${types[type]} Be precise. Use web_search when given a URL. Complete your response fully. No filler.`,buildContent(promptText,sAttach),(chunk)=>{resultEl.textContent=chunk;});
+    if(!full||full.trim().length<20)throw new Error('Response was empty. Please try again.');
+    lastS=full;resultEl.className='result';
     document.getElementById('ssave-title').value=(url||text||sAttach?.name||'Summary').replace(/^https?:\/\//,'').slice(0,60);
-    saveRow.style.display='flex';
-  }catch(e){
-    resultWrap.style.display='none';
-    errEl.style.display='block';
-    errEl.textContent='Error: '+e.message+'\n\nTip: Check your internet connection and try again. If it keeps failing, your API key may need to be refreshed in Settings.';
-  }
+  }catch(e){resultWrap.style.display='none';errEl.style.display='block';errEl.textContent='Error: '+e.message+'\n\nTip: Check your connection and try again.';}
   status.style.display='none';btn.disabled=false;
 }
 window.doSummarize=doSummarize;
@@ -732,18 +799,13 @@ async function saveToKB(src){
   const isR=src==='r';
   const title=(document.getElementById(isR?'rsave-title':'ssave-title').value.trim()||'Untitled');
   const tag=document.getElementById(isR?'rsave-tag':'ssave-tag').value;
-  const content=isR?lastR:lastS;
-  if(!content)return;
+  const content=isR?lastR:lastS;if(!content)return;
   const entry={id:Date.now(),title,tag,content,date:new Date().toLocaleDateString('en-CA'),type:isR?'research':'summary'};
   setSyncStatus('syncing','Saving…');
   const docId=await saveEntryToFirebase(entry);
   if(docId)entry._docId=docId;
-  else{
-    const local=JSON.parse(localStorage.getItem('ra-kb')||'[]');
-    local.unshift(entry);localStorage.setItem('ra-kb',JSON.stringify(local));
-  }
-  kb.unshift(entry);updateKBCount();
-  setSyncStatus('ok','Saved ✓');
+  else{const local=JSON.parse(localStorage.getItem('ra-kb')||'[]');local.unshift(entry);localStorage.setItem('ra-kb',JSON.stringify(local));}
+  kb.unshift(entry);updateKBCount();setSyncStatus('ok','Saved ✓');
   const btnEl=document.getElementById(isR?'rsave-btn':'ssave-btn');
   const orig=btnEl.textContent;btnEl.textContent='✅ Saved!';
   setTimeout(()=>{btnEl.textContent=orig;setSyncStatus('ok','Synced');},2000);
@@ -755,8 +817,7 @@ async function deleteEntry(id){
   if(!confirm('Delete this entry?'))return;
   const entry=kb.find(e=>e.id===id);
   if(entry?._docId)await deleteEntryFromFirebase(entry._docId);
-  kb=kb.filter(e=>e.id!==id);
-  updateKBCount();renderKB();setSyncStatus('ok','Synced');
+  kb=kb.filter(e=>e.id!==id);updateKBCount();renderKB();setSyncStatus('ok','Synced');
 }
 window.deleteEntry=deleteEntry;
 
@@ -776,107 +837,76 @@ function renderKB(){
   let entries=kb;
   if(activeTag)entries=entries.filter(e=>e.tag===activeTag);
   if(q)entries=entries.filter(e=>e.title.toLowerCase().includes(q)||e.content.toLowerCase().includes(q));
-  if(!entries.length){
-    listEl.innerHTML=`<div class="empty"><div class="icon">${kb.length?'🔍':'📭'}</div>${kb.length?'No results.':'Nothing saved yet.'}</div>`;
-    return;
-  }
+  if(!entries.length){listEl.innerHTML=`<div class="empty"><div class="icon">${kb.length?'🔍':'📭'}</div>${kb.length?'No results.':'Nothing saved yet.'}</div>`;return;}
   listEl.innerHTML=entries.map(e=>{
-    const tr=e.content.length>300;
-    return`<div class="kb-card">
+    const id=e.id;
+    const tr=e.content.length>200;
+    return`<div class="kb-card" id="kbc-${id}">
       <div class="kb-card-head">
-        <div class="kb-card-title">${esc(e.title)}</div>
-        <button class="del-btn" onclick="deleteEntry(${e.id})">×</button>
+        <div class="kb-card-title" onclick="toggleKBExpand(${id})">${esc(e.title)}</div>
       </div>
       <div class="kb-card-meta">
         <span class="badge">${esc(e.tag)}</span>
         <span>${e.type==='research'?'🔍':'📄'} ${e.date}</span>
       </div>
-      <div class="kb-card-body${tr?' trunc':''}" id="kbody-${e.id}">${esc(e.content)}</div>
-      ${tr?`<button class="expand-btn" onclick="toggleExpand(${e.id})">Show more ↓</button>`:''}
+      <div class="kb-card-body${tr?' trunc':''}" id="kbbody-${id}">${esc(e.content)}</div>
+      <!-- player bar -->
+      <div class="kb-player-bar" id="kb-player-${id}">
+        <button class="kb-play-btn" id="kb-pp-${id}" onclick="toggleKBPause(${id})">⏸</button>
+        <div class="player-info" style="flex:1;min-width:0">
+          <div class="player-label" id="kb-label-${id}">Reading aloud…</div>
+          <div class="player-progress"><div class="player-progress-fill" id="kb-prog-${id}" style="width:0%"></div></div>
+        </div>
+        <button class="player-stop" onclick="stopSpeaking()">⏹</button>
+        <select class="player-speed" id="kb-speed-${id}" onchange="changeKBSpeed(${id})" style="background:var(--bg3)"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
+      </div>
+      <!-- action buttons -->
+      <div class="kb-card-actions">
+        <button class="kb-action-btn" id="kb-readtop-${id}" onclick="toggleKBSpeak(${id},'kb-readtop-${id}')">▶ Read</button>
+        <div class="kb-export-wrap">
+          <button class="kb-action-btn" onclick="toggleExportMenu('kb-export-${id}')">📤 Export ▾</button>
+          <div class="kb-export-menu" id="kb-export-${id}">
+            <button class="export-item" onclick="exportPDF(()=>getKBText(${id}),()=>getKBTitle(${id}));closeExportMenus()"><span>📄</span> Save as PDF</button>
+            <button class="export-item" onclick="exportHTML(()=>getKBText(${id}),()=>getKBTitle(${id}));closeExportMenus()"><span>🌐</span> Save as HTML</button>
+            <button class="export-item" onclick="copyText(()=>getKBText(${id}));closeExportMenus()"><span>📋</span> Copy text</button>
+            <button class="export-item" onclick="copyAndShare(()=>getKBText(${id}),()=>getKBTitle(${id}));closeExportMenus()"><span>📤</span> Copy &amp; Share</button>
+          </div>
+        </div>
+        <button class="kb-action-btn danger" onclick="deleteEntry(${id})">🗑 Delete</button>
+      </div>
     </div>`;
   }).join('');
 }
 window.renderKB=renderKB;
 
-window.toggleExpand=function(id){
-  const b=document.getElementById('kbody-'+id);const btn=b.nextElementSibling;
+function getKBText(id){const e=kb.find(x=>x.id===id);return e?e.content:'';}
+function getKBTitle(id){const e=kb.find(x=>x.id===id);return e?e.title:'Entry';}
+window.getKBText=getKBText;window.getKBTitle=getKBTitle;
+
+function toggleKBExpand(id){
+  const b=document.getElementById('kbbody-'+id);if(!b)return;
   const exp=b.classList.toggle('expanded');b.classList.toggle('trunc',!exp);
-  if(btn)btn.textContent=exp?'Show less ↑':'Show more ↓';
-};
+}
+window.toggleKBExpand=toggleKBExpand;
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// ── INIT ───────────────────────────────────────────────
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.attach-wrap'))closeAllMenus();
+  if(!e.target.closest('.export-wrap')&&!e.target.closest('.kb-export-wrap'))closeExportMenus();
+});
+
 async function init(){
-  const ak=getAnthropicKey();
-  const fp=getFBProjectId();
-  const fk=getFBApiKey();
+  const ak=getAnthropicKey(),fp=getFBProjectId(),fk=getFBApiKey();
   const hasSetup=ak&&fp&&fk;
   document.getElementById('setup').style.display=hasSetup?'none':'flex';
   document.getElementById('app').style.display=hasSetup?'flex':'none';
-  if(hasSetup){
-    await initFirebase();
-    await loadKB();
-    updateKeyStatus();
+  if(localStorage.getItem('ra-light')==='1'){
+    document.body.classList.add('light');
+    const toggle=document.getElementById('light-toggle');if(toggle)toggle.checked=true;
   }
-  document.addEventListener('click',function(e){
-    if(!e.target.closest('.attach-wrap'))closeAllMenus();
-  });
+  if(hasSetup){await initFirebase();await loadKB();updateKeyStatus();}
 }
-
-
-// ── VOICE DICTATION ────────────────────────────────────
-let micRecognition=null,activeMicField=null;
-
-function toggleMic(fieldId){
-  if(activeMicField===fieldId){
-    stopMic();return;
-  }
-  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
-    alert('Voice dictation is not supported in this browser. Try Safari on iPhone or Chrome on MacBook.');
-    return;
-  }
-  stopMic();
-  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  micRecognition=new SpeechRecognition();
-  micRecognition.continuous=true;
-  micRecognition.interimResults=true;
-  micRecognition.lang='en-US';
-  const field=document.getElementById(fieldId);
-  const btn=document.getElementById(fieldId+'-mic');
-  let existingText=field.value;
-  if(existingText&&!existingText.endsWith(' '))existingText+=' ';
-  micRecognition.onstart=function(){
-    activeMicField=fieldId;
-    if(btn){btn.textContent='⏹';btn.style.color='var(--danger)';}
-  };
-  micRecognition.onresult=function(e){
-    let interim='';let final='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal)final+=e.results[i][0].transcript;
-      else interim+=e.results[i][0].transcript;
-    }
-    field.value=existingText+final+(interim?interim:'');
-    if(final)existingText=field.value;
-  };
-  micRecognition.onerror=function(e){
-    if(e.error!=='aborted')alert('Mic error: '+e.error+'. Make sure microphone access is allowed.');
-    stopMic();
-  };
-  micRecognition.onend=function(){stopMic();};
-  micRecognition.start();
-}
-window.toggleMic=toggleMic;
-
-function stopMic(){
-  if(micRecognition){try{micRecognition.stop();}catch(e){}micRecognition=null;}
-  if(activeMicField){
-    const btn=document.getElementById(activeMicField+'-mic');
-    if(btn){btn.textContent='🎤';btn.style.color='var(--accent)';}
-  }
-  activeMicField=null;
-}
-
 init();
 </script>
 </body>
