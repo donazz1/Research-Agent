@@ -520,9 +520,9 @@ let micRecognition=null,activeMicField=null;
 const BRIEF_CATEGORIES=['marketing','financial','scientific','paper'];
 const BRIEF_LABELS={marketing:'📊 Marketing Brief',financial:'💰 Financial Brief',scientific:'🔬 Scientific Brief',paper:'📄 Research Paper'};
 
-function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'';}
-function getFBProjectId(){return localStorage.getItem('ra-fb-project')||'';}
-function getFBApiKey(){return localStorage.getItem('ra-fb-apikey')||'';}
+function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'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';}
+function getFBProjectId(){return localStorage.getItem('ra-fb-project')||'research-agent-83fe8';}
+function getFBApiKey(){return localStorage.getItem('ra-fb-apikey')||'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8';}
 
 function saveSetup(){
   const ak=document.getElementById('setup-anthropic').value.trim();
