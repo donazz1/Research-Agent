@@ -431,6 +431,24 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
   </div>
 </div>
 
+
+<script>
+// Global setup handler — must be outside module for onclick to work
+function saveSetup(){
+  var ak=document.getElementById('setup-anthropic').value.trim();
+  var fp=document.getElementById('setup-firebase').value.trim();
+  var fk=document.getElementById('setup-fbkey').value.trim();
+  if(!ak||!ak.startsWith('sk-ant')){alert('Anthropic key should start with sk-ant-api03-');return;}
+  if(!fp){alert('Please enter your Firebase Project ID');return;}
+  if(!fk||!fk.startsWith('AIza')){alert('Firebase API key should start with AIza');return;}
+  localStorage.setItem('ra-api-key',ak);
+  localStorage.setItem('ra-fb-project',fp);
+  localStorage.setItem('ra-fb-apikey',fk);
+  // Reload to init with new keys
+  window.location.reload();
+}
+</script>
+
 <!-- GLOBAL SPEECH ENGINE -->
 <script>
 var _utter=null,_paused=false,_progTimer=null,_progVal=0,_speakCtx=null;
@@ -520,21 +538,11 @@ let micRecognition=null,activeMicField=null;
 const BRIEF_CATEGORIES=['marketing','financial','scientific','paper'];
 const BRIEF_LABELS={marketing:'📊 Marketing Brief',financial:'💰 Financial Brief',scientific:'🔬 Scientific Brief',paper:'📄 Research Paper'};
 
-function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'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';}
+function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'';}
 function getFBProjectId(){return localStorage.getItem('ra-fb-project')||'research-agent-83fe8';}
 function getFBApiKey(){return localStorage.getItem('ra-fb-apikey')||'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8';}
 
-function saveSetup(){
-  const ak=document.getElementById('setup-anthropic').value.trim();
-  const fp=document.getElementById('setup-firebase').value.trim();
-  const fk=document.getElementById('setup-fbkey').value.trim();
-  if(!ak||!ak.startsWith('sk-ant')){alert('Anthropic key should start with sk-ant-api03-');return;}
-  if(!fp){alert('Please enter your Firebase Project ID');return;}
-  if(!fk||!fk.startsWith('AIza')){alert('Firebase API key should start with AIza');return;}
-  localStorage.setItem('ra-api-key',ak);localStorage.setItem('ra-fb-project',fp);localStorage.setItem('ra-fb-apikey',fk);
-  init();
-}
-window.saveSetup=saveSetup;
+// saveSetup is now a global function defined outside the module
 
 function changeAnthropicKey(){const k=prompt('New Anthropic API key:');if(k&&k.startsWith('sk-ant')){localStorage.setItem('ra-api-key',k);updateKeyStatus();}}
 window.changeAnthropicKey=changeAnthropicKey;
