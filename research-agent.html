@@ -34,8 +34,9 @@ button{cursor:pointer}
 #header-title{font-size:17px;font-weight:600}
 #header-sub{font-size:12px;color:var(--text2);margin-top:1px}
 #header-sync{font-size:11px;color:var(--text3);margin-top:1px}
-#tab-bar{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0}
-.tab{flex:1;padding:11px 4px;font-size:13px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;transition:all 0.15s}
+#tab-bar{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#tab-bar::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:11px 12px;font-size:12px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;white-space:nowrap}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 #content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .pane{display:none;padding:16px 16px calc(var(--safe-bottom) + 16px)}
@@ -53,7 +54,6 @@ button{cursor:pointer}
 .btn:active{opacity:0.7}
 .btn:disabled{opacity:0.35}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.primary:active{background:var(--accent2)}
 .btn.small{height:36px;font-size:13px;padding:0 14px;width:auto}
 .btn.danger{border-color:var(--danger);color:var(--danger)}
 /* INPUTS */
@@ -69,7 +69,7 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .read-top-btn.speaking{border-color:var(--accent);color:var(--accent);background:rgba(108,99,255,0.1)}
 .result{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word}
 .result.streaming{border-left:2px solid var(--accent)}
-/* PLAYER BAR */
+/* PLAYER */
 .player-bar{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:10px 14px;display:none;align-items:center;gap:10px;margin-top:10px}
 .player-bar.active{display:flex}
 .play-pause-btn{width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
@@ -80,15 +80,16 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .player-stop{background:none;border:none;color:var(--text3);font-size:18px;padding:0;cursor:pointer}
 .player-speed{height:28px;background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;padding:0 8px;flex-shrink:0;appearance:none;-webkit-appearance:none;background-color:var(--bg3)}
 /* BOTTOM ACTIONS */
-.bottom-actions{display:flex;gap:8px;margin-top:10px}
-.export-wrap{position:relative;flex:1}
-.export-btn{width:100%;height:40px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
-.export-menu{position:absolute;bottom:44px;left:0;right:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;box-shadow:0 -4px 20px rgba(0,0,0,0.3)}
-.export-menu.open{display:block}
-.export-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:14px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
-.export-item:last-child{border-bottom:none}
-.export-item:active{background:var(--bg3)}
-.export-item span{font-size:18px}
+.bottom-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.action-wrap{position:relative}
+.action-btn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.action-btn.brief{border-color:var(--accent);color:var(--accent)}
+.action-menu{position:absolute;bottom:44px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;min-width:200px;box-shadow:0 -4px 20px rgba(0,0,0,0.4)}
+.action-menu.open{display:block}
+.action-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:14px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
+.action-item:last-child{border-bottom:none}
+.action-item:active{background:var(--bg3)}
+.action-item span{font-size:18px}
 .kb-save-btn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
 /* STATUS */
 .status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:8px 0}
@@ -97,18 +98,19 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 /* SAVE ROW */
 .save-row{margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:14px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
 .save-row label{font-size:12px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
-/* KB CARDS */
+/* KB */
+.kb-section{margin-bottom:20px}
+.kb-section-header{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;padding:8px 0;border-bottom:0.5px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.kb-section-count{font-size:11px;background:var(--bg3);color:var(--text3);padding:2px 8px;border-radius:99px}
 .kb-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
 .kb-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
 .kb-card-title{font-size:15px;font-weight:600;color:var(--text);flex:1;line-height:1.4;cursor:pointer}
-.kb-card-title:hover{color:var(--accent)}
-.kb-card-meta{font-size:12px;color:var(--text3);margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.kb-card-meta{font-size:12px;color:var(--text3);margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap}
 .kb-card-body{font-size:14px;color:var(--text2);line-height:1.6;max-height:80px;overflow:hidden;position:relative}
 .kb-card-body.expanded{max-height:none}
 .kb-card-body.trunc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--bg2))}
 .kb-card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .kb-action-btn{height:32px;padding:0 12px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
-.kb-action-btn:active{opacity:0.7}
 .kb-action-btn.danger{border-color:var(--danger);color:var(--danger)}
 .kb-player-bar{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:8px 12px;display:none;align-items:center;gap:8px;margin-top:8px}
 .kb-player-bar.active{display:flex}
@@ -117,6 +119,10 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .kb-export-menu{position:absolute;bottom:36px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;width:180px;box-shadow:0 -4px 20px rgba(0,0,0,0.3)}
 .kb-export-menu.open{display:block}
 .badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--bg3);color:var(--text2);font-weight:500;border:0.5px solid var(--border)}
+.badge.marketing{background:rgba(108,99,255,0.15);color:var(--accent);border-color:var(--accent)}
+.badge.financial{background:rgba(46,204,113,0.15);color:var(--success);border-color:var(--success)}
+.badge.scientific{background:rgba(243,156,18,0.15);color:var(--warn);border-color:var(--warn)}
+.badge.paper{background:rgba(231,76,60,0.15);color:var(--danger);border-color:var(--danger)}
 .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
 .tag-chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer}
 .tag-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -147,19 +153,23 @@ select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;
 .attach-menu.open{display:block}
 .attach-menu-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:15px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
 .attach-menu-item:last-child{border-bottom:none}
-.attach-menu-item:active{background:var(--bg3)}
 .attach-menu-item span{font-size:18px}
 .sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:4px}
 .sync-dot.syncing{background:var(--warn);animation:pulse 1s infinite}
 .sync-dot.error{background:var(--danger)}
 .error-banner{background:rgba(231,76,60,0.15);border:0.5px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#ff8080;margin-top:8px;line-height:1.5;display:none}
-/* TOGGLE SWITCH */
 .toggle-switch{position:relative;width:48px;height:28px;flex-shrink:0}
 .toggle-switch input{opacity:0;width:0;height:0}
 .toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border-radius:99px;transition:0.3s;border:0.5px solid var(--border)}
 .toggle-slider:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:0.3s}
 input:checked+.toggle-slider{background:var(--accent)}
 input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
+/* BRIEF GENERATING OVERLAY */
+.brief-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.brief-overlay.active{display:flex}
+.brief-spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brief-overlay-text{color:var(--text);font-size:15px;font-weight:500}
 </style>
 </head>
 <body>
@@ -178,6 +188,11 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
   <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Keys saved only on this device. Knowledge base syncs via Firebase.</p>
 </div>
 
+<div class="brief-overlay" id="brief-overlay">
+  <div class="brief-spinner"></div>
+  <div class="brief-overlay-text" id="brief-overlay-text">Generating brief…</div>
+</div>
+
 <div id="app" style="display:none">
   <div id="header">
     <div style="font-size:22px">🧠</div>
@@ -191,6 +206,7 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
     <button class="tab active" onclick="switchTab('research')" id="tab-research">Research</button>
     <button class="tab" onclick="switchTab('summarize')" id="tab-summarize">Summarize</button>
     <button class="tab" onclick="switchTab('kb')" id="tab-kb">Knowledge Base</button>
+    <button class="tab" onclick="switchTab('briefs')" id="tab-briefs">Briefs</button>
     <button class="tab" onclick="switchTab('settings')" id="tab-settings">Settings</button>
   </div>
   <div id="content">
@@ -234,32 +250,41 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
       <div id="rstatus" class="status" style="display:none"><span class="dot"></span><span id="rstatus-text">Searching…</span></div>
       <div id="r-error" class="error-banner"></div>
       <div class="result-wrap" id="r-result-wrap">
-        <div class="result-top-bar"><button class="read-top-btn" id="r-read-top" onclick="toggleSpeak('r','r-player','r-playpause','r-progress','r-player-label','r-read-top','r-speed',()=>lastR)">▶ Read</button></div>
+        <div class="result-top-bar"><button class="read-top-btn" id="r-read-top" onclick="toggleSpeak('r','r-player','r-playpause','r-progress','r-player-label','r-read-top','r-speed',function(){return lastR;})">▶ Read</button></div>
         <div class="result" id="rresult"></div>
         <div class="player-bar" id="r-player">
           <button class="play-pause-btn" id="r-playpause" onclick="togglePauseResume()">⏸</button>
           <div class="player-info"><div class="player-label" id="r-player-label">Reading aloud…</div><div class="player-progress"><div class="player-progress-fill" id="r-progress" style="width:0%"></div></div></div>
           <button class="player-stop" onclick="stopSpeaking()">⏹</button>
-          <select class="player-speed" id="r-speed" onchange="changeSpeed(()=>lastR,'r-player','r-playpause','r-progress','r-player-label','r-read-top','r-speed')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
+          <select class="player-speed" id="r-speed" onchange="changeSpeed(function(){return lastR;},'r-player','r-playpause','r-progress','r-player-label','r-read-top','r-speed')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
         </div>
         <div class="bottom-actions">
-          <div class="export-wrap">
-            <button class="export-btn" onclick="toggleExportMenu('r-export-menu')">📤 Export ▾</button>
-            <div class="export-menu" id="r-export-menu">
-              <button class="export-item" onclick="exportPDF(()=>lastR,()=>getRTitle());closeExportMenus()"><span>📄</span> Save as PDF</button>
-              <button class="export-item" onclick="exportHTML(()=>lastR,()=>getRTitle());closeExportMenus()"><span>🌐</span> Save as HTML</button>
-              <button class="export-item" onclick="copyText(()=>lastR);closeExportMenus()"><span>📋</span> Copy text</button>
-              <button class="export-item" onclick="copyAndShare(()=>lastR,()=>getRTitle());closeExportMenus()"><span>📤</span> Copy &amp; Share</button>
+          <div class="action-wrap">
+            <button class="action-btn brief" onclick="toggleActionMenu('r-brief-menu')">✨ Brief ▾</button>
+            <div class="action-menu" id="r-brief-menu">
+              <button class="action-item" onclick="generateBrief('r','marketing');closeAllActionMenus()"><span>📊</span> Marketing Brief</button>
+              <button class="action-item" onclick="generateBrief('r','financial');closeAllActionMenus()"><span>💰</span> Financial Brief</button>
+              <button class="action-item" onclick="generateBrief('r','scientific');closeAllActionMenus()"><span>🔬</span> Scientific Brief</button>
+              <button class="action-item" onclick="generateBrief('r','paper');closeAllActionMenus()"><span>📄</span> Research Paper</button>
             </div>
           </div>
-          <button class="kb-save-btn" onclick="showKBSave('r')">📌 Save to KB</button>
+          <div class="action-wrap">
+            <button class="action-btn" onclick="toggleActionMenu('r-export-menu')">📤 Export ▾</button>
+            <div class="action-menu" id="r-export-menu">
+              <button class="action-item" onclick="exportPDF(function(){return lastR;},function(){return getRTitle();});closeAllActionMenus()"><span>📄</span> Save as PDF</button>
+              <button class="action-item" onclick="exportHTML(function(){return lastR;},function(){return getRTitle;},'research');closeAllActionMenus()"><span>🌐</span> Save as HTML</button>
+              <button class="action-item" onclick="copyText(function(){return lastR;});closeAllActionMenus()"><span>📋</span> Copy text</button>
+              <button class="action-item" onclick="copyAndShare(function(){return lastR;},function(){return getRTitle();});closeAllActionMenus()"><span>📤</span> Copy &amp; Share</button>
+            </div>
+          </div>
+          <button class="kb-save-btn" onclick="showKBSave('r')">📌 Save</button>
         </div>
       </div>
       <div id="rsave" class="save-row" style="display:none">
         <label>Save to knowledge base</label>
         <input class="input" id="rsave-title" placeholder="Title…" style="height:44px"/>
         <select class="input" id="rsave-tag" style="height:44px">
-          <option value="general">General</option><option value="ai-ml">AI / ML</option><option value="science">Science</option><option value="tech">Tech</option><option value="business">Business</option><option value="health">Health</option><option value="other">Other</option>
+          <option value="research">Research Note</option><option value="general">General</option><option value="ai-ml">AI / ML</option><option value="science">Science</option><option value="tech">Tech</option><option value="business">Business</option><option value="health">Health</option><option value="other">Other</option>
         </select>
         <button class="btn" onclick="saveToKB('r')" id="rsave-btn">📌 Save to KB</button>
       </div>
@@ -308,32 +333,41 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
       <div id="sstatus" class="status" style="display:none"><span class="dot"></span><span id="sstatus-text">Processing…</span></div>
       <div id="s-error" class="error-banner"></div>
       <div class="result-wrap" id="s-result-wrap">
-        <div class="result-top-bar"><button class="read-top-btn" id="s-read-top" onclick="toggleSpeak('s','s-player','s-playpause','s-progress','s-player-label','s-read-top','s-speed',()=>lastS)">▶ Read</button></div>
+        <div class="result-top-bar"><button class="read-top-btn" id="s-read-top" onclick="toggleSpeak('s','s-player','s-playpause','s-progress','s-player-label','s-read-top','s-speed',function(){return lastS;})">▶ Read</button></div>
         <div class="result" id="sresult"></div>
         <div class="player-bar" id="s-player">
           <button class="play-pause-btn" id="s-playpause" onclick="togglePauseResume()">⏸</button>
           <div class="player-info"><div class="player-label" id="s-player-label">Reading aloud…</div><div class="player-progress"><div class="player-progress-fill" id="s-progress" style="width:0%"></div></div></div>
           <button class="player-stop" onclick="stopSpeaking()">⏹</button>
-          <select class="player-speed" id="s-speed" onchange="changeSpeed(()=>lastS,'s-player','s-playpause','s-progress','s-player-label','s-read-top','s-speed')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
+          <select class="player-speed" id="s-speed" onchange="changeSpeed(function(){return lastS;},'s-player','s-playpause','s-progress','s-player-label','s-read-top','s-speed')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
         </div>
         <div class="bottom-actions">
-          <div class="export-wrap">
-            <button class="export-btn" onclick="toggleExportMenu('s-export-menu')">📤 Export ▾</button>
-            <div class="export-menu" id="s-export-menu">
-              <button class="export-item" onclick="exportPDF(()=>lastS,()=>getSTitle());closeExportMenus()"><span>📄</span> Save as PDF</button>
-              <button class="export-item" onclick="exportHTML(()=>lastS,()=>getSTitle());closeExportMenus()"><span>🌐</span> Save as HTML</button>
-              <button class="export-item" onclick="copyText(()=>lastS);closeExportMenus()"><span>📋</span> Copy text</button>
-              <button class="export-item" onclick="copyAndShare(()=>lastS,()=>getSTitle());closeExportMenus()"><span>📤</span> Copy &amp; Share</button>
+          <div class="action-wrap">
+            <button class="action-btn brief" onclick="toggleActionMenu('s-brief-menu')">✨ Brief ▾</button>
+            <div class="action-menu" id="s-brief-menu">
+              <button class="action-item" onclick="generateBrief('s','marketing');closeAllActionMenus()"><span>📊</span> Marketing Brief</button>
+              <button class="action-item" onclick="generateBrief('s','financial');closeAllActionMenus()"><span>💰</span> Financial Brief</button>
+              <button class="action-item" onclick="generateBrief('s','scientific');closeAllActionMenus()"><span>🔬</span> Scientific Brief</button>
+              <button class="action-item" onclick="generateBrief('s','paper');closeAllActionMenus()"><span>📄</span> Research Paper</button>
             </div>
           </div>
-          <button class="kb-save-btn" onclick="showKBSave('s')">📌 Save to KB</button>
+          <div class="action-wrap">
+            <button class="action-btn" onclick="toggleActionMenu('s-export-menu')">📤 Export ▾</button>
+            <div class="action-menu" id="s-export-menu">
+              <button class="action-item" onclick="exportPDF(function(){return lastS;},function(){return getSTitle();});closeAllActionMenus()"><span>📄</span> Save as PDF</button>
+              <button class="action-item" onclick="exportHTML(function(){return lastS;},function(){return getSTitle();},'summary');closeAllActionMenus()"><span>🌐</span> Save as HTML</button>
+              <button class="action-item" onclick="copyText(function(){return lastS;});closeAllActionMenus()"><span>📋</span> Copy text</button>
+              <button class="action-item" onclick="copyAndShare(function(){return lastS;},function(){return getSTitle();});closeAllActionMenus()"><span>📤</span> Copy &amp; Share</button>
+            </div>
+          </div>
+          <button class="kb-save-btn" onclick="showKBSave('s')">📌 Save</button>
         </div>
       </div>
       <div id="ssave" class="save-row" style="display:none">
         <label>Save to knowledge base</label>
         <input class="input" id="ssave-title" placeholder="Title…" style="height:44px"/>
         <select class="input" id="ssave-tag" style="height:44px">
-          <option value="general">General</option><option value="ai-ml">AI / ML</option><option value="science">Science</option><option value="tech">Tech</option><option value="business">Business</option><option value="health">Health</option><option value="other">Other</option>
+          <option value="summary">Summary</option><option value="general">General</option><option value="ai-ml">AI / ML</option><option value="science">Science</option><option value="tech">Tech</option><option value="business">Business</option><option value="health">Health</option><option value="other">Other</option>
         </select>
         <button class="btn" onclick="saveToKB('s')" id="ssave-btn">📌 Save to KB</button>
       </div>
@@ -341,9 +375,15 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
 
     <!-- KNOWLEDGE BASE -->
     <div class="pane" id="pane-kb">
-      <input class="input" id="kbsearch" placeholder="Search your knowledge base…" oninput="renderKB()" style="height:44px;margin-bottom:12px"/>
+      <input class="input" id="kbsearch" placeholder="Search knowledge base…" oninput="renderKB()" style="height:44px;margin-bottom:12px"/>
       <div class="filter-row" id="tag-filters"></div>
       <div id="kb-list"></div>
+    </div>
+
+    <!-- BRIEFS -->
+    <div class="pane" id="pane-briefs">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Your generated briefs, organized by type. Tap any title to expand, use action buttons to read, export, or share.</div>
+      <div id="briefs-list"></div>
     </div>
 
     <!-- SETTINGS -->
@@ -391,16 +431,95 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
   </div>
 </div>
 
+<!-- GLOBAL SPEECH ENGINE -->
+<script>
+var _utter=null,_paused=false,_progTimer=null,_progVal=0,_speakCtx=null;
+function stopSpeaking(){
+  if(_progTimer){clearInterval(_progTimer);_progTimer=null;}
+  if(_utter){try{window.speechSynthesis.cancel();}catch(e){}  _utter=null;}
+  _paused=false;_progVal=0;
+  if(_speakCtx){
+    var c=_speakCtx;
+    var pb=document.getElementById(c.playerId);if(pb)pb.classList.remove('active');
+    var rt=document.getElementById(c.readTopId);if(rt){rt.textContent='▶ Read';rt.classList.remove('speaking');}
+    var pp=document.getElementById(c.playPauseId);if(pp)pp.textContent='⏸';
+    var pf=document.getElementById(c.progressId);if(pf)pf.style.width='0%';
+    var lb=document.getElementById(c.labelId);if(lb)lb.textContent='Reading aloud…';
+  }
+  document.querySelectorAll('.kb-player-bar').forEach(function(b){b.classList.remove('active');});
+  _speakCtx=null;
+}
+function _startSpeech(text,speed,ctx){
+  if(!text)return;
+  stopSpeaking();
+  try{
+    var utter=new SpeechSynthesisUtterance(text);
+    utter.rate=speed||1;utter.lang='en-US';utter.pitch=1;
+    var words=text.split(/\s+/).length;
+    var secs=(words/150)*60/(speed||1);
+    _progVal=0;
+    _progTimer=setInterval(function(){
+      if(!_paused){_progVal=Math.min(99,_progVal+(100/secs));var pf=document.getElementById(ctx.progressId);if(pf)pf.style.width=_progVal+'%';}
+    },1000);
+    utter.onend=function(){stopSpeaking();};
+    utter.onerror=function(){stopSpeaking();};
+    _utter=utter;_speakCtx=ctx;_paused=false;
+    var pb=document.getElementById(ctx.playerId);if(pb)pb.classList.add('active');
+    var rt=document.getElementById(ctx.readTopId);if(rt){rt.textContent='⏹ Stop';rt.classList.add('speaking');}
+    var pp=document.getElementById(ctx.playPauseId);if(pp)pp.textContent='⏸';
+    var lb=document.getElementById(ctx.labelId);if(lb)lb.textContent='Reading aloud…';
+    window.speechSynthesis.speak(utter);
+  }catch(e){console.error('Speech error:',e);}
+}
+function toggleSpeak(tab,playerId,playPauseId,progressId,labelId,readTopId,speedId,getText){
+  var text=getText();if(!text)return;
+  if(_speakCtx&&_speakCtx.tab===tab){stopSpeaking();return;}
+  var speedEl=document.getElementById(speedId);
+  var speed=speedEl?parseFloat(speedEl.value||'1'):1;
+  _startSpeech(text,speed,{tab:tab,playerId:playerId,playPauseId:playPauseId,progressId:progressId,labelId:labelId,readTopId:readTopId,speedId:speedId,getText:getText});
+}
+function togglePauseResume(){
+  if(!_speakCtx)return;
+  var pp=document.getElementById(_speakCtx.playPauseId);
+  var lb=document.getElementById(_speakCtx.labelId);
+  if(_paused){window.speechSynthesis.resume();_paused=false;if(pp)pp.textContent='⏸';if(lb)lb.textContent='Reading aloud…';}
+  else{window.speechSynthesis.pause();_paused=true;if(pp)pp.textContent='▶';if(lb)lb.textContent='Paused';}
+}
+function changeSpeed(getText,playerId,playPauseId,progressId,labelId,readTopId,speedId){
+  if(!_speakCtx)return;
+  var text=getText();
+  var speedEl=document.getElementById(speedId);var speed=speedEl?parseFloat(speedEl.value||'1'):1;
+  stopSpeaking();
+  setTimeout(function(){_startSpeech(text,speed,{tab:'x',playerId:playerId,playPauseId:playPauseId,progressId:progressId,labelId:labelId,readTopId:readTopId,speedId:speedId,getText:getText});},150);
+}
+function toggleKBSpeak(id){
+  var entry=null;
+  if(window._kb){for(var i=0;i<window._kb.length;i++){if(window._kb[i].id===id){entry=window._kb[i];break;}}}
+  if(!entry)return;
+  var tab='kb-'+id;
+  if(_speakCtx&&_speakCtx.tab===tab){stopSpeaking();return;}
+  _startSpeech(entry.content,1,{tab:tab,playerId:'kb-player-'+id,playPauseId:'kb-pp-'+id,progressId:'kb-prog-'+id,labelId:'kb-label-'+id,readTopId:'kb-readtop-'+id,speedId:'kb-speed-'+id,getText:function(){return entry.content;}});
+}
+function toggleKBPause(){togglePauseResume();}
+function changeKBSpeed(id){
+  var entry=null;
+  if(window._kb){for(var i=0;i<window._kb.length;i++){if(window._kb[i].id===id){entry=window._kb[i];break;}}}
+  if(!entry||!_speakCtx)return;
+  var speedId='kb-speed-'+id;
+  changeSpeed(function(){return entry.content;},'kb-player-'+id,'kb-pp-'+id,'kb-prog-'+id,'kb-label-'+id,'kb-readtop-'+id,speedId);
+}
+</script>
+
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-let db=null,kb=[],activeTag=null,lastR='',lastS='',rAttach=null,sAttach=null;
-let currentUtterance=null,isPaused=false,progressTimer=null,progressVal=0;
-let activeSpeakCtx=null;
+let db=null,kb=[],briefs=[],activeTag=null,lastR='',lastS='',rAttach=null,sAttach=null;
 let micRecognition=null,activeMicField=null;
 
-// ── SETUP ──────────────────────────────────────────────
+const BRIEF_CATEGORIES=['marketing','financial','scientific','paper'];
+const BRIEF_LABELS={marketing:'📊 Marketing Brief',financial:'💰 Financial Brief',scientific:'🔬 Scientific Brief',paper:'📄 Research Paper'};
+
 function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'';}
 function getFBProjectId(){return localStorage.getItem('ra-fb-project')||'';}
 function getFBApiKey(){return localStorage.getItem('ra-fb-apikey')||'';}
@@ -426,11 +545,7 @@ window.clearAll=clearAll;
 function openLink(u){window.open(u,'_blank');}
 window.openLink=openLink;
 
-// ── LIGHT MODE ─────────────────────────────────────────
-function toggleLightMode(on){
-  document.body.classList.toggle('light',on);
-  localStorage.setItem('ra-light',on?'1':'');
-}
+function toggleLightMode(on){document.body.classList.toggle('light',on);localStorage.setItem('ra-light',on?'1':'');}
 window.toggleLightMode=toggleLightMode;
 
 function updateKeyStatus(){
@@ -445,7 +560,6 @@ function setSyncStatus(state,text){
   txt.textContent=text;
 }
 
-// ── FIREBASE ───────────────────────────────────────────
 async function initFirebase(){
   const projectId=getFBProjectId();const apiKey=getFBApiKey();if(!projectId||!apiKey)return;
   try{
@@ -454,40 +568,56 @@ async function initFirebase(){
     db=getFirestore(app);setSyncStatus('ok','Synced');updateKeyStatus();
   }catch(e){setSyncStatus('error','Sync error');}
 }
+
 async function loadKB(){
-  if(!db){try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}updateKBCount();renderKB();return;}
+  if(!db){
+    try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}
+    try{briefs=JSON.parse(localStorage.getItem('ra-briefs')||'[]');}catch(e){briefs=[];}
+    window._kb=[...kb,...briefs];updateKBCount();renderKB();renderBriefs();return;
+  }
   try{
     setSyncStatus('syncing','Loading…');
-    const q=query(collection(db,'knowledge_base'),orderBy('id','desc'));
-    const snap=await getDocs(q);kb=snap.docs.map(d=>({...d.data(),_docId:d.id}));
-    setSyncStatus('ok','Synced');updateKBCount();renderKB();
+    const q1=query(collection(db,'knowledge_base'),orderBy('id','desc'));
+    const snap1=await getDocs(q1);kb=snap1.docs.map(d=>({...d.data(),_docId:d.id}));
+    const q2=query(collection(db,'briefs'),orderBy('id','desc'));
+    const snap2=await getDocs(q2);briefs=snap2.docs.map(d=>({...d.data(),_docId:d.id}));
+    window._kb=[...kb,...briefs];
+    setSyncStatus('ok','Synced');updateKBCount();renderKB();renderBriefs();
   }catch(e){
     setSyncStatus('error','Load error');
     try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e2){kb=[];}
-    updateKBCount();renderKB();
+    try{briefs=JSON.parse(localStorage.getItem('ra-briefs')||'[]');}catch(e2){briefs=[];}
+    window._kb=[...kb,...briefs];updateKBCount();renderKB();renderBriefs();
   }
 }
-async function saveEntryToFirebase(entry){if(!db)return null;try{const ref=await addDoc(collection(db,'knowledge_base'),entry);return ref.id;}catch(e){return null;}}
-async function deleteEntryFromFirebase(docId){if(!db||!docId)return;try{await deleteDoc(doc(db,'knowledge_base',docId));}catch(e){}}
+
+async function saveEntryToFirebase(entry,collName){
+  if(!db)return null;
+  try{const ref=await addDoc(collection(db,collName),entry);return ref.id;}catch(e){return null;}
+}
+async function deleteEntryFromFirebase(docId,collName){
+  if(!db||!docId)return;
+  try{await deleteDoc(doc(db,collName,docId));}catch(e){}
+}
 
 function updateKBCount(){
-  const n=kb.length,s=`${n} saved entr${n===1?'y':'ies'}`;
+  const n=kb.length+briefs.length;
+  const s=`${n} saved entr${n===1?'y':'ies'}`;
   const h=document.getElementById('header-sub');if(h)h.textContent=s;
   const sc=document.getElementById('settings-kb-count');if(sc)sc.textContent=s;
 }
 
-// ── TABS ───────────────────────────────────────────────
 function switchTab(t){
-  closeAllMenus();closeExportMenus();stopSpeaking();stopMic();
-  ['research','summarize','kb','settings'].forEach(id=>{
+  closeAllMenus();closeAllActionMenus();stopSpeaking();stopMic();
+  ['research','summarize','kb','briefs','settings'].forEach(id=>{
     document.getElementById('pane-'+id).classList.toggle('active',id===t);
     document.getElementById('tab-'+id).classList.toggle('active',id===t);
   });
   if(t==='kb')renderKB();
+  if(t==='briefs')renderBriefs();
 }
 window.switchTab=switchTab;
 
-// ── CLEAR ──────────────────────────────────────────────
 function clearResearch(){
   stopSpeaking();stopMic();
   document.getElementById('rq').value='';
@@ -498,6 +628,7 @@ function clearResearch(){
   removeAttach('r');lastR='';
 }
 window.clearResearch=clearResearch;
+
 function clearSummarize(){
   stopSpeaking();stopMic();
   document.getElementById('stext').value='';document.getElementById('surl').value='';
@@ -509,17 +640,20 @@ function clearSummarize(){
 }
 window.clearSummarize=clearSummarize;
 
-// ── CLIPBOARD ──────────────────────────────────────────
 async function pasteClipboard(){
   try{const text=await navigator.clipboard.readText();if(text)document.getElementById('surl').value=text.trim();}
   catch(e){const t=prompt('Paste your URL:');if(t)document.getElementById('surl').value=t.trim();}
 }
 window.pasteClipboard=pasteClipboard;
 
-// ── ATTACHMENTS ────────────────────────────────────────
 function toggleMenu(id){const menu=document.getElementById(id);const wasOpen=menu.classList.contains('open');closeAllMenus();if(!wasOpen)menu.classList.add('open');}
 window.toggleMenu=toggleMenu;
 function closeAllMenus(){document.querySelectorAll('.attach-menu').forEach(m=>m.classList.remove('open'));}
+function toggleActionMenu(id){const menu=document.getElementById(id);const wasOpen=menu.classList.contains('open');closeAllActionMenus();if(!wasOpen)menu.classList.add('open');}
+window.toggleActionMenu=toggleActionMenu;
+function closeAllActionMenus(){document.querySelectorAll('.action-menu,.kb-export-menu').forEach(m=>m.classList.remove('open'));}
+window.closeAllActionMenus=closeAllActionMenus;
+
 function triggerAttach(tab,type){closeAllMenus();document.getElementById(tab+'-'+type+'-input').click();}
 window.triggerAttach=triggerAttach;
 function removeAttach(tab){
@@ -541,12 +675,13 @@ function handleAttach(event,tab){
     const thumb=document.getElementById(tab+'-attach-thumb');
     if(isImage){thumb.src=e.target.result;thumb.style.display='block';}else{thumb.style.display='none';}
     document.getElementById(tab+'-attach-name').textContent=file.name;
-    document.getElementById(tab+'-attach-type').textContent=isImage?'Image':'PDF document';
+    document.getElementById(tab+'-attach-type').textContent=isImage?'Image':'PDF';
     preview.style.display='flex';
   };
   reader.readAsDataURL(file);
 }
 window.handleAttach=handleAttach;
+
 function buildContent(text,attach){
   if(!attach)return text;
   const parts=[];
@@ -555,359 +690,232 @@ function buildContent(text,attach){
   parts.push({type:'text',text});return parts;
 }
 
-// ── SPEECH ENGINE ──────────────────────────────────────
-function stopSpeaking(){
-  if(progressTimer){clearInterval(progressTimer);progressTimer=null;}
-  if(currentUtterance){window.speechSynthesis.cancel();currentUtterance=null;}
-  isPaused=false;progressVal=0;
-  if(activeSpeakCtx){
-    const ctx=activeSpeakCtx;
-    const pb=document.getElementById(ctx.playerId);if(pb)pb.classList.remove('active');
-    const rt=document.getElementById(ctx.readTopId);if(rt){rt.textContent='▶ Read';rt.classList.remove('speaking');}
-    const pp=document.getElementById(ctx.playPauseId);if(pp)pp.textContent='⏸';
-    const pf=document.getElementById(ctx.progressId);if(pf)pf.style.width='0%';
-    // also reset kb player if any
-  }
-  document.querySelectorAll('.kb-player-bar').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.kb-play-btn').forEach(b=>{if(b.dataset.playing==='1'){b.textContent='▶';b.dataset.playing='0';}});
-  activeSpeakCtx=null;
-}
-window.stopSpeaking=stopSpeaking;
-
-function toggleSpeak(tab,playerId,playPauseId,progressId,labelId,readTopId,speedId,getText){
-  const text=getText();if(!text)return;
-  if(activeSpeakCtx&&activeSpeakCtx.tab===tab){stopSpeaking();return;}
-  stopSpeaking();
-  const speed=parseFloat(document.getElementById(speedId).value||'1');
-  startSpeech(text,speed,{tab,playerId,playPauseId,progressId,labelId,readTopId,speedId,getText});
-}
-window.toggleSpeak=toggleSpeak;
-
-function startSpeech(text,speed,ctx){
-  const utter=new SpeechSynthesisUtterance(text);
-  utter.rate=speed;utter.lang='en-US';
-  const words=text.split(/\s+/).length;
-  const secs=(words/150)*60/speed;
-  progressVal=0;
-  progressTimer=setInterval(()=>{
-    if(!isPaused){progressVal=Math.min(99,progressVal+(100/secs));const pf=document.getElementById(ctx.progressId);if(pf)pf.style.width=progressVal+'%';}
-  },1000);
-  utter.onend=()=>stopSpeaking();
-  utter.onerror=()=>stopSpeaking();
-  currentUtterance=utter;activeSpeakCtx=ctx;isPaused=false;
-  const pb=document.getElementById(ctx.playerId);if(pb)pb.classList.add('active');
-  const rt=document.getElementById(ctx.readTopId);if(rt){rt.textContent='⏹ Stop';rt.classList.add('speaking');}
-  const pp=document.getElementById(ctx.playPauseId);if(pp)pp.textContent='⏸';
-  window.speechSynthesis.speak(utter);
-}
-
-function togglePauseResume(){
-  if(!activeSpeakCtx)return;
-  const pp=document.getElementById(activeSpeakCtx.playPauseId);
-  const label=document.getElementById(activeSpeakCtx.labelId);
-  if(isPaused){window.speechSynthesis.resume();isPaused=false;if(pp)pp.textContent='⏸';if(label)label.textContent='Reading aloud…';}
-  else{window.speechSynthesis.pause();isPaused=true;if(pp)pp.textContent='▶';if(label)label.textContent='Paused';}
-}
-window.togglePauseResume=togglePauseResume;
-
-function changeSpeed(getText,playerId,playPauseId,progressId,labelId,readTopId,speedId){
-  if(!activeSpeakCtx)return;
-  const text=getText();const speed=parseFloat(document.getElementById(speedId).value||'1');
-  stopSpeaking();
-  setTimeout(()=>{document.getElementById(speedId).value=String(speed);startSpeech(text,speed,{tab:'x',playerId,playPauseId,progressId,labelId,readTopId,speedId,getText});},100);
-}
-window.changeSpeed=changeSpeed;
-
-// KB speech - simple per-card
-function toggleKBSpeak(id,btnId){
-  const entry=kb.find(e=>e.id===id);if(!entry)return;
-  const playerId='kb-player-'+id;const ppId='kb-pp-'+id;const progId='kb-prog-'+id;
-  if(activeSpeakCtx&&activeSpeakCtx.tab==='kb-'+id){stopSpeaking();return;}
-  stopSpeaking();
-  const speed=1;
-  startSpeech(entry.content,speed,{tab:'kb-'+id,playerId,playPauseId:ppId,progressId:progId,labelId:'kb-label-'+id,readTopId:'kb-readtop-'+id,speedId:'kb-speed-'+id,getText:()=>entry.content});
-}
-window.toggleKBSpeak=toggleKBSpeak;
-
-function toggleKBPause(id){togglePauseResume();}
-window.toggleKBPause=toggleKBPause;
-function changeKBSpeed(id){
-  const entry=kb.find(e=>e.id===id);if(!entry||!activeSpeakCtx)return;
-  const speedId='kb-speed-'+id;
-  changeSpeed(()=>entry.content,'kb-player-'+id,'kb-pp-'+id,'kb-prog-'+id,'kb-label-'+id,'kb-readtop-'+id,speedId);
-}
-window.changeKBSpeed=changeKBSpeed;
-
-// ── EXPORT MENUS ───────────────────────────────────────
-function toggleExportMenu(id){const menu=document.getElementById(id);const wasOpen=menu.classList.contains('open');closeExportMenus();if(!wasOpen)menu.classList.add('open');}
-window.toggleExportMenu=toggleExportMenu;
-function closeExportMenus(){document.querySelectorAll('.export-menu,.kb-export-menu').forEach(m=>m.classList.remove('open'));}
-window.closeExportMenus=closeExportMenus;
-
-// ── TITLE HELPERS ──────────────────────────────────────
-function getRTitle(){return(document.getElementById('rsave-title').value||'Research Report').trim();}
-function getSTitle(){return(document.getElementById('ssave-title').value||'Summary').trim();}
-window.getRTitle=getRTitle;window.getSTitle=getSTitle;
-
-// ── PDF ────────────────────────────────────────────────
-function exportPDF(getText,getTitle){
-  const text=getText();if(!text)return;
-  const title=getTitle();
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>${esc(title)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13pt;line-height:1.8;color:#111;max-width:750px;margin:40px auto;padding:0 24px}h1{font-size:18pt;margin-bottom:8px}p.meta{font-size:10pt;color:#666;margin-bottom:32px}pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13pt;line-height:1.8}@media print{body{margin:0;padding:24px}}</style></head><body><h1>${esc(title)}</h1><p class="meta">${new Date().toLocaleDateString('en-CA')} · Research Agent</p><pre>${esc(text)}</pre></body></html>`);
-  win.document.close();setTimeout(()=>{win.focus();win.print();},400);
-}
-window.exportPDF=exportPDF;
-
-// ── HTML ───────────────────────────────────────────────
-function exportHTML(getText,getTitle){
-  const text=getText();if(!text)return;
-  const title=getTitle();const date=new Date().toLocaleDateString('en-CA');
-  const htmlContent=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${esc(title)}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#f0f0f0;padding:0}.container{max-width:720px;margin:0 auto;padding:32px 24px 60px}.top-bar{display:flex;align-items:center;gap:10px;margin-bottom:32px;padding-bottom:20px;border-bottom:0.5px solid #333}.logo{font-size:24px}.brand{font-size:15px;font-weight:600}.brand-sub{font-size:12px;color:#666;margin-top:2px}h1{font-size:22px;font-weight:600;margin-bottom:8px;line-height:1.3}.meta{font-size:13px;color:#666;margin-bottom:28px}.player-bar{background:rgba(108,99,255,0.12);border:0.5px solid #6c63ff;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:24px}.play-btn{width:40px;height:40px;border-radius:50%;background:#6c63ff;border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}.player-info{flex:1}.player-status{font-size:12px;color:#a099ff;margin-bottom:5px}.progress-bar{height:3px;background:rgba(255,255,255,0.1);border-radius:99px}.progress-fill{height:100%;background:#6c63ff;border-radius:99px;width:0%;transition:width 0.5s}.player-controls{display:flex;align-items:center;gap:8px}.stop-btn{background:none;border:none;color:#666;font-size:18px;cursor:pointer}.speed-sel{background:#242424;border:0.5px solid #333;border-radius:6px;color:#a0a0a0;font-size:12px;padding:2px 8px;height:28px}.content{font-size:15px;line-height:1.85;color:#d0d0d0;white-space:pre-wrap;word-break:break-word}.share-bar{display:flex;gap:10px;margin-top:32px;padding-top:24px;border-top:0.5px solid #333;flex-wrap:wrap}.share-btn{height:40px;padding:0 18px;border-radius:8px;border:0.5px solid #444;background:#1a1a1a;color:#f0f0f0;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.share-btn:active{opacity:0.7}.disclaimer{font-size:12px;color:#555;margin-top:32px;line-height:1.6;padding-top:20px;border-top:0.5px solid #2a2a2a}</style></head><body><div class="container"><div class="top-bar"><div class="logo">🧠</div><div><div class="brand">Research Agent</div><div class="brand-sub">AI Research Assistant</div></div></div><h1>${esc(title)}</h1><div class="meta">${esc(date)}</div><div class="player-bar"><button class="play-btn" id="playbtn" onclick="togglePlay()">▶</button><div class="player-info"><div class="player-status" id="pstatus">Tap ▶ to read aloud</div><div class="progress-bar"><div class="progress-fill" id="prog"></div></div></div><div class="player-controls"><button class="stop-btn" onclick="stopPlay()">⏹</button><select class="speed-sel" id="spd"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select></div></div><div class="content">${esc(text)}</div><div class="share-bar"><button class="share-btn" onclick="shareThis()">📤 Share</button><button class="share-btn" onclick="copyAll()">📋 Copy text</button><button class="share-btn" onclick="window.print()">🖨 Print / PDF</button></div><div class="disclaimer">⚠ For informational purposes only. Not financial or professional advice. Generated by Research Agent · ${esc(date)}</div></div><script>var u=null,pa=false,ti=null,pr=0,tx=${JSON.stringify(text)};function togglePlay(){if(u&&!pa){speechSynthesis.pause();pa=true;document.getElementById('playbtn').textContent='▶';document.getElementById('pstatus').textContent='Paused';return;}if(u&&pa){speechSynthesis.resume();pa=false;document.getElementById('playbtn').textContent='⏸';document.getElementById('pstatus').textContent='Reading aloud…';return;}startPlay();}function startPlay(){stopPlay();var sp=parseFloat(document.getElementById('spd').value||'1');u=new SpeechSynthesisUtterance(tx);u.rate=sp;u.lang='en-US';var se=(tx.split(/\\s+/).length/150)*60/sp;pr=0;ti=setInterval(function(){pr=Math.min(99,pr+(100/se));document.getElementById('prog').style.width=pr+'%';},1000);u.onend=stopPlay;u.onerror=stopPlay;document.getElementById('playbtn').textContent='⏸';document.getElementById('pstatus').textContent='Reading aloud…';speechSynthesis.speak(u);}function stopPlay(){if(ti){clearInterval(ti);ti=null;}if(u){speechSynthesis.cancel();u=null;}pa=false;pr=0;document.getElementById('playbtn').textContent='▶';document.getElementById('pstatus').textContent='Tap ▶ to read aloud';document.getElementById('prog').style.width='0%';}function shareThis(){if(navigator.share){navigator.share({title:${JSON.stringify(title)},text:tx.substring(0,200)+'…',url:window.location.href}).catch(function(){});}else{navigator.clipboard.writeText(window.location.href).then(function(){alert('Link copied!');});}}function copyAll(){navigator.clipboard.writeText(tx).then(function(){alert('Copied!');});}<\/script></body></html>`;
-  const blob=new Blob([htmlContent],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=(title.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'report')+'.html';
-  document.body.appendChild(a);a.click();
-  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
-}
-window.exportHTML=exportHTML;
-
-function copyText(getText){
-  const text=getText();if(!text)return;
-  navigator.clipboard.writeText(text).then(()=>alert('Copied!')).catch(()=>alert('Copy failed — try long-pressing the text.'));
-}
-window.copyText=copyText;
-
-async function copyAndShare(getText,getTitle){
-  const text=getText();if(!text)return;
-  const title=getTitle();
-  try{await navigator.clipboard.writeText(text);}catch(e){}
-  if(navigator.share){try{await navigator.share({title,text:text.substring(0,500)+'…'});return;}catch(e){}}
-  alert('Text copied! Paste it anywhere.');
-}
-window.copyAndShare=copyAndShare;
-
-function showKBSave(tab){
-  const saveRow=document.getElementById(tab==='r'?'rsave':'ssave');
-  if(saveRow){saveRow.style.display='flex';saveRow.scrollIntoView({behavior:'smooth',block:'nearest'});}
-}
-window.showKBSave=showKBSave;
-
-// ── MIC ────────────────────────────────────────────────
-function toggleMic(fieldId,btnId){
-  if(activeMicField===fieldId){stopMic();return;}
-  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){alert('Voice dictation not supported. Try Safari on iPhone or Chrome on MacBook.');return;}
-  stopMic();
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  micRecognition=new SR();micRecognition.continuous=true;micRecognition.interimResults=true;micRecognition.lang='en-US';
-  const field=document.getElementById(fieldId);const btn=document.getElementById(btnId);
-  let existing=field.value;if(existing&&!existing.endsWith(' '))existing+=' ';
-  micRecognition.onstart=()=>{activeMicField=fieldId;if(btn){btn.textContent='⏹';btn.style.color='var(--danger)';}};
-  micRecognition.onresult=(e)=>{
-    let interim='',final='';
-    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
-    field.value=existing+final+(interim||'');if(final)existing=field.value;
-  };
-  micRecognition.onerror=(e)=>{if(e.error!=='aborted')alert('Mic error: '+e.error);stopMic();};
-  micRecognition.onend=()=>{stopMic();};
-  micRecognition.start();
-}
-window.toggleMic=toggleMic;
-function stopMic(){
-  if(micRecognition){try{micRecognition.stop();}catch(e){}micRecognition=null;}
-  if(activeMicField){const btn=document.getElementById(activeMicField+'-mic');if(btn){btn.textContent='🎤';btn.style.color='var(--accent)';}}
-  activeMicField=null;
-}
-
-// ── API ────────────────────────────────────────────────
-async function callAPI(system,userContent,onChunk){
+async function callAPI(system,userContent,stream,onChunk){
   const key=getAnthropicKey();
   const resp=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,stream:true,system,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:userContent}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,stream:stream,system,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:userContent}]})
   });
   if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API error '+resp.status);}
+  if(!stream){const data=await resp.json();return data.content?.filter(b=>b.type==='text').map(b=>b.text).join('\n')||'';}
   const reader=resp.body.getReader();const dec=new TextDecoder();let buf='',full='';
   while(true){
     const{done,value}=await reader.read();if(done)break;
     buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
     for(const line of lines){
       if(!line.startsWith('data: '))continue;const d=line.slice(6).trim();if(d==='[DONE]')continue;
-      try{const j=JSON.parse(d);if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){full+=j.delta.text;onChunk(full);}}catch(e){}
+      try{const j=JSON.parse(d);if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){full+=j.delta.text;if(onChunk)onChunk(full);}}catch(e){}
     }
   }
   return full;
 }
 
-// ── RESEARCH ───────────────────────────────────────────
-async function doResearch(){
-  const q=document.getElementById('rq').value.trim();if(!q&&!rAttach){alert('Add a question or attach a file.');return;}
-  stopMic();const mode=document.getElementById('rmode').value;
-  const btn=document.getElementById('rbtn');btn.disabled=true;
-  const status=document.getElementById('rstatus');const statusText=document.getElementById('rstatus-text');
-  const resultWrap=document.getElementById('r-result-wrap');const resultEl=document.getElementById('rresult');
-  const saveRow=document.getElementById('rsave');const errEl=document.getElementById('r-error');
-  stopSpeaking();status.style.display='flex';statusText.textContent='Searching the web…';
-  resultWrap.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
-  saveRow.style.display='none';errEl.style.display='none';
-  const modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis with nuance and open questions.',papers:'Focus on academic research. Cite key papers and findings.',compare:'Compare the main approaches and viewpoints.'};
-  const promptText=rAttach&&!q?`Analyze this ${rAttach.isImage?'image':'document'} and provide research insights.`:rAttach?`${q}\n\nAttached: ${rAttach.isImage?'image':'document'}.`:q;
+// ── BRIEF GENERATION ───────────────────────────────────
+async function generateBrief(tab,briefType){
+  const text=tab==='r'?lastR:lastS;if(!text){alert('Generate a research result first.');return;}
+  const title=tab==='r'?getRTitle():getSTitle();
+
+  const overlay=document.getElementById('brief-overlay');
+  const overlayText=document.getElementById('brief-overlay-text');
+  overlay.classList.add('active');
+  overlayText.textContent=`Generating ${BRIEF_LABELS[briefType]}…`;
+
+  const prompts={
+    marketing:`You are a professional marketing copywriter and brand strategist. Transform the following research into a compelling marketing brief with these exact sections:
+1. HEADLINE — a powerful one-line value proposition
+2. WHAT IS IT — 2-3 sentences explaining the product/service/company clearly
+3. HOW IT WORKS — 3-5 key capabilities as a table (Capability | What It Does | Why It Matters)
+4. THREE LEVELS / USE CASES — organized tiers or user segments with descriptions
+5. WHY IT'S EXTRAORDINARY — 5-6 compelling bullet points
+6. WHO USES IT — table of user types, use cases, and value delivered
+7. BOTTOM LINE — summary comparison table or key metrics
+Format as clean structured text with clear section headers. Be persuasive, professional, and concise.
+
+Research content:
+${text}`,
+
+    financial:`You are a senior financial analyst. Transform the following research into a professional investment brief. 
+First, identify any ticker symbols mentioned (look for patterns like TSXV: XXX, NYSE: XXX, NASDAQ: XXX, or standalone tickers).
+Then use web_search to find current live price data for those tickers.
+Structure the brief with these exact sections:
+1. INVESTMENT SNAPSHOT — table with: Price, 52W Range, Avg Analyst Target, Rating, Beta
+2. COMPANY OVERVIEW — key facts table (Flagship Asset, Market, Status, Key Metrics)
+3. STRATEGIC INVESTORS — table of investors, stakes, significance
+4. PROJECT CATALYSTS & TIMELINE — table of milestones, dates, details
+5. ANALYST TARGETS — price targets table with sources and upside %
+6. TECHNICAL INDICATORS — key technicals table with signals
+7. ENTRY, EXIT & POSITIONING — specific price levels with rationale
+8. KEY RISKS — numbered risk list
+9. BOTTOM LINE SUMMARY — verdict table with factor, reading, signal columns
+Include disclaimer: For informational purposes only. Not financial advice.
+
+Research content:
+${text}`,
+
+    scientific:`You are a research scientist and academic writer. Transform the following into a structured scientific brief with these exact sections:
+1. ABSTRACT — 150-word summary of key findings
+2. BACKGROUND & CONTEXT — what problem this addresses and why it matters
+3. METHODOLOGY — how the research/analysis was conducted, data sources
+4. KEY FINDINGS — numbered list of major findings with evidence
+5. DATA QUALITY & LIMITATIONS — honest assessment of confidence, gaps, caveats
+6. IMPLICATIONS — what these findings mean for the field or application
+7. FURTHER RESEARCH — 3-5 specific questions or experiments warranted
+8. CITATIONS & SOURCES — any sources referenced
+Use precise, academic language. Distinguish clearly between established fact, interpretation, and speculation.
+
+Research content:
+${text}`,
+
+    paper:`You are an expert academic and technical writer. Transform the following into a formal research paper with these exact sections:
+1. EXECUTIVE SUMMARY — 200-word overview for busy decision-makers
+2. INTRODUCTION — background, problem statement, scope of analysis
+3. BACKGROUND — historical context, prior work, relevant landscape
+4. ANALYSIS — thorough examination of evidence, arguments, data
+5. KEY FINDINGS — structured findings with supporting evidence
+6. DISCUSSION — interpretation, competing perspectives, implications
+7. CONCLUSIONS — what we can conclude with confidence
+8. FURTHER READING & NEXT STEPS — recommended resources and actions
+9. DISCLAIMER — appropriate limitations statement
+Write in a formal but accessible style. Use precise language. Structure clearly.
+
+Research content:
+${text}`
+  };
+
   try{
-    statusText.textContent='Generating response…';
-    const full=await callAPI(`You are a rigorous research assistant. ${modes[mode]} Use web_search for current info. Write in clear prose. Be thorough. No filler.`,buildContent(promptText,rAttach),(chunk)=>{resultEl.textContent=chunk;});
-    if(!full||full.trim().length<20)throw new Error('Response was empty. Please try again.');
-    lastR=full;resultEl.className='result';
-    document.getElementById('rsave-title').value=(q||rAttach?.name||'Research').slice(0,60);
-  }catch(e){resultWrap.style.display='none';errEl.style.display='block';errEl.textContent='Error: '+e.message+'\n\nTip: Check your connection and try again.';}
-  status.style.display='none';btn.disabled=false;
-}
-window.doResearch=doResearch;
+    const briefContent=await callAPI('You are an expert at transforming research into professional structured briefs. Always use web_search when financial data or current information is needed.',prompts[briefType],false,null);
+    overlay.classList.remove('active');
+    if(!briefContent||briefContent.length<50)throw new Error('Brief generation failed. Try again.');
 
-// ── SUMMARIZE ──────────────────────────────────────────
-async function doSummarize(){
-  const url=document.getElementById('surl').value.trim();const text=document.getElementById('stext').value.trim();
-  if(!url&&!text&&!sAttach){alert('Add a URL, paste text, or attach a file.');return;}
-  stopMic();const type=document.getElementById('stype').value;
-  const btn=document.getElementById('sbtn');btn.disabled=true;
-  const status=document.getElementById('sstatus');const statusText=document.getElementById('sstatus-text');
-  const resultWrap=document.getElementById('s-result-wrap');const resultEl=document.getElementById('sresult');
-  const saveRow=document.getElementById('ssave');const errEl=document.getElementById('s-error');
-  stopSpeaking();status.style.display='flex';statusText.textContent='Processing…';
-  resultWrap.style.display='block';resultEl.className='result streaming';resultEl.textContent='';
-  saveRow.style.display='none';errEl.style.display='none';
-  const types={summary:'Write a concise accurate 3-5 paragraph summary.',bullets:'Extract the most important points as a structured bullet list.',critique:'Critical analysis: strengths, weaknesses, assumptions, gaps.',eli5:'Explain in plain language for a non-expert.',extract:'Extract: main findings, methodology, data sources, and conclusions.'};
-  let promptText='';
-  if(url&&text)promptText=`URL: ${url}\n\nAdditional content:\n${text}`;
-  else if(url)promptText=`Find and summarize the content at this URL using web search: ${url}\n\nIf social media, search for the post content and summarize it.`;
-  else if(text)promptText=`Summarize the following:\n\n${text}`;
-  else if(sAttach)promptText=`Summarize this ${sAttach.isImage?'image':'document'}.`;
-  if(sAttach&&(url||text))promptText+=`\n\nAlso attached: ${sAttach.isImage?'image':'document'}.`;
-  try{
-    const full=await callAPI(`You are an expert research summarizer. ${types[type]} Be precise. Use web_search when given a URL. Complete your response fully. No filler.`,buildContent(promptText,sAttach),(chunk)=>{resultEl.textContent=chunk;});
-    if(!full||full.trim().length<20)throw new Error('Response was empty. Please try again.');
-    lastS=full;resultEl.className='result';
-    document.getElementById('ssave-title').value=(url||text||sAttach?.name||'Summary').replace(/^https?:\/\//,'').slice(0,60);
-  }catch(e){resultWrap.style.display='none';errEl.style.display='block';errEl.textContent='Error: '+e.message+'\n\nTip: Check your connection and try again.';}
-  status.style.display='none';btn.disabled=false;
-}
-window.doSummarize=doSummarize;
+    // Open brief in new window
+    openBriefWindow(briefContent,title,briefType);
 
-// ── SAVE TO KB ─────────────────────────────────────────
-async function saveToKB(src){
-  const isR=src==='r';
-  const title=(document.getElementById(isR?'rsave-title':'ssave-title').value.trim()||'Untitled');
-  const tag=document.getElementById(isR?'rsave-tag':'ssave-tag').value;
-  const content=isR?lastR:lastS;if(!content)return;
-  const entry={id:Date.now(),title,tag,content,date:new Date().toLocaleDateString('en-CA'),type:isR?'research':'summary'};
-  setSyncStatus('syncing','Saving…');
-  const docId=await saveEntryToFirebase(entry);
-  if(docId)entry._docId=docId;
-  else{const local=JSON.parse(localStorage.getItem('ra-kb')||'[]');local.unshift(entry);localStorage.setItem('ra-kb',JSON.stringify(local));}
-  kb.unshift(entry);updateKBCount();setSyncStatus('ok','Saved ✓');
-  const btnEl=document.getElementById(isR?'rsave-btn':'ssave-btn');
-  const orig=btnEl.textContent;btnEl.textContent='✅ Saved!';
-  setTimeout(()=>{btnEl.textContent=orig;setSyncStatus('ok','Synced');},2000);
-}
-window.saveToKB=saveToKB;
+    // Auto-save to briefs KB
+    const entry={id:Date.now(),title:title||'Untitled Brief',briefType,content:briefContent,date:new Date().toLocaleDateString('en-CA'),type:'brief'};
+    const docId=await saveEntryToFirebase(entry,'briefs');
+    if(docId)entry._docId=docId;
+    else{const local=JSON.parse(localStorage.getItem('ra-briefs')||'[]');local.unshift(entry);localStorage.setItem('ra-briefs',JSON.stringify(local));}
+    briefs.unshift(entry);window._kb=[...kb,...briefs];updateKBCount();
 
-// ── DELETE ─────────────────────────────────────────────
-async function deleteEntry(id){
-  if(!confirm('Delete this entry?'))return;
-  const entry=kb.find(e=>e.id===id);
-  if(entry?._docId)await deleteEntryFromFirebase(entry._docId);
-  kb=kb.filter(e=>e.id!==id);updateKBCount();renderKB();setSyncStatus('ok','Synced');
+  }catch(e){
+    overlay.classList.remove('active');
+    alert('Error generating brief: '+e.message);
+  }
 }
-window.deleteEntry=deleteEntry;
+window.generateBrief=generateBrief;
 
-// ── RENDER KB ──────────────────────────────────────────
-function renderTagFilters(){
-  const tags=[...new Set(kb.map(e=>e.tag))].filter(Boolean);
-  const c=document.getElementById('tag-filters');if(!c)return;
-  c.innerHTML=tags.map(t=>`<button class="tag-chip${activeTag===t?' active':''}" onclick="toggleTag('${t}')">${t}</button>`).join('')
-    +`<span class="count">${kb.length} entr${kb.length===1?'y':'ies'}</span>`;
+function openBriefWindow(content,title,briefType){
+  const colors={marketing:{accent:'#6c63ff',badge:'📊 Marketing Brief'},financial:{accent:'#2ecc71',badge:'💰 Financial Brief'},scientific:{accent:'#f39c12',badge:'🔬 Scientific Brief'},paper:{accent:'#e74c3c',badge:'📄 Research Paper'}};
+  const c=colors[briefType]||colors.paper;
+  const date=new Date().toLocaleDateString('en-CA');
+  // Convert structured text to HTML sections
+  const htmlContent_=content.replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br/>');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${esc(title)}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#f0f0f0;padding:0}.container{max-width:780px;margin:0 auto;padding:32px 24px 60px}.top-bar{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid #333}.logo{font-size:28px}.brand{font-size:15px;font-weight:600}.brand-sub{font-size:12px;color:#666;margin-top:2px}.brief-badge{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;background:rgba(255,255,255,0.08);border:0.5px solid ${c.accent};border-radius:99px;font-size:12px;font-weight:500;color:${c.accent};margin-left:auto}h1{font-size:22px;font-weight:700;color:#f0f0f0;margin-bottom:6px;line-height:1.3}.meta{font-size:13px;color:#666;margin-bottom:24px}.player-bar{background:rgba(108,99,255,0.1);border:0.5px solid ${c.accent};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:28px}.play-btn{width:40px;height:40px;border-radius:50%;background:${c.accent};border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}.player-info{flex:1}.player-status{font-size:12px;color:${c.accent};margin-bottom:5px;opacity:0.8}.progress-bar{height:3px;background:rgba(255,255,255,0.1);border-radius:99px}.progress-fill{height:100%;background:${c.accent};border-radius:99px;width:0%;transition:width 0.5s}.player-controls{display:flex;align-items:center;gap:8px}.stop-btn{background:none;border:none;color:#666;font-size:18px;cursor:pointer}.speed-sel{background:#242424;border:0.5px solid #333;border-radius:6px;color:#a0a0a0;font-size:12px;padding:2px 8px;height:28px}.content{font-size:15px;line-height:1.85;color:#d0d0d0;white-space:pre-wrap;word-break:break-word}.share-bar{display:flex;gap:10px;margin-top:32px;padding-top:24px;border-top:0.5px solid #333;flex-wrap:wrap}.share-btn{height:40px;padding:0 18px;border-radius:8px;border:0.5px solid #444;background:#1a1a1a;color:#f0f0f0;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.share-btn:active{opacity:0.7}.disclaimer{font-size:12px;color:#555;margin-top:32px;line-height:1.6;padding-top:20px;border-top:0.5px solid #2a2a2a}@media print{.player-bar,.share-bar{display:none}.body{background:#fff;color:#000}.content{color:#000}}</style></head><body><div class="container"><div class="top-bar"><div class="logo">🧠</div><div><div class="brand">Research Agent</div><div class="brand-sub">AI Research Platform</div></div><div class="brief-badge">${c.badge}</div></div><h1>${esc(title)}</h1><div class="meta">${esc(date)}</div><div class="player-bar"><button class="play-btn" id="playbtn" onclick="togglePlay()">▶</button><div class="player-info"><div class="player-status" id="pstatus">Tap ▶ to read aloud</div><div class="progress-bar"><div class="progress-fill" id="prog"></div></div></div><div class="player-controls"><button class="stop-btn" onclick="stopPlay()">⏹</button><select class="speed-sel" id="spd"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select></div></div><div class="content">${esc(content)}</div><div class="share-bar"><button class="share-btn" onclick="shareThis()">📤 Share</button><button class="share-btn" onclick="copyAll()">📋 Copy</button><button class="share-btn" onclick="window.print()">🖨 Print / PDF</button></div><div class="disclaimer">⚠ For informational and educational purposes only. Not financial, legal, or professional advice. Generated by Research Agent · ${esc(date)}</div></div><script>var u=null,pa=false,ti=null,pr=0,tx=${JSON.stringify(content)};function togglePlay(){if(u&&!pa){speechSynthesis.pause();pa=true;document.getElementById('playbtn').textContent='▶';document.getElementById('pstatus').textContent='Paused';return;}if(u&&pa){speechSynthesis.resume();pa=false;document.getElementById('playbtn').textContent='⏸';document.getElementById('pstatus').textContent='Reading aloud…';return;}startPlay();}function startPlay(){stopPlay();var sp=parseFloat(document.getElementById('spd').value||'1');u=new SpeechSynthesisUtterance(tx);u.rate=sp;u.lang='en-US';var se=(tx.split(/\\s+/).length/150)*60/sp;pr=0;ti=setInterval(function(){pr=Math.min(99,pr+(100/se));document.getElementById('prog').style.width=pr+'%';},1000);u.onend=stopPlay;u.onerror=stopPlay;document.getElementById('playbtn').textContent='⏸';document.getElementById('pstatus').textContent='Reading aloud…';speechSynthesis.speak(u);}function stopPlay(){if(ti){clearInterval(ti);ti=null;}if(u){speechSynthesis.cancel();u=null;}pa=false;pr=0;document.getElementById('playbtn').textContent='▶';document.getElementById('pstatus').textContent='Tap ▶ to read aloud';document.getElementById('prog').style.width='0%';}function shareThis(){if(navigator.share){navigator.share({title:${JSON.stringify(title)},text:tx.substring(0,300)+'…',url:window.location.href}).catch(function(){});}else{navigator.clipboard.writeText(window.location.href).then(function(){alert('Link copied!');});}}function copyAll(){navigator.clipboard.writeText(tx).then(function(){alert('Copied!');});}<\/script></body></html>`);
+  win.document.close();
 }
-window.toggleTag=function(tag){activeTag=activeTag===tag?null:tag;renderTagFilters();renderKB();};
 
-function renderKB(){
-  renderTagFilters();
-  const listEl=document.getElementById('kb-list');if(!listEl)return;
-  const q=(document.getElementById('kbsearch')?.value||'').toLowerCase();
-  let entries=kb;
-  if(activeTag)entries=entries.filter(e=>e.tag===activeTag);
-  if(q)entries=entries.filter(e=>e.title.toLowerCase().includes(q)||e.content.toLowerCase().includes(q));
-  if(!entries.length){listEl.innerHTML=`<div class="empty"><div class="icon">${kb.length?'🔍':'📭'}</div>${kb.length?'No results.':'Nothing saved yet.'}</div>`;return;}
-  listEl.innerHTML=entries.map(e=>{
-    const id=e.id;
-    const tr=e.content.length>200;
-    return`<div class="kb-card" id="kbc-${id}">
-      <div class="kb-card-head">
-        <div class="kb-card-title" onclick="toggleKBExpand(${id})">${esc(e.title)}</div>
-      </div>
-      <div class="kb-card-meta">
-        <span class="badge">${esc(e.tag)}</span>
-        <span>${e.type==='research'?'🔍':'📄'} ${e.date}</span>
-      </div>
-      <div class="kb-card-body${tr?' trunc':''}" id="kbbody-${id}">${esc(e.content)}</div>
-      <!-- player bar -->
-      <div class="kb-player-bar" id="kb-player-${id}">
-        <button class="kb-play-btn" id="kb-pp-${id}" onclick="toggleKBPause(${id})">⏸</button>
-        <div class="player-info" style="flex:1;min-width:0">
-          <div class="player-label" id="kb-label-${id}">Reading aloud…</div>
-          <div class="player-progress"><div class="player-progress-fill" id="kb-prog-${id}" style="width:0%"></div></div>
+// ── RENDER BRIEFS TAB ──────────────────────────────────
+function renderBriefs(){
+  const listEl=document.getElementById('briefs-list');if(!listEl)return;
+  if(!briefs.length){
+    listEl.innerHTML=`<div class="empty"><div class="icon">✨</div>No briefs yet. Generate one from any Research or Summary result using the Brief button.</div>`;
+    return;
+  }
+  const grouped={};
+  BRIEF_CATEGORIES.forEach(c=>{grouped[c]=briefs.filter(b=>b.briefType===c);});
+  let html='';
+  BRIEF_CATEGORIES.forEach(cat=>{
+    const entries=grouped[cat];if(!entries.length)return;
+    html+=`<div class="kb-section"><div class="kb-section-header">${BRIEF_LABELS[cat]}<span class="kb-section-count">${entries.length}</span></div>`;
+    entries.forEach(e=>{
+      const tr=e.content.length>200;
+      html+=`<div class="kb-card">
+        <div class="kb-card-head"><div class="kb-card-title" onclick="toggleBriefExpand(${e.id})">${esc(e.title)}</div></div>
+        <div class="kb-card-meta"><span class="badge ${e.briefType}">${BRIEF_LABELS[e.briefType]}</span><span>${e.date}</span></div>
+        <div class="kb-card-body${tr?' trunc':''}" id="briefbody-${e.id}">${esc(e.content)}</div>
+        <div class="kb-player-bar" id="kb-player-${e.id}">
+          <button class="kb-play-btn" id="kb-pp-${e.id}" onclick="toggleKBPause()">⏸</button>
+          <div class="player-info" style="flex:1;min-width:0"><div class="player-label" id="kb-label-${e.id}">Reading…</div><div class="player-progress"><div class="player-progress-fill" id="kb-prog-${e.id}" style="width:0%"></div></div></div>
+          <button class="player-stop" onclick="stopSpeaking()">⏹</button>
+          <select class="player-speed" id="kb-speed-${e.id}" onchange="changeKBSpeed(${e.id})" style="background:var(--bg3)"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
         </div>
-        <button class="player-stop" onclick="stopSpeaking()">⏹</button>
-        <select class="player-speed" id="kb-speed-${id}" onchange="changeKBSpeed(${id})" style="background:var(--bg3)"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
-      </div>
-      <!-- action buttons -->
-      <div class="kb-card-actions">
-        <button class="kb-action-btn" id="kb-readtop-${id}" onclick="toggleKBSpeak(${id},'kb-readtop-${id}')">▶ Read</button>
-        <div class="kb-export-wrap">
-          <button class="kb-action-btn" onclick="toggleExportMenu('kb-export-${id}')">📤 Export ▾</button>
-          <div class="kb-export-menu" id="kb-export-${id}">
-            <button class="export-item" onclick="exportPDF(()=>getKBText(${id}),()=>getKBTitle(${id}));closeExportMenus()"><span>📄</span> Save as PDF</button>
-            <button class="export-item" onclick="exportHTML(()=>getKBText(${id}),()=>getKBTitle(${id}));closeExportMenus()"><span>🌐</span> Save as HTML</button>
-            <button class="export-item" onclick="copyText(()=>getKBText(${id}));closeExportMenus()"><span>📋</span> Copy text</button>
-            <button class="export-item" onclick="copyAndShare(()=>getKBText(${id}),()=>getKBTitle(${id}));closeExportMenus()"><span>📤</span> Copy &amp; Share</button>
+        <div class="kb-card-actions">
+          <button class="kb-action-btn" id="kb-readtop-${e.id}" onclick="toggleKBSpeak(${e.id})">▶ Read</button>
+          <button class="kb-action-btn" onclick="openBriefWindow(getKBText(${e.id}),'${esc(e.title).replace(/'/g,"\\'")}','${e.briefType}')">🔍 View</button>
+          <div class="kb-export-wrap">
+            <button class="kb-action-btn" onclick="toggleActionMenu('kb-export-${e.id}')">📤 Export ▾</button>
+            <div class="kb-export-menu" id="kb-export-${e.id}">
+              <button class="action-item" onclick="exportPDF(()=>getKBText(${e.id}),()=>getKBTitle(${e.id}));closeAllActionMenus()"><span>📄</span> PDF</button>
+              <button class="action-item" onclick="exportHTML(()=>getKBText(${e.id}),()=>getKBTitle(${e.id}),'brief');closeAllActionMenus()"><span>🌐</span> HTML</button>
+              <button class="action-item" onclick="copyText(()=>getKBText(${e.id}));closeAllActionMenus()"><span>📋</span> Copy</button>
+              <button class="action-item" onclick="copyAndShare(()=>getKBText(${e.id}),()=>getKBTitle(${e.id}));closeAllActionMenus()"><span>📤</span> Share</button>
+            </div>
           </div>
+          <button class="kb-action-btn danger" onclick="deleteBrief(${e.id})">🗑 Delete</button>
         </div>
-        <button class="kb-action-btn danger" onclick="deleteEntry(${id})">🗑 Delete</button>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    });
+    html+='</div>';
+  });
+  listEl.innerHTML=html;
 }
-window.renderKB=renderKB;
+window.renderBriefs=renderBriefs;
 
-function getKBText(id){const e=kb.find(x=>x.id===id);return e?e.content:'';}
-function getKBTitle(id){const e=kb.find(x=>x.id===id);return e?e.title:'Entry';}
-window.getKBText=getKBText;window.getKBTitle=getKBTitle;
-
-function toggleKBExpand(id){
-  const b=document.getElementById('kbbody-'+id);if(!b)return;
+function toggleBriefExpand(id){
+  const b=document.getElementById('briefbody-'+id);if(!b)return;
   const exp=b.classList.toggle('expanded');b.classList.toggle('trunc',!exp);
 }
-window.toggleKBExpand=toggleKBExpand;
+window.toggleBriefExpand=toggleBriefExpand;
 
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-document.addEventListener('click',function(e){
-  if(!e.target.closest('.attach-wrap'))closeAllMenus();
-  if(!e.target.closest('.export-wrap')&&!e.target.closest('.kb-export-wrap'))closeExportMenus();
-});
-
-async function init(){
-  const ak=getAnthropicKey(),fp=getFBProjectId(),fk=getFBApiKey();
-  const hasSetup=ak&&fp&&fk;
-  document.getElementById('setup').style.display=hasSetup?'none':'flex';
-  document.getElementById('app').style.display=hasSetup?'flex':'none';
-  if(localStorage.getItem('ra-light')==='1'){
-    document.body.classList.add('light');
-    const toggle=document.getElementById('light-toggle');if(toggle)toggle.checked=true;
-  }
-  if(hasSetup){await initFirebase();await loadKB();updateKeyStatus();}
+async function deleteBrief(id){
+  if(!confirm('Delete this brief?'))return;
+  const entry=briefs.find(e=>e.id===id);
+  if(entry?._docId)await deleteEntryFromFirebase(entry._docId,'briefs');
+  briefs=briefs.filter(e=>e.id!==id);window._kb=[...kb,...briefs];updateKBCount();renderBriefs();
 }
-init();
+window.deleteBrief=deleteBrief;
+
+// ── RETROACTIVE BRIEF CONVERSION ───────────────────────
+async function convertExistingEntries(){
+  if(!kb.length)return;
+  const toConvert=kb.filter(e=>!e.briefConverted&&e.content&&e.content.length>100);
+  if(!toConvert.length)return;
+  const overlay=document.getElementById('brief-overlay');
+  const overlayText=document.getElementById('brief-overlay-text');
+  for(let i=0;i<toConvert.length;i++){
+    const entry=toConvert[i];
+    overlay.classList.add('active');
+    overlayText.textContent=`Converting ${i+1}/${toConvert.length}: ${entry.title}…`;
+    // Detect type
+    const isFinancial=/\$|ticker|NYSE|TSXV|NASDAQ|stock|share|price|investor|dividend|EPS|revenue|market cap/i.test(entry.content);
+    const isScientific=/hypothesis|methodology|experiment|dataset|findings|abstract|literature|correlation|p-value/i.test(entry.content);
+    const isMarketing=/value prop|customer|audience|brand|marketing|campaign|conversion|ROI|engagement/i.test(entry.content);
+    const briefType=isFinancial?'financial':isScientific?'scientific':isMarketing?'marketing':'paper';
+      const briefContent=await callAPI('You are an expert at transforming research into professional structured briefs. Always use web_search when financial data or current prices are needed.',getBriefPrompt(briefType,entry.content),false,null);
+      if(briefContent&&briefContent.length>50){
+        const brief={id:Date.now()+i,title:entry.title,briefType,content:briefContent,date:entry.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
+        const docId=await saveEntryToFirebase(brief,'briefs');
+        if(docId)brief._docId=docId;
+        briefs.unshift(brief);
+      }
+    }catch(e){console.error('Conversion error:',e);}
+    await new Promise(r=>setTimeout(r,500));
+  }
+  window._kb=[...kb,...briefs];updateKBCount();renderBriefs();
+  overlay.classList.remove('active');
+}
+
+function getBriefPrompt(briefType,text){
+  const prompts={
+    financial:`You are a senior financial analyst. Transform this research into a professional investment brief with sections: Investment Snapshot (use web_search to get current price data for any tickers mentioned), Company Overview, Strategic Investors, Catalysts & Timeline, Analyst Targets, Technical Indicators, Entry/Exit Positioning, Key Risks, Bottom Line Summary. Include disclaimer.\n\n${text}`,
+    scientific:`Transform this into a scientific brief with sections: Abstract, Background, Methodology, Key Findings, Data Quality & Limitations, Implications, Further Research, Citations.\n\n${text}`,
+    marketing:`Transform this into a marketing brief with sections: Headline, What Is It, How It Works (table), Use Cases, Why It's Extraordinary, Who Uses It (table), Bottom Line.\n\n${text}`,
+    paper:`Transform this into a research paper with sections: Executive Summary, Introduction, Background, Analysis, Key Findings, Discussion, Conclusions, Further Reading.\n\n${text}`
+  };
+  return prompts[briefType];
+}
 </script>
 </body>
 </html>
