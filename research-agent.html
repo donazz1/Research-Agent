@@ -893,6 +893,7 @@ async function convertExistingEntries(){
     const isScientific=/hypothesis|methodology|experiment|dataset|findings|abstract|literature|correlation|p-value/i.test(entry.content);
     const isMarketing=/value prop|customer|audience|brand|marketing|campaign|conversion|ROI|engagement/i.test(entry.content);
     const briefType=isFinancial?'financial':isScientific?'scientific':isMarketing?'marketing':'paper';
+    try{
       const briefContent=await callAPI('You are an expert at transforming research into professional structured briefs. Always use web_search when financial data or current prices are needed.',getBriefPrompt(briefType,entry.content),false,null);
       if(briefContent&&briefContent.length>50){
         const brief={id:Date.now()+i,title:entry.title,briefType,content:briefContent,date:entry.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
