@@ -191,24 +191,20 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
 
 <script>
 function doSave(){
-  var ak=document.getElementById('setup-anthropic').value.trim();
-  var fp=document.getElementById('setup-firebase').value.trim();
-  var fk=document.getElementById('setup-fbkey').value.trim();
-  var err=document.getElementById('setup-error');
-  if(!ak){err.textContent='Please enter your Anthropic API key';err.style.display='block';return;}
-  if(!fp){err.textContent='Please enter your Firebase Project ID';err.style.display='block';return;}
-  if(!fk){err.textContent='Please enter your Firebase API key';err.style.display='block';return;}
-  try{
-    localStorage.setItem('ra-api-key',ak);
-    localStorage.setItem('ra-fb-project',fp);
-    localStorage.setItem('ra-fb-apikey',fk);
-    window.location.reload();
-  }catch(e){
-    err.textContent='Could not save: '+e.message;
-    err.style.display='block';
-  }
-}
-</script>
+  var ak=prompt('Step 1 of 3 — Anthropic API Key\n\nPaste your key (starts with sk-ant-api03-)');
+  if(!ak||!ak.trim()){return;}
+  ak=ak.trim();
+  var fp=prompt('Step 2 of 3 — Firebase Project ID\n\nPress OK to use the default:','research-agent-83fe8');
+  if(fp===null){return;}
+  fp=fp.trim()||'research-agent-83fe8';
+  var fk=prompt('Step 3 of 3 — Firebase API Key\n\nPress OK to use the default:','AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
+  if(fk===null){return;}
+  fk=fk.trim()||'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8';
+  localStorage.setItem('ra-api-key',ak);
+  localStorage.setItem('ra-fb-project',fp);
+  localStorage.setItem('ra-fb-apikey',fk);
+  window.location.reload();
+}</script>
 
 <div class="brief-overlay" id="brief-overlay">
   <div class="brief-spinner"></div>
