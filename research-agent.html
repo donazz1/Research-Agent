@@ -948,6 +948,59 @@ function getBriefPrompt(briefType,text){
   };
   return prompts[briefType];
 }
+
+
+// ── INIT ───────────────────────────────────────────────
+async function startApp(){
+  await initFirebase();
+  await loadKB();
+  updateKeyStatus();
+  if(localStorage.getItem('ra-light')==='1'){
+    document.body.classList.add('light');
+    const t=document.getElementById('light-toggle');if(t)t.checked=true;
+  }
+  setTimeout(()=>convertExistingEntries(),3000);
+}
+
+// Entry point — runs on page load
+(async function(){
+  const ak=getAnthropicKey();
+  const fp=getFBProjectId();
+  const fk=getFBApiKey();
+  
+  if(ak&&fp&&fk){
+    // Already have keys — go straight to app
+    document.getElementById('setup').style.display='none';
+    document.getElementById('app').style.display='flex';
+    await startApp();
+    return;
+  }
+  
+  // No keys — ask via prompt (bypasses Chrome autofill entirely)
+  const newKey=window.prompt('Research Agent Setup (1 of 1)\n\nPaste your Anthropic API key:\n(from console.anthropic.com → API Keys)\n\nFirebase keys are pre-configured.');
+  if(!newKey||!newKey.trim()){
+    document.getElementById('setup').style.display='flex';
+    document.getElementById('app').style.display='none';
+    return;
+  }
+  localStorage.setItem('ra-api-key',newKey.trim());
+  localStorage.setItem('ra-fb-project','research-agent-83fe8');
+  localStorage.setItem('ra-fb-apikey','AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='flex';
+  await startApp();
+})();
+
+// Window exports
+window.saveSetup=function(){
+  var k=window.prompt('Paste your Anthropic API key:');
+  if(!k)return;
+  localStorage.setItem('ra-api-key',k.trim());
+  localStorage.setItem('ra-fb-project','research-agent-83fe8');
+  localStorage.setItem('ra-fb-apikey','AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
+  window.location.reload();
+};
+
 </script>
 </body>
 </html>
