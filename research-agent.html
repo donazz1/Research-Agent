@@ -712,7 +712,7 @@ function kbCard(e,tr,delFn){
   var bc=e.briefType?({marketing:'mk',financial:'fi',scientific:'sc',paper:'pa'}[e.briefType]||''):'';
   return'<div class="kbc"><div class="kbch"><div class="kbct" onclick="kbExp('+id+')">'+esc(e.title)+'</div></div>'+
     '<div class="kbcm"><span class="badge '+bc+'">'+esc(e.tag||e.briefType||e.type||'note')+'</span><span>'+e.date+'</span></div>'+
-    '<div class="kbcb'+(tr?' tr':''")+'" id="kbcb-'+id+'">'+esc(e.content)+'</div>'+
+    '<div class="kbcb'+(tr?' tr':'')+'" id="kbcb-'+id+'">'+esc(e.content)+'</div>'+
     '<div class="kbpl" id="kbpl-'+id+'">'+
       '<button class="kbpb" id="kbpp-'+id+'" onclick="pp()">⏸</button>'+
       '<div class="pinfo" style="flex:1;min-width:0"><div class="plbl" id="kbpbl-'+id+'">Reading…</div><div class="pbar"><div class="pfill" id="kbpf-'+id+'" style="width:0%"></div></div></div>'+
