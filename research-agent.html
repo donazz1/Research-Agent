@@ -69,7 +69,7 @@ select.inp{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;ba
 .awrap{position:relative}
 .abtn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
 .abtn.brief{border-color:var(--accent);color:var(--accent)}
-.amenu{position:absolute;bottom:44px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;min-width:200px;box-shadow:0 -4px 20px rgba(0,0,0,0.4)}
+.amenu{position:absolute;top:44px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:100;display:none;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
 .amenu.on{display:block}
 .aitem{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:14px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
 .aitem:last-child{border-bottom:none}
@@ -803,7 +803,53 @@ document.addEventListener('click',function(e){if(!e.target.closest('.awrap')&&!e
   await iFB();
   await ldKB();
   uks();
+  // Auto-convert existing KB entries to briefs after 2 seconds
+  setTimeout(autoConvert, 2000);
 })();
+
+async function autoConvert(){
+  var toConvert=KB.filter(function(e){return e.content&&e.content.length>100;});
+  if(!toConvert.length)return;
+  // Check if we already have briefs for these entries
+  var existing=BR.map(function(b){return b.title;});
+  toConvert=toConvert.filter(function(e){return !existing.includes(e.title);});
+  if(!toConvert.length)return;
+  var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
+  for(var i=0;i<toConvert.length;i++){
+    var entry=toConvert[i];
+    ov.classList.add('on');
+    ot.textContent='Converting '+(i+1)+'/'+toConvert.length+': '+entry.title+'…';
+    var isF=/\$|ticker|NYSE|TSXV|NASDAQ|stock|share price|investor|market cap/i.test(entry.content);
+    var isSc=/hypothesis|methodology|experiment|dataset|findings|abstract|correlation/i.test(entry.content);
+    var isMk=/value prop|customer|audience|brand|marketing|campaign/i.test(entry.content);
+    var type=isF?'financial':isSc?'scientific':isMk?'marketing':'paper';
+    var prompts={
+      financial:'You are a senior financial analyst. Find any tickers, use web_search for live prices. Create investment brief: INVESTMENT SNAPSHOT (live price table), COMPANY OVERVIEW, CATALYSTS & TIMELINE, ANALYST TARGETS, RISKS, BOTTOM LINE. Include disclaimer.
+
+',
+      scientific:'Transform into scientific brief: ABSTRACT, BACKGROUND, METHODOLOGY, KEY FINDINGS, LIMITATIONS, IMPLICATIONS, FURTHER RESEARCH.
+
+',
+      marketing:'Transform into marketing brief: HEADLINE, WHAT IS IT, HOW IT WORKS (table), USE CASES, WHY EXTRAORDINARY, WHO USES IT, BOTTOM LINE.
+
+',
+      paper:'Transform into research paper: EXECUTIVE SUMMARY, INTRODUCTION, BACKGROUND, ANALYSIS, KEY FINDINGS, DISCUSSION, CONCLUSIONS.
+
+'
+    };
+    try{
+      var bc=await callAPI('Expert brief writer. Use web_search for current financial data.',prompts[type]+entry.content,false,null);
+      if(bc&&bc.length>50){
+        var brief={id:Date.now()+i,title:entry.title,briefType:type,content:bc,date:entry.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
+        var did=await svFB(brief,'briefs');if(did)brief._did=did;
+        BR.unshift(brief);window._KB=[...KB,...BR];uCnt();
+      }
+    }catch(e){console.error('Convert error:',e);}
+    await new Promise(function(r){setTimeout(r,1000);});
+  }
+  ov.classList.remove('on');
+  renderBR();
+}
 
 </script>
 </body>
