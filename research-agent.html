@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Research"/>
@@ -10,241 +11,181 @@
 <title>Research Agent</title>
 <link rel="apple-touch-icon" href="icon.png"/>
 <style>
-:root{
-  --bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--bg4:#2e2e2e;
-  --text:#f0f0f0;--text2:#a0a0a0;--text3:#666;
-  --border:#333;--border2:#444;
-  --accent:#6c63ff;--accent2:#5a52e0;
-  --success:#2ecc71;--danger:#e74c3c;--warn:#f39c12;
-  --radius:12px;--radius-sm:8px;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bottom:env(safe-area-inset-bottom,0px);
-}
-body.light{
-  --bg:#f5f5f5;--bg2:#ffffff;--bg3:#efefef;--bg4:#e8e8e8;
-  --text:#111111;--text2:#555555;--text3:#999999;
-  --border:#d0d0d0;--border2:#bbbbbb;
-}
+:root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--bg4:#2e2e2e;--text:#f0f0f0;--text2:#a0a0a0;--text3:#666;--border:#333;--border2:#444;--accent:#6c63ff;--success:#2ecc71;--danger:#e74c3c;--warn:#f39c12;--radius:12px;--radius-sm:8px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+body.light{--bg:#f5f5f5;--bg2:#fff;--bg3:#efefef;--bg4:#e8e8e8;--text:#111;--text2:#555;--text3:#999;--border:#d0d0d0;--border2:#bbb}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;overscroll-behavior:none;transition:background 0.2s,color 0.2s}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;overscroll-behavior:none}
 input,textarea,select,button{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer}
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
-#header{padding:calc(var(--safe-top) + 14px) 16px 14px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
-#header-title{font-size:17px;font-weight:600}
-#header-sub{font-size:12px;color:var(--text2);margin-top:1px}
-#header-sync{font-size:11px;color:var(--text3);margin-top:1px}
-#tab-bar{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-#tab-bar::-webkit-scrollbar{display:none}
-.tab{flex-shrink:0;padding:11px 12px;font-size:12px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;white-space:nowrap}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.pane{display:none;padding:16px 16px calc(var(--safe-bottom) + 16px)}
-.pane.active{display:block}
-/* SETUP */
-#setup{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;padding-top:calc(var(--safe-top) + 32px);overflow-y:auto}
-#setup h1{font-size:26px;font-weight:700;margin-bottom:8px}
-#setup p{color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:20px}
-#setup .step{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;font-size:14px;color:var(--text2);line-height:1.5}
-#setup .step strong{color:var(--text)}
-.setup-input{width:100%;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:14px;font-size:14px;color:var(--text);margin-bottom:10px;font-family:monospace}
-.setup-input::placeholder{color:var(--text3);font-family:-apple-system,sans-serif}
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 18px;height:44px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;transition:opacity 0.15s;width:100%}
-.btn:active{opacity:0.7}
-.btn:disabled{opacity:0.35}
+#hdr{padding:calc(var(--safe-top) + 12px) 16px 12px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#hdr-title{font-size:17px;font-weight:600}
+#hdr-sub{font-size:12px;color:var(--text2);margin-top:1px}
+#hdr-sync{font-size:11px;color:var(--text3);margin-top:1px}
+#tabs{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0;overflow-x:auto}
+#tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:10px 12px;font-size:12px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+#body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pane{display:none;padding:16px 16px calc(var(--safe-bottom)+16px)}
+.pane.on{display:block}
+.lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:18px}
+.lbl:first-child{margin-top:0}
+.inp{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;color:var(--text);outline:none;-webkit-appearance:none}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--text3)}
+textarea.inp{resize:none;line-height:1.6}
+select.inp{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-color:var(--bg2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 18px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;width:100%;cursor:pointer}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.small{height:36px;font-size:13px;padding:0 14px;width:auto}
 .btn.danger{border-color:var(--danger);color:var(--danger)}
-/* INPUTS */
-.input{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;color:var(--text);outline:none;-webkit-appearance:none}
-.input:focus{border-color:var(--accent)}
-.input::placeholder{color:var(--text3)}
-textarea.input{resize:none;line-height:1.6}
-select.input{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-color:var(--bg2)}
-/* RESULT */
-.result-wrap{margin-top:12px;display:none}
-.result-top-bar{display:flex;justify-content:flex-end;margin-bottom:6px}
-.read-top-btn{height:30px;padding:0 14px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
-.read-top-btn.speaking{border-color:var(--accent);color:var(--accent);background:rgba(108,99,255,0.1)}
-.result{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word}
-.result.streaming{border-left:2px solid var(--accent)}
-/* PLAYER */
-.player-bar{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:10px 14px;display:none;align-items:center;gap:10px;margin-top:10px}
-.player-bar.active{display:flex}
-.play-pause-btn{width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
-.player-info{flex:1;min-width:0}
-.player-label{font-size:11px;font-weight:500;color:#a099ff;margin-bottom:4px}
-.player-progress{height:3px;background:rgba(108,99,255,0.2);border-radius:99px}
-.player-progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.5s linear}
-.player-stop{background:none;border:none;color:var(--text3);font-size:18px;padding:0;cursor:pointer}
-.player-speed{height:28px;background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;padding:0 8px;flex-shrink:0;appearance:none;-webkit-appearance:none;background-color:var(--bg3)}
-/* BOTTOM ACTIONS */
-.bottom-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.action-wrap{position:relative}
-.action-btn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
-.action-btn.brief{border-color:var(--accent);color:var(--accent)}
-.action-menu{position:absolute;bottom:44px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;min-width:200px;box-shadow:0 -4px 20px rgba(0,0,0,0.4)}
-.action-menu.open{display:block}
-.action-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:14px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
-.action-item:last-child{border-bottom:none}
-.action-item:active{background:var(--bg3)}
-.action-item span{font-size:18px}
-.kb-save-btn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
-/* STATUS */
+.btn:active{opacity:0.7}
+.btn:disabled{opacity:0.35}
+.gap{height:12px}
+.row{display:flex;gap:8px;align-items:flex-start}
+.irow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.irow .inp{flex:1;height:44px;padding:0 12px}
+.ibtn{height:44px;width:44px;flex-shrink:0;font-size:18px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer}
+/* result */
+.rwrap{margin-top:12px;display:none}
+.rtop{display:flex;justify-content:flex-end;margin-bottom:6px}
+.rbtn{height:30px;padding:0 14px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.rbtn.on{border-color:var(--accent);color:var(--accent);background:rgba(108,99,255,0.1)}
+.res{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.res.stream{border-left:2px solid var(--accent)}
+/* player */
+.player{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:10px 14px;display:none;align-items:center;gap:10px;margin-top:10px}
+.player.on{display:flex}
+.ppbtn{width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
+.pinfo{flex:1;min-width:0}
+.plbl{font-size:11px;color:#a099ff;margin-bottom:4px}
+.pbar{height:3px;background:rgba(108,99,255,0.2);border-radius:99px}
+.pfill{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width 0.5s linear}
+.pstop{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.pspd{height:28px;background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;padding:0 8px;flex-shrink:0;appearance:none;-webkit-appearance:none;background-color:var(--bg3)}
+/* actions */
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.awrap{position:relative}
+.abtn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.abtn.brief{border-color:var(--accent);color:var(--accent)}
+.amenu{position:absolute;bottom:44px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;min-width:200px;box-shadow:0 -4px 20px rgba(0,0,0,0.4)}
+.amenu.on{display:block}
+.aitem{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:14px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
+.aitem:last-child{border-bottom:none}
+.aitem:active{background:var(--bg3)}
+.savbtn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
+/* save row */
+.saverow{margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:14px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
+.saverow label{font-size:12px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+/* status */
 .status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:8px 0}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.4s infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
-/* SAVE ROW */
-.save-row{margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:14px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
-.save-row label{font-size:12px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
-/* KB */
-.kb-section{margin-bottom:20px}
-.kb-section-header{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;padding:8px 0;border-bottom:0.5px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.kb-section-count{font-size:11px;background:var(--bg3);color:var(--text3);padding:2px 8px;border-radius:99px}
-.kb-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
-.kb-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
-.kb-card-title{font-size:15px;font-weight:600;color:var(--text);flex:1;line-height:1.4;cursor:pointer}
-.kb-card-meta{font-size:12px;color:var(--text3);margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap}
-.kb-card-body{font-size:14px;color:var(--text2);line-height:1.6;max-height:80px;overflow:hidden;position:relative}
-.kb-card-body.expanded{max-height:none}
-.kb-card-body.trunc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--bg2))}
-.kb-card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-.kb-action-btn{height:32px;padding:0 12px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
-.kb-action-btn.danger{border-color:var(--danger);color:var(--danger)}
-.kb-player-bar{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:8px 12px;display:none;align-items:center;gap:8px;margin-top:8px}
-.kb-player-bar.active{display:flex}
-.kb-play-btn{width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
-.kb-export-wrap{position:relative}
-.kb-export-menu{position:absolute;bottom:36px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:50;display:none;width:180px;box-shadow:0 -4px 20px rgba(0,0,0,0.3)}
-.kb-export-menu.open{display:block}
+.err{background:rgba(231,76,60,0.15);border:0.5px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#ff8080;margin-top:8px;line-height:1.5;display:none}
+/* attach */
+.aprev{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;border:0.5px solid var(--border)}
+.ainfo{flex:1;min-width:0}
+.aname{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atype{font-size:11px;color:var(--text3);margin-top:2px}
+.arm{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.awrap2{position:relative;flex-shrink:0}
+.atog{width:44px;height:44px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.amenu2{position:absolute;bottom:52px;right:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;width:158px;z-index:50;display:none}
+.amenu2.on{display:block}
+.aitem2{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:15px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
+.aitem2:last-child{border-bottom:none}
+/* sync */
+.sdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:4px}
+.sdot.sync{background:var(--warn);animation:pulse 1s infinite}
+.sdot.err2{background:var(--danger)}
+/* kb */
+.kbsec{margin-bottom:20px}
+.kbsech{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;padding:8px 0;border-bottom:0.5px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.kbcnt{font-size:11px;background:var(--bg3);color:var(--text3);padding:2px 8px;border-radius:99px}
+.kbc{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.kbch{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.kbct{font-size:15px;font-weight:600;color:var(--text);flex:1;line-height:1.4;cursor:pointer}
+.kbcm{font-size:12px;color:var(--text3);margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap}
+.kbcb{font-size:14px;color:var(--text2);line-height:1.6;max-height:80px;overflow:hidden;position:relative}
+.kbcb.exp{max-height:none}
+.kbcb.tr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--bg2))}
+.kbca{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.kbab{height:32px;padding:0 12px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
+.kbab.danger{border-color:var(--danger);color:var(--danger)}
+.kbpl{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:8px 12px;display:none;align-items:center;gap:8px;margin-top:8px}
+.kbpl.on{display:flex}
+.kbpb{width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
 .badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--bg3);color:var(--text2);font-weight:500;border:0.5px solid var(--border)}
-.badge.marketing{background:rgba(108,99,255,0.15);color:var(--accent);border-color:var(--accent)}
-.badge.financial{background:rgba(46,204,113,0.15);color:var(--success);border-color:var(--success)}
-.badge.scientific{background:rgba(243,156,18,0.15);color:var(--warn);border-color:var(--warn)}
-.badge.paper{background:rgba(231,76,60,0.15);color:var(--danger);border-color:var(--danger)}
-.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.tag-chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer}
-.tag-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.count{font-size:12px;color:var(--text3);margin-left:auto}
+.badge.mk{background:rgba(108,99,255,0.15);color:var(--accent);border-color:var(--accent)}
+.badge.fi{background:rgba(46,204,113,0.15);color:var(--success);border-color:var(--success)}
+.badge.sc{background:rgba(243,156,18,0.15);color:var(--warn);border-color:var(--warn)}
+.badge.pa{background:rgba(231,76,60,0.15);color:var(--danger);border-color:var(--danger)}
+.fr{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cnt{font-size:12px;color:var(--text3);margin-left:auto}
 .empty{text-align:center;padding:48px 16px;color:var(--text3);font-size:15px}
-.empty .icon{font-size:40px;margin-bottom:12px}
-/* SETTINGS */
-.settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:0.5px solid var(--border)}
-.settings-row:last-child{border-bottom:none}
-.settings-label{font-size:15px}
-.settings-sub{font-size:12px;color:var(--text2);margin-top:2px}
-.section-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:20px}
-.section-label:first-child{margin-top:0}
-.gap{height:12px}
-.row{display:flex;gap:8px;align-items:flex-start}
-/* ATTACH */
-.attach-preview{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;border:0.5px solid var(--border)}
-.attach-info{flex:1;min-width:0}
-.attach-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.attach-type{font-size:11px;color:var(--text3);margin-top:2px}
-.attach-remove{background:none;border:none;color:var(--text3);font-size:18px;padding:2px;flex-shrink:0;cursor:pointer}
-.url-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-.url-row .input{flex:1;height:44px;padding:0 12px}
-.icon-btn{height:44px;width:44px;flex-shrink:0;font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer}
-.attach-wrap{position:relative;flex-shrink:0}
-.attach-toggle{width:44px;height:44px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.attach-menu{position:absolute;bottom:52px;right:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;width:158px;z-index:50;display:none}
-.attach-menu.open{display:block}
-.attach-menu-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:15px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
-.attach-menu-item:last-child{border-bottom:none}
-.attach-menu-item span{font-size:18px}
-.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:4px}
-.sync-dot.syncing{background:var(--warn);animation:pulse 1s infinite}
-.sync-dot.error{background:var(--danger)}
-.error-banner{background:rgba(231,76,60,0.15);border:0.5px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#ff8080;margin-top:8px;line-height:1.5;display:none}
-.toggle-switch{position:relative;width:48px;height:28px;flex-shrink:0}
-.toggle-switch input{opacity:0;width:0;height:0}
-.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border-radius:99px;transition:0.3s;border:0.5px solid var(--border)}
-.toggle-slider:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:0.3s}
-input:checked+.toggle-slider{background:var(--accent)}
-input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
-/* BRIEF GENERATING OVERLAY */
-.brief-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
-.brief-overlay.active{display:flex}
-.brief-spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+.empty .ico{font-size:40px;margin-bottom:12px}
+/* settings */
+.srow{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:0.5px solid var(--border)}
+.srow:last-child{border-bottom:none}
+.slbl{font-size:15px}
+.ssub{font-size:12px;color:var(--text2);margin-top:2px}
+.sbox{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+/* toggle */
+.tog{position:relative;width:48px;height:28px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.togl{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border-radius:99px;transition:0.3s;border:0.5px solid var(--border)}
+.togl:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:0.3s}
+input:checked+.togl{background:var(--accent)}
+input:checked+.togl:before{transform:translateX(20px);background:#fff}
+/* overlay */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.ov.on{display:flex}
+.spin{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.brief-overlay-text{color:var(--text);font-size:15px;font-weight:500}
+.ovtxt{color:var(--text);font-size:15px;font-weight:500}
 </style>
 </head>
 <body>
 
-<div id="setup">
-  <div style="font-size:40px;margin-bottom:16px">🧠</div>
-  <h1>Research Agent</h1>
-  <p>Enter your keys once to get started.</p>
-  <div class="step"><strong>Anthropic API key</strong> — from console.anthropic.com → API Keys</div>
-  <input class="setup-input" id="setup-anthropic" type="text" placeholder="sk-ant-api03-…" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')doSave()" style="-webkit-text-security:disc"/>
-  <div class="step"><strong>Firebase Project ID</strong></div>
-  <input class="setup-input" id="setup-firebase" type="text" placeholder="research-agent-83fe8" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')doSave()"/>
-  <div class="step"><strong>Firebase API Key</strong></div>
-  <input class="setup-input" id="setup-fbkey" type="text" placeholder="AIzaSy…" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')doSave()" style="-webkit-text-security:disc"/>
-  <button onclick="doSave()" style="margin-top:8px;width:100%;height:52px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:17px;font-weight:600;cursor:pointer">Save &amp; Start →</button>
-  <div id="setup-error" style="color:#e74c3c;font-size:13px;margin-top:12px;display:none"></div>
-  <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Keys saved only on this device.</p>
-</div>
-
-<script>
-function doSave(){
-  var ak=prompt('Step 1 of 3 — Anthropic API Key\n\nPaste your key (starts with sk-ant-api03-)');
-  if(!ak||!ak.trim()){return;}
-  ak=ak.trim();
-  var fp=prompt('Step 2 of 3 — Firebase Project ID\n\nPress OK to use the default:','research-agent-83fe8');
-  if(fp===null){return;}
-  fp=fp.trim()||'research-agent-83fe8';
-  var fk=prompt('Step 3 of 3 — Firebase API Key\n\nPress OK to use the default:','AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
-  if(fk===null){return;}
-  fk=fk.trim()||'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8';
-  localStorage.setItem('ra-api-key',ak);
-  localStorage.setItem('ra-fb-project',fp);
-  localStorage.setItem('ra-fb-apikey',fk);
-  window.location.reload();
-}</script>
-
-<div class="brief-overlay" id="brief-overlay">
-  <div class="brief-spinner"></div>
-  <div class="brief-overlay-text" id="brief-overlay-text">Generating brief…</div>
-</div>
+<div class="ov" id="ov"><div class="spin"></div><div class="ovtxt" id="ovtxt">Generating brief…</div></div>
 
 <div id="app" style="display:none">
-  <div id="header">
+  <div id="hdr">
     <div style="font-size:22px">🧠</div>
     <div style="flex:1">
-      <div id="header-title">Research Agent</div>
-      <div id="header-sub">Loading…</div>
-      <div id="header-sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Connecting…</span></div>
+      <div id="hdr-title">Research Agent</div>
+      <div id="hdr-sub">Loading…</div>
+      <div id="hdr-sync"><span class="sdot" id="sdot"></span><span id="stxt">Connecting…</span></div>
     </div>
   </div>
-  <div id="tab-bar">
-    <button class="tab active" onclick="switchTab('research')" id="tab-research">Research</button>
-    <button class="tab" onclick="switchTab('summarize')" id="tab-summarize">Summarize</button>
-    <button class="tab" onclick="switchTab('kb')" id="tab-kb">Knowledge Base</button>
-    <button class="tab" onclick="switchTab('briefs')" id="tab-briefs">Briefs</button>
-    <button class="tab" onclick="switchTab('settings')" id="tab-settings">Settings</button>
+  <div id="tabs">
+    <button class="tab on" onclick="T('r')" id="tab-r">Research</button>
+    <button class="tab" onclick="T('s')" id="tab-s">Summarize</button>
+    <button class="tab" onclick="T('k')" id="tab-k">Knowledge Base</button>
+    <button class="tab" onclick="T('b')" id="tab-b">Briefs</button>
+    <button class="tab" onclick="T('x')" id="tab-x">Settings</button>
   </div>
-  <div id="content">
+  <div id="body">
 
     <!-- RESEARCH -->
-    <div class="pane active" id="pane-research">
-      <div class="section-label">Research question</div>
+    <div class="pane on" id="pane-r">
+      <div class="lbl">Research question</div>
       <div class="row">
-        <textarea class="input" id="rq" placeholder="What do you want to research?…" rows="3" style="flex:1"></textarea>
-        <button class="icon-btn" onclick="toggleMic('rq','rq-mic')" id="rq-mic" style="color:var(--accent);align-self:flex-start">🎤</button>
-        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="clearResearch()">✕</button>
+        <textarea class="inp" id="rq" placeholder="What do you want to research?…" rows="3" style="flex:1"></textarea>
+        <button class="ibtn" onclick="mic('rq','rqm')" id="rqm" style="color:var(--accent);align-self:flex-start">🎤</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="clrR()">✕</button>
       </div>
-      <div id="r-attach-preview" style="display:none" class="attach-preview">
-        <img id="r-attach-thumb" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
-        <div class="attach-info"><div class="attach-name" id="r-attach-name"></div><div class="attach-type" id="r-attach-type"></div></div>
-        <button class="attach-remove" onclick="removeAttach('r')">×</button>
+      <div id="rap" style="display:none" class="aprev">
+        <img id="rat" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
+        <div class="ainfo"><div class="aname" id="ran"></div><div class="atype" id="rat2"></div></div>
+        <button class="arm" onclick="rmAt('r')">×</button>
       </div>
       <div class="gap"></div>
-      <div class="section-label">Mode</div>
-      <select class="input" id="rmode">
+      <div class="lbl">Mode</div>
+      <select class="inp" id="rmode">
         <option value="overview">Overview — clear comprehensive summary</option>
         <option value="deep">Deep dive — detailed analysis &amp; nuance</option>
         <option value="papers">Academic — focus on research &amp; papers</option>
@@ -252,196 +193,190 @@ function doSave(){
       </select>
       <div class="gap"></div>
       <div style="display:flex;gap:8px">
-        <button class="btn primary" onclick="doResearch()" id="rbtn" style="flex:1">🔍 Research</button>
-        <div class="attach-wrap">
-          <button class="attach-toggle" onclick="toggleMenu('r-menu')">＋</button>
-          <div class="attach-menu" id="r-menu">
-            <button class="attach-menu-item" onclick="triggerAttach('r','camera')"><span>📷</span> Camera</button>
-            <button class="attach-menu-item" onclick="triggerAttach('r','photos')"><span>🖼️</span> Photos</button>
-            <button class="attach-menu-item" onclick="triggerAttach('r','file')"><span>📄</span> File</button>
+        <button class="btn primary" onclick="doR()" id="rbtn" style="flex:1">🔍 Research</button>
+        <div class="awrap2"><button class="atog" onclick="amenu('rm')">＋</button>
+          <div class="amenu2" id="rm">
+            <button class="aitem2" onclick="attach('r','c')"><span>📷</span> Camera</button>
+            <button class="aitem2" onclick="attach('r','p')"><span>🖼️</span> Photos</button>
+            <button class="aitem2" onclick="attach('r','f')"><span>📄</span> File</button>
           </div>
         </div>
       </div>
-      <input type="file" id="r-camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleAttach(event,'r')"/>
-      <input type="file" id="r-photos-input" accept="image/*" style="display:none" onchange="handleAttach(event,'r')"/>
-      <input type="file" id="r-file-input" accept="image/*,application/pdf" style="display:none" onchange="handleAttach(event,'r')"/>
-      <div id="rstatus" class="status" style="display:none"><span class="dot"></span><span id="rstatus-text">Searching…</span></div>
-      <div id="r-error" class="error-banner"></div>
-      <div class="result-wrap" id="r-result-wrap">
-        <div class="result-top-bar"><button class="read-top-btn" id="r-read-top" onclick="toggleSpeak('r','r-player','r-playpause','r-progress','r-player-label','r-read-top','r-speed',function(){return lastR;})">▶ Read</button></div>
-        <div class="result" id="rresult"></div>
-        <div class="player-bar" id="r-player">
-          <button class="play-pause-btn" id="r-playpause" onclick="togglePauseResume()">⏸</button>
-          <div class="player-info"><div class="player-label" id="r-player-label">Reading aloud…</div><div class="player-progress"><div class="player-progress-fill" id="r-progress" style="width:0%"></div></div></div>
-          <button class="player-stop" onclick="stopSpeaking()">⏹</button>
-          <select class="player-speed" id="r-speed" onchange="changeSpeed(function(){return lastR;},'r-player','r-playpause','r-progress','r-player-label','r-read-top','r-speed')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
+      <input type="file" id="r-c" accept="image/*" capture="environment" style="display:none" onchange="onAt(event,'r')"/>
+      <input type="file" id="r-p" accept="image/*" style="display:none" onchange="onAt(event,'r')"/>
+      <input type="file" id="r-f" accept="image/*,application/pdf" style="display:none" onchange="onAt(event,'r')"/>
+      <div id="rst" class="status" style="display:none"><span class="dot"></span><span id="rstx">Searching…</span></div>
+      <div id="rerr" class="err"></div>
+      <div class="rwrap" id="rw">
+        <div class="rtop"><button class="rbtn2" id="rrd" onclick="spk('r')">▶ Read</button></div>
+        <div class="res" id="rres"></div>
+        <div class="player" id="rpl">
+          <button class="ppbtn" id="rpp" onclick="pp()">⏸</button>
+          <div class="pinfo"><div class="plbl" id="rpbl">Reading…</div><div class="pbar"><div class="pfill" id="rpf" style="width:0%"></div></div></div>
+          <button class="pstop" onclick="stopSpk()">⏹</button>
+          <select class="pspd" id="rspd" onchange="chSpd('r')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
         </div>
-        <div class="bottom-actions">
-          <div class="action-wrap">
-            <button class="action-btn brief" onclick="toggleActionMenu('r-brief-menu')">✨ Brief ▾</button>
-            <div class="action-menu" id="r-brief-menu">
-              <button class="action-item" onclick="generateBrief('r','marketing');closeAllActionMenus()"><span>📊</span> Marketing Brief</button>
-              <button class="action-item" onclick="generateBrief('r','financial');closeAllActionMenus()"><span>💰</span> Financial Brief</button>
-              <button class="action-item" onclick="generateBrief('r','scientific');closeAllActionMenus()"><span>🔬</span> Scientific Brief</button>
-              <button class="action-item" onclick="generateBrief('r','paper');closeAllActionMenus()"><span>📄</span> Research Paper</button>
+        <div class="acts">
+          <div class="awrap"><button class="abtn brief" onclick="amenu('rbr')">✨ Brief ▾</button>
+            <div class="amenu" id="rbr">
+              <button class="aitem" onclick="brief('r','marketing');closeM()"><span>📊</span> Marketing Brief</button>
+              <button class="aitem" onclick="brief('r','financial');closeM()"><span>💰</span> Financial Brief</button>
+              <button class="aitem" onclick="brief('r','scientific');closeM()"><span>🔬</span> Scientific Brief</button>
+              <button class="aitem" onclick="brief('r','paper');closeM()"><span>📄</span> Research Paper</button>
             </div>
           </div>
-          <div class="action-wrap">
-            <button class="action-btn" onclick="toggleActionMenu('r-export-menu')">📤 Export ▾</button>
-            <div class="action-menu" id="r-export-menu">
-              <button class="action-item" onclick="exportPDF(function(){return lastR;},function(){return getRTitle();});closeAllActionMenus()"><span>📄</span> Save as PDF</button>
-              <button class="action-item" onclick="exportHTML(function(){return lastR;},function(){return getRTitle;},'research');closeAllActionMenus()"><span>🌐</span> Save as HTML</button>
-              <button class="action-item" onclick="copyText(function(){return lastR;});closeAllActionMenus()"><span>📋</span> Copy text</button>
-              <button class="action-item" onclick="copyAndShare(function(){return lastR;},function(){return getRTitle();});closeAllActionMenus()"><span>📤</span> Copy &amp; Share</button>
+          <div class="awrap"><button class="abtn" onclick="amenu('rex')">📤 Export ▾</button>
+            <div class="amenu" id="rex">
+              <button class="aitem" onclick="xPDF(()=>LR,()=>rtitle());closeM()"><span>📄</span> Save as PDF</button>
+              <button class="aitem" onclick="xHTML(()=>LR,()=>rtitle());closeM()"><span>🌐</span> Save as HTML</button>
+              <button class="aitem" onclick="xCopy(()=>LR);closeM()"><span>📋</span> Copy text</button>
+              <button class="aitem" onclick="xShare(()=>LR,()=>rtitle());closeM()"><span>📤</span> Copy &amp; Share</button>
             </div>
           </div>
-          <button class="kb-save-btn" onclick="showKBSave('r')">📌 Save</button>
+          <button class="savbtn" onclick="showSave('r')">📌 Save</button>
         </div>
       </div>
-      <div id="rsave" class="save-row" style="display:none">
+      <div id="rsv" class="saverow" style="display:none">
         <label>Save to knowledge base</label>
-        <input class="input" id="rsave-title" placeholder="Title…" style="height:44px"/>
-        <select class="input" id="rsave-tag" style="height:44px">
-          <option value="research">Research Note</option><option value="general">General</option><option value="ai-ml">AI / ML</option><option value="science">Science</option><option value="tech">Tech</option><option value="business">Business</option><option value="health">Health</option><option value="other">Other</option>
+        <input class="inp" id="rti" placeholder="Title…" style="height:44px"/>
+        <select class="inp" id="rtg" style="height:44px">
+          <option value="research">Research Note</option><option value="business">Business</option><option value="tech">Tech</option><option value="science">Science</option><option value="ai-ml">AI/ML</option><option value="health">Health</option><option value="general">General</option>
         </select>
-        <button class="btn" onclick="saveToKB('r')" id="rsave-btn">📌 Save to KB</button>
+        <button class="btn" onclick="saveKB('r')" id="rsb">📌 Save to KB</button>
       </div>
     </div>
 
     <!-- SUMMARIZE -->
-    <div class="pane" id="pane-summarize">
-      <div class="section-label">URL</div>
-      <div class="url-row">
-        <input class="input" id="surl" placeholder="https://… paste any link" type="url"/>
-        <button class="icon-btn" onclick="pasteClipboard()" style="font-size:18px">📋</button>
-        <button class="icon-btn" onclick="toggleMic('surl','surl-mic')" id="surl-mic" style="color:var(--accent);font-size:18px">🎤</button>
+    <div class="pane" id="pane-s">
+      <div class="lbl">URL</div>
+      <div class="irow">
+        <input class="inp" id="surl" placeholder="https://… paste any link" type="url"/>
+        <button class="ibtn" onclick="paste()" style="font-size:18px">📋</button>
+        <button class="ibtn" onclick="mic('surl','sum')" id="sum" style="color:var(--accent);font-size:18px">🎤</button>
         <button style="width:44px;height:44px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer" onclick="document.getElementById('surl').value=''">✕</button>
       </div>
-      <div class="section-label">Or paste text</div>
+      <div class="lbl">Or paste text</div>
       <div class="row">
-        <textarea class="input" id="stext" placeholder="Paste abstract, article, or any text…" rows="4" style="flex:1"></textarea>
-        <button class="icon-btn" onclick="toggleMic('stext','stext-mic')" id="stext-mic" style="color:var(--accent);align-self:flex-start;font-size:18px">🎤</button>
-        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="clearSummarize()">✕</button>
+        <textarea class="inp" id="stxt" placeholder="Paste abstract, article, or any text…" rows="4" style="flex:1"></textarea>
+        <button class="ibtn" onclick="mic('stxt','stm')" id="stm" style="color:var(--accent);align-self:flex-start;font-size:18px">🎤</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="clrS()">✕</button>
       </div>
-      <div id="s-attach-preview" style="display:none" class="attach-preview">
-        <img id="s-attach-thumb" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
-        <div class="attach-info"><div class="attach-name" id="s-attach-name"></div><div class="attach-type" id="s-attach-type"></div></div>
-        <button class="attach-remove" onclick="removeAttach('s')">×</button>
+      <div id="sap" style="display:none" class="aprev">
+        <img id="sat" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
+        <div class="ainfo"><div class="aname" id="san"></div><div class="atype" id="sat2"></div></div>
+        <button class="arm" onclick="rmAt('s')">×</button>
       </div>
       <div class="gap"></div>
-      <div class="section-label">Output style</div>
-      <select class="input" id="stype" style="height:44px">
+      <div class="lbl">Output style</div>
+      <select class="inp" id="stype" style="height:44px">
         <option value="summary">Concise summary</option><option value="bullets">Key bullet points</option><option value="critique">Critical analysis</option><option value="eli5">Plain-language explanation</option><option value="extract">Extract findings &amp; methods</option>
       </select>
       <div class="gap"></div>
       <div style="display:flex;gap:8px">
-        <button class="btn primary" onclick="doSummarize()" id="sbtn" style="flex:1">📄 Summarize</button>
-        <div class="attach-wrap">
-          <button class="attach-toggle" onclick="toggleMenu('s-menu')">＋</button>
-          <div class="attach-menu" id="s-menu">
-            <button class="attach-menu-item" onclick="triggerAttach('s','camera')"><span>📷</span> Camera</button>
-            <button class="attach-menu-item" onclick="triggerAttach('s','photos')"><span>🖼️</span> Photos</button>
-            <button class="attach-menu-item" onclick="triggerAttach('s','file')"><span>📄</span> File</button>
+        <button class="btn primary" onclick="doS()" id="sbtn" style="flex:1">📄 Summarize</button>
+        <div class="awrap2"><button class="atog" onclick="amenu('sm')">＋</button>
+          <div class="amenu2" id="sm">
+            <button class="aitem2" onclick="attach('s','c')"><span>📷</span> Camera</button>
+            <button class="aitem2" onclick="attach('s','p')"><span>🖼️</span> Photos</button>
+            <button class="aitem2" onclick="attach('s','f')"><span>📄</span> File</button>
           </div>
         </div>
       </div>
-      <input type="file" id="s-camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleAttach(event,'s')"/>
-      <input type="file" id="s-photos-input" accept="image/*" style="display:none" onchange="handleAttach(event,'s')"/>
-      <input type="file" id="s-file-input" accept="image/*,application/pdf" style="display:none" onchange="handleAttach(event,'s')"/>
-      <div id="sstatus" class="status" style="display:none"><span class="dot"></span><span id="sstatus-text">Processing…</span></div>
-      <div id="s-error" class="error-banner"></div>
-      <div class="result-wrap" id="s-result-wrap">
-        <div class="result-top-bar"><button class="read-top-btn" id="s-read-top" onclick="toggleSpeak('s','s-player','s-playpause','s-progress','s-player-label','s-read-top','s-speed',function(){return lastS;})">▶ Read</button></div>
-        <div class="result" id="sresult"></div>
-        <div class="player-bar" id="s-player">
-          <button class="play-pause-btn" id="s-playpause" onclick="togglePauseResume()">⏸</button>
-          <div class="player-info"><div class="player-label" id="s-player-label">Reading aloud…</div><div class="player-progress"><div class="player-progress-fill" id="s-progress" style="width:0%"></div></div></div>
-          <button class="player-stop" onclick="stopSpeaking()">⏹</button>
-          <select class="player-speed" id="s-speed" onchange="changeSpeed(function(){return lastS;},'s-player','s-playpause','s-progress','s-player-label','s-read-top','s-speed')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
+      <input type="file" id="s-c" accept="image/*" capture="environment" style="display:none" onchange="onAt(event,'s')"/>
+      <input type="file" id="s-p" accept="image/*" style="display:none" onchange="onAt(event,'s')"/>
+      <input type="file" id="s-f" accept="image/*,application/pdf" style="display:none" onchange="onAt(event,'s')"/>
+      <div id="sst" class="status" style="display:none"><span class="dot"></span><span id="sstx">Processing…</span></div>
+      <div id="serr" class="err"></div>
+      <div class="rwrap" id="sw">
+        <div class="rtop"><button class="rbtn2" id="srd" onclick="spk('s')">▶ Read</button></div>
+        <div class="res" id="sres"></div>
+        <div class="player" id="spl">
+          <button class="ppbtn" id="spp" onclick="pp()">⏸</button>
+          <div class="pinfo"><div class="plbl" id="spbl">Reading…</div><div class="pbar"><div class="pfill" id="spf" style="width:0%"></div></div></div>
+          <button class="pstop" onclick="stopSpk()">⏹</button>
+          <select class="pspd" id="sspd" onchange="chSpd('s')"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
         </div>
-        <div class="bottom-actions">
-          <div class="action-wrap">
-            <button class="action-btn brief" onclick="toggleActionMenu('s-brief-menu')">✨ Brief ▾</button>
-            <div class="action-menu" id="s-brief-menu">
-              <button class="action-item" onclick="generateBrief('s','marketing');closeAllActionMenus()"><span>📊</span> Marketing Brief</button>
-              <button class="action-item" onclick="generateBrief('s','financial');closeAllActionMenus()"><span>💰</span> Financial Brief</button>
-              <button class="action-item" onclick="generateBrief('s','scientific');closeAllActionMenus()"><span>🔬</span> Scientific Brief</button>
-              <button class="action-item" onclick="generateBrief('s','paper');closeAllActionMenus()"><span>📄</span> Research Paper</button>
+        <div class="acts">
+          <div class="awrap"><button class="abtn brief" onclick="amenu('sbr')">✨ Brief ▾</button>
+            <div class="amenu" id="sbr">
+              <button class="aitem" onclick="brief('s','marketing');closeM()"><span>📊</span> Marketing Brief</button>
+              <button class="aitem" onclick="brief('s','financial');closeM()"><span>💰</span> Financial Brief</button>
+              <button class="aitem" onclick="brief('s','scientific');closeM()"><span>🔬</span> Scientific Brief</button>
+              <button class="aitem" onclick="brief('s','paper');closeM()"><span>📄</span> Research Paper</button>
             </div>
           </div>
-          <div class="action-wrap">
-            <button class="action-btn" onclick="toggleActionMenu('s-export-menu')">📤 Export ▾</button>
-            <div class="action-menu" id="s-export-menu">
-              <button class="action-item" onclick="exportPDF(function(){return lastS;},function(){return getSTitle();});closeAllActionMenus()"><span>📄</span> Save as PDF</button>
-              <button class="action-item" onclick="exportHTML(function(){return lastS;},function(){return getSTitle();},'summary');closeAllActionMenus()"><span>🌐</span> Save as HTML</button>
-              <button class="action-item" onclick="copyText(function(){return lastS;});closeAllActionMenus()"><span>📋</span> Copy text</button>
-              <button class="action-item" onclick="copyAndShare(function(){return lastS;},function(){return getSTitle();});closeAllActionMenus()"><span>📤</span> Copy &amp; Share</button>
+          <div class="awrap"><button class="abtn" onclick="amenu('sex')">📤 Export ▾</button>
+            <div class="amenu" id="sex">
+              <button class="aitem" onclick="xPDF(()=>LS,()=>stitle());closeM()"><span>📄</span> Save as PDF</button>
+              <button class="aitem" onclick="xHTML(()=>LS,()=>stitle());closeM()"><span>🌐</span> Save as HTML</button>
+              <button class="aitem" onclick="xCopy(()=>LS);closeM()"><span>📋</span> Copy text</button>
+              <button class="aitem" onclick="xShare(()=>LS,()=>stitle());closeM()"><span>📤</span> Copy &amp; Share</button>
             </div>
           </div>
-          <button class="kb-save-btn" onclick="showKBSave('s')">📌 Save</button>
+          <button class="savbtn" onclick="showSave('s')">📌 Save</button>
         </div>
       </div>
-      <div id="ssave" class="save-row" style="display:none">
+      <div id="ssv" class="saverow" style="display:none">
         <label>Save to knowledge base</label>
-        <input class="input" id="ssave-title" placeholder="Title…" style="height:44px"/>
-        <select class="input" id="ssave-tag" style="height:44px">
-          <option value="summary">Summary</option><option value="general">General</option><option value="ai-ml">AI / ML</option><option value="science">Science</option><option value="tech">Tech</option><option value="business">Business</option><option value="health">Health</option><option value="other">Other</option>
+        <input class="inp" id="sti" placeholder="Title…" style="height:44px"/>
+        <select class="inp" id="stg" style="height:44px">
+          <option value="summary">Summary</option><option value="business">Business</option><option value="tech">Tech</option><option value="science">Science</option><option value="ai-ml">AI/ML</option><option value="health">Health</option><option value="general">General</option>
         </select>
-        <button class="btn" onclick="saveToKB('s')" id="ssave-btn">📌 Save to KB</button>
+        <button class="btn" onclick="saveKB('s')" id="ssb">📌 Save to KB</button>
       </div>
     </div>
 
-    <!-- KNOWLEDGE BASE -->
-    <div class="pane" id="pane-kb">
-      <input class="input" id="kbsearch" placeholder="Search knowledge base…" oninput="renderKB()" style="height:44px;margin-bottom:12px"/>
-      <div class="filter-row" id="tag-filters"></div>
-      <div id="kb-list"></div>
+    <!-- KB -->
+    <div class="pane" id="pane-k">
+      <input class="inp" id="ksrch" placeholder="Search knowledge base…" oninput="renderKB()" style="height:44px;margin-bottom:12px"/>
+      <div class="fr" id="kbtags"></div>
+      <div id="kblist"></div>
     </div>
 
     <!-- BRIEFS -->
-    <div class="pane" id="pane-briefs">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Your generated briefs, organized by type. Tap any title to expand, use action buttons to read, export, or share.</div>
-      <div id="briefs-list"></div>
+    <div class="pane" id="pane-b">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Generated briefs organized by type. Tap title to expand.</div>
+      <div id="brlist"></div>
     </div>
 
     <!-- SETTINGS -->
-    <div class="pane" id="pane-settings">
-      <div class="section-label">Appearance</div>
-      <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
-        <div class="settings-row" style="padding-top:0;padding-bottom:0">
-          <div><div class="settings-label">Light mode</div><div class="settings-sub">Switch between dark and light</div></div>
-          <label class="toggle-switch"><input type="checkbox" id="light-toggle" onchange="toggleLightMode(this.checked)"/><span class="toggle-slider"></span></label>
+    <div class="pane" id="pane-x">
+      <div class="lbl">Appearance</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0;padding-bottom:0">
+          <div><div class="slbl">Light mode</div><div class="ssub">Toggle dark/light</div></div>
+          <label class="tog"><input type="checkbox" id="ltog" onchange="setLight(this.checked)"/><span class="togl"></span></label>
         </div>
       </div>
-      <div class="section-label">API keys</div>
-      <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
-        <div class="settings-row" style="padding-top:0">
-          <div><div class="settings-label">Anthropic API key</div><div class="settings-sub" id="key-status">Checking…</div></div>
-          <button class="btn small" onclick="changeAnthropicKey()">Change</button>
+      <div class="lbl">API keys</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0">
+          <div><div class="slbl">Anthropic API key</div><div class="ssub" id="akstat">Checking…</div></div>
+          <button class="btn small" onclick="chgKey()">Change</button>
         </div>
-        <div class="settings-row">
-          <div><div class="settings-label">Firebase sync</div><div class="settings-sub" id="fb-status">Checking…</div></div>
-          <button class="btn small" onclick="changeFBKey()">Change</button>
+        <div class="srow">
+          <div><div class="slbl">Firebase sync</div><div class="ssub" id="fbstat">Checking…</div></div>
+          <button class="btn small" onclick="chgFB()">Change</button>
         </div>
-        <div class="settings-row" style="padding-bottom:0">
-          <div><div class="settings-label">Pricing</div><div class="settings-sub">~$0.01–0.05 per query</div></div>
-          <button class="btn small" onclick="openLink('https://console.anthropic.com')">Console ↗</button>
-        </div>
-      </div>
-      <div class="section-label">Knowledge base</div>
-      <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
-        <div class="settings-row" style="padding-top:0">
-          <div><div class="settings-label">Saved entries</div><div class="settings-sub" id="settings-kb-count">0 entries</div></div>
-        </div>
-        <div class="settings-row" style="padding-bottom:0">
-          <div><div class="settings-label">Storage</div><div class="settings-sub">Synced via Firebase across all devices</div></div>
+        <div class="srow" style="padding-bottom:0">
+          <div><div class="slbl">Pricing</div><div class="ssub">~$0.01–0.05 per query</div></div>
+          <button class="btn small" onclick="window.open('https://console.anthropic.com','_blank')">Console ↗</button>
         </div>
       </div>
-      <div class="section-label">Danger zone</div>
-      <div style="background:var(--bg2);border-radius:var(--radius);padding:14px 16px">
-        <div class="settings-row" style="padding-top:0;padding-bottom:0">
-          <div><div class="settings-label">Clear local data</div><div class="settings-sub">Removes keys from this device only</div></div>
-          <button class="btn small danger" onclick="clearAll()">Clear</button>
+      <div class="lbl">Knowledge base</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0">
+          <div><div class="slbl">Saved entries</div><div class="ssub" id="kbcnt2">0 entries</div></div>
+        </div>
+        <div class="srow" style="padding-bottom:0">
+          <div><div class="slbl">Storage</div><div class="ssub">Synced via Firebase</div></div>
+        </div>
+      </div>
+      <div class="lbl">Danger zone</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0;padding-bottom:0">
+          <div><div class="slbl">Clear local data</div><div class="ssub">Removes keys from this device</div></div>
+          <button class="btn small danger" onclick="if(confirm('Clear all local data?')){localStorage.clear();location.reload();}">Clear</button>
         </div>
       </div>
       <div style="height:40px"></div>
@@ -449,105 +384,62 @@ function doSave(){
   </div>
 </div>
 
-
 <script>
-// Global setup handler
-function saveSetup(){
-  try{
-    var ak=document.getElementById('setup-anthropic').value.trim();
-    var fp=document.getElementById('setup-firebase').value.trim();
-    var fk=document.getElementById('setup-fbkey').value.trim();
-    if(!ak){alert('Please enter your Anthropic API key');return;}
-    if(!fp){alert('Please enter your Firebase Project ID');return;}
-    if(!fk){alert('Please enter your Firebase API key');return;}
-    localStorage.setItem('ra-api-key',ak);
-    localStorage.setItem('ra-fb-project',fp);
-    localStorage.setItem('ra-fb-apikey',fk);
-    document.getElementById('setup').style.display='none';
-    document.getElementById('app').style.display='flex';
-    window.location.reload();
-  }catch(e){
-    alert('Error saving: '+e.message);
+// ── SPEECH (global scope) ──────────────────────────────
+var _u=null,_pa=false,_pt=null,_pv=0,_sc=null;
+function stopSpk(){
+  if(_pt){clearInterval(_pt);_pt=null;}
+  if(_u){try{speechSynthesis.cancel();}catch(e){}_u=null;}
+  _pa=false;_pv=0;
+  if(_sc){
+    var c=_sc;
+    var pb=document.getElementById(c.pid);if(pb)pb.classList.remove('on');
+    var rd=document.getElementById(c.rid);if(rd){rd.textContent='▶ Read';rd.classList.remove('on');}
+    var pp2=document.getElementById(c.ppid);if(pp2)pp2.textContent='⏸';
+    var pf=document.getElementById(c.pfid);if(pf)pf.style.width='0%';
+    var pl=document.getElementById(c.plid);if(pl)pl.textContent='Reading…';
   }
+  document.querySelectorAll('.kbpl').forEach(function(b){b.classList.remove('on');});
+  _sc=null;
 }
-</script>
-
-<!-- GLOBAL SPEECH ENGINE -->
-<script>
-var _utter=null,_paused=false,_progTimer=null,_progVal=0,_speakCtx=null;
-function stopSpeaking(){
-  if(_progTimer){clearInterval(_progTimer);_progTimer=null;}
-  if(_utter){try{window.speechSynthesis.cancel();}catch(e){}  _utter=null;}
-  _paused=false;_progVal=0;
-  if(_speakCtx){
-    var c=_speakCtx;
-    var pb=document.getElementById(c.playerId);if(pb)pb.classList.remove('active');
-    var rt=document.getElementById(c.readTopId);if(rt){rt.textContent='▶ Read';rt.classList.remove('speaking');}
-    var pp=document.getElementById(c.playPauseId);if(pp)pp.textContent='⏸';
-    var pf=document.getElementById(c.progressId);if(pf)pf.style.width='0%';
-    var lb=document.getElementById(c.labelId);if(lb)lb.textContent='Reading aloud…';
-  }
-  document.querySelectorAll('.kb-player-bar').forEach(function(b){b.classList.remove('active');});
-  _speakCtx=null;
-}
-function _startSpeech(text,speed,ctx){
-  if(!text)return;
-  stopSpeaking();
+function _spk(text,spd,ctx){
+  if(!text)return;stopSpk();
   try{
-    var utter=new SpeechSynthesisUtterance(text);
-    utter.rate=speed||1;utter.lang='en-US';utter.pitch=1;
-    var words=text.split(/\s+/).length;
-    var secs=(words/150)*60/(speed||1);
-    _progVal=0;
-    _progTimer=setInterval(function(){
-      if(!_paused){_progVal=Math.min(99,_progVal+(100/secs));var pf=document.getElementById(ctx.progressId);if(pf)pf.style.width=_progVal+'%';}
-    },1000);
-    utter.onend=function(){stopSpeaking();};
-    utter.onerror=function(){stopSpeaking();};
-    _utter=utter;_speakCtx=ctx;_paused=false;
-    var pb=document.getElementById(ctx.playerId);if(pb)pb.classList.add('active');
-    var rt=document.getElementById(ctx.readTopId);if(rt){rt.textContent='⏹ Stop';rt.classList.add('speaking');}
-    var pp=document.getElementById(ctx.playPauseId);if(pp)pp.textContent='⏸';
-    var lb=document.getElementById(ctx.labelId);if(lb)lb.textContent='Reading aloud…';
-    window.speechSynthesis.speak(utter);
-  }catch(e){console.error('Speech error:',e);}
+    var u=new SpeechSynthesisUtterance(text);
+    u.rate=spd||1;u.lang='en-US';u.pitch=1;
+    var w=text.split(/\s+/).length,s=(w/150)*60/(spd||1);
+    _pv=0;_pt=setInterval(function(){if(!_pa){_pv=Math.min(99,_pv+(100/s));var pf=document.getElementById(ctx.pfid);if(pf)pf.style.width=_pv+'%';}},1000);
+    u.onend=stopSpk;u.onerror=stopSpk;
+    _u=u;_sc=ctx;_pa=false;
+    var pb=document.getElementById(ctx.pid);if(pb)pb.classList.add('on');
+    var rd=document.getElementById(ctx.rid);if(rd){rd.textContent='⏹ Stop';rd.classList.add('on');}
+    var pp2=document.getElementById(ctx.ppid);if(pp2)pp2.textContent='⏸';
+    speechSynthesis.speak(u);
+  }catch(e){console.error(e);}
 }
-function toggleSpeak(tab,playerId,playPauseId,progressId,labelId,readTopId,speedId,getText){
-  var text=getText();if(!text)return;
-  if(_speakCtx&&_speakCtx.tab===tab){stopSpeaking();return;}
-  var speedEl=document.getElementById(speedId);
-  var speed=speedEl?parseFloat(speedEl.value||'1'):1;
-  _startSpeech(text,speed,{tab:tab,playerId:playerId,playPauseId:playPauseId,progressId:progressId,labelId:labelId,readTopId:readTopId,speedId:speedId,getText:getText});
+function spk(t){
+  var text=t==='r'?LR:LS;if(!text)return;
+  if(_sc&&_sc.tab===t){stopSpk();return;}
+  var spd=parseFloat((document.getElementById(t+'spd')||{value:'1'}).value||'1');
+  _spk(text,spd,{tab:t,pid:t+'pl',ppid:t+'pp',pfid:t+'pf',plid:t+'pbl',rid:t+'rd',sidid:t+'spd'});
 }
-function togglePauseResume(){
-  if(!_speakCtx)return;
-  var pp=document.getElementById(_speakCtx.playPauseId);
-  var lb=document.getElementById(_speakCtx.labelId);
-  if(_paused){window.speechSynthesis.resume();_paused=false;if(pp)pp.textContent='⏸';if(lb)lb.textContent='Reading aloud…';}
-  else{window.speechSynthesis.pause();_paused=true;if(pp)pp.textContent='▶';if(lb)lb.textContent='Paused';}
+function pp(){
+  if(!_sc)return;
+  var p2=document.getElementById(_sc.ppid),pl=document.getElementById(_sc.plid);
+  if(_pa){speechSynthesis.resume();_pa=false;if(p2)p2.textContent='⏸';if(pl)pl.textContent='Reading…';}
+  else{speechSynthesis.pause();_pa=true;if(p2)p2.textContent='▶';if(pl)pl.textContent='Paused';}
 }
-function changeSpeed(getText,playerId,playPauseId,progressId,labelId,readTopId,speedId){
-  if(!_speakCtx)return;
-  var text=getText();
-  var speedEl=document.getElementById(speedId);var speed=speedEl?parseFloat(speedEl.value||'1'):1;
-  stopSpeaking();
-  setTimeout(function(){_startSpeech(text,speed,{tab:'x',playerId:playerId,playPauseId:playPauseId,progressId:progressId,labelId:labelId,readTopId:readTopId,speedId:speedId,getText:getText});},150);
+function chSpd(t){
+  if(!_sc||_sc.tab!==t)return;
+  var text=t==='r'?LR:LS;
+  var spd=parseFloat((document.getElementById(t+'spd')||{value:'1'}).value||'1');
+  stopSpk();setTimeout(function(){_spk(text,spd,{tab:t,pid:t+'pl',ppid:t+'pp',pfid:t+'pf',plid:t+'pbl',rid:t+'rd',sidid:t+'spd'});},150);
 }
-function toggleKBSpeak(id){
-  var entry=null;
-  if(window._kb){for(var i=0;i<window._kb.length;i++){if(window._kb[i].id===id){entry=window._kb[i];break;}}}
-  if(!entry)return;
-  var tab='kb-'+id;
-  if(_speakCtx&&_speakCtx.tab===tab){stopSpeaking();return;}
-  _startSpeech(entry.content,1,{tab:tab,playerId:'kb-player-'+id,playPauseId:'kb-pp-'+id,progressId:'kb-prog-'+id,labelId:'kb-label-'+id,readTopId:'kb-readtop-'+id,speedId:'kb-speed-'+id,getText:function(){return entry.content;}});
-}
-function toggleKBPause(){togglePauseResume();}
-function changeKBSpeed(id){
-  var entry=null;
-  if(window._kb){for(var i=0;i<window._kb.length;i++){if(window._kb[i].id===id){entry=window._kb[i];break;}}}
-  if(!entry||!_speakCtx)return;
-  var speedId='kb-speed-'+id;
-  changeSpeed(function(){return entry.content;},'kb-player-'+id,'kb-pp-'+id,'kb-prog-'+id,'kb-label-'+id,'kb-readtop-'+id,speedId);
+function kbSpk(id){
+  var e=(_KB||[]).find(function(x){return x.id===id;});if(!e)return;
+  var t='kb'+id;
+  if(_sc&&_sc.tab===t){stopSpk();return;}
+  _spk(e.content,1,{tab:t,pid:'kbpl-'+id,ppid:'kbpp-'+id,pfid:'kbpf-'+id,plid:'kbpbl-'+id,rid:'kbrd-'+id,sidid:'kbspd-'+id});
 }
 </script>
 
@@ -555,451 +447,363 @@ function changeKBSpeed(id){
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-let db=null,kb=[],briefs=[],activeTag=null,lastR='',lastS='',rAttach=null,sAttach=null;
-let micRecognition=null,activeMicField=null;
+let DB=null,KB=[],BR=[],ATag=null,LR='',LS='',rAt=null,sAt=null,mRec=null,mFld=null;
+window._KB=[];
 
-const BRIEF_CATEGORIES=['marketing','financial','scientific','paper'];
-const BRIEF_LABELS={marketing:'📊 Marketing Brief',financial:'💰 Financial Brief',scientific:'🔬 Scientific Brief',paper:'📄 Research Paper'};
+const BLAB={marketing:'📊 Marketing Brief',financial:'💰 Financial Brief',scientific:'🔬 Scientific Brief',paper:'📄 Research Paper'};
+const BCATS=['marketing','financial','scientific','paper'];
 
-function getAnthropicKey(){return localStorage.getItem('ra-api-key')||'';}
-function getFBProjectId(){return localStorage.getItem('ra-fb-project')||'research-agent-83fe8';}
-function getFBApiKey(){return localStorage.getItem('ra-fb-apikey')||'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8';}
+function gk(){return localStorage.getItem('ra-k')||'';}
+function gfp(){return localStorage.getItem('ra-fp')||'research-agent-83fe8';}
+function gfk(){return localStorage.getItem('ra-fk')||'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8';}
 
-// saveSetup is now a global function defined outside the module
-
-function changeAnthropicKey(){const k=prompt('New Anthropic API key:');if(k&&k.startsWith('sk-ant')){localStorage.setItem('ra-api-key',k);updateKeyStatus();}}
-window.changeAnthropicKey=changeAnthropicKey;
-function changeFBKey(){const p=prompt('Firebase Project ID:');const k=prompt('Firebase API Key:');if(p&&k){localStorage.setItem('ra-fb-project',p);localStorage.setItem('ra-fb-apikey',k);location.reload();}}
-window.changeFBKey=changeFBKey;
-function clearAll(){if(!confirm('Remove all keys from this device?'))return;localStorage.clear();location.reload();}
-window.clearAll=clearAll;
-function openLink(u){window.open(u,'_blank');}
-window.openLink=openLink;
-
-function toggleLightMode(on){document.body.classList.toggle('light',on);localStorage.setItem('ra-light',on?'1':'');}
-window.toggleLightMode=toggleLightMode;
-
-function updateKeyStatus(){
-  const k=getAnthropicKey();
-  const el=document.getElementById('key-status');if(el)el.textContent=k?'Connected — ends in …'+k.slice(-4):'Not set';
-  const fb=document.getElementById('fb-status');if(fb)fb.textContent=db?'Synced ✓ — '+getFBProjectId():'Not connected';
+function ss(s,t){
+  var d=document.getElementById('sdot'),x=document.getElementById('stxt');
+  if(!d||!x)return;
+  d.className='sdot'+(s==='sync'?' sync':s==='err2'?' err2':'');
+  x.textContent=t;
 }
-function setSyncStatus(state,text){
-  const dot=document.getElementById('sync-dot');const txt=document.getElementById('sync-text');
-  if(!dot||!txt)return;
-  dot.className='sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');
-  txt.textContent=text;
+function uks(){
+  var k=gk(),el=document.getElementById('akstat');
+  if(el)el.textContent=k?'Connected — ends in …'+k.slice(-4):'Not set';
+  var fb=document.getElementById('fbstat');
+  if(fb)fb.textContent=DB?'Synced ✓':'Not connected';
 }
 
-async function initFirebase(){
-  const projectId=getFBProjectId();const apiKey=getFBApiKey();if(!projectId||!apiKey)return;
+async function iFB(){
   try{
-    setSyncStatus('syncing','Connecting…');
-    const app=initializeApp({apiKey,authDomain:`${projectId}.firebaseapp.com`,projectId,storageBucket:`${projectId}.firebasestorage.app`,messagingSenderId:'',appId:''});
-    db=getFirestore(app);setSyncStatus('ok','Synced');updateKeyStatus();
-  }catch(e){setSyncStatus('error','Sync error');}
+    ss('sync','Connecting…');
+    var app=initializeApp({apiKey:gfk(),authDomain:gfp()+'.firebaseapp.com',projectId:gfp(),storageBucket:gfp()+'.firebasestorage.app',messagingSenderId:'',appId:''});
+    DB=getFirestore(app);ss('','Synced');uks();
+  }catch(e){ss('err2','Sync error');}
 }
-
-async function loadKB(){
-  if(!db){
-    try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e){kb=[];}
-    try{briefs=JSON.parse(localStorage.getItem('ra-briefs')||'[]');}catch(e){briefs=[];}
-    window._kb=[...kb,...briefs];updateKBCount();renderKB();renderBriefs();return;
-  }
+async function ldKB(){
   try{
-    setSyncStatus('syncing','Loading…');
-    const q1=query(collection(db,'knowledge_base'),orderBy('id','desc'));
-    const snap1=await getDocs(q1);kb=snap1.docs.map(d=>({...d.data(),_docId:d.id}));
-    const q2=query(collection(db,'briefs'),orderBy('id','desc'));
-    const snap2=await getDocs(q2);briefs=snap2.docs.map(d=>({...d.data(),_docId:d.id}));
-    window._kb=[...kb,...briefs];
-    setSyncStatus('ok','Synced');updateKBCount();renderKB();renderBriefs();
-  }catch(e){
-    setSyncStatus('error','Load error');
-    try{kb=JSON.parse(localStorage.getItem('ra-kb')||'[]');}catch(e2){kb=[];}
-    try{briefs=JSON.parse(localStorage.getItem('ra-briefs')||'[]');}catch(e2){briefs=[];}
-    window._kb=[...kb,...briefs];updateKBCount();renderKB();renderBriefs();
-  }
+    ss('sync','Loading…');
+    var q1=query(collection(DB,'knowledge_base'),orderBy('id','desc'));
+    var s1=await getDocs(q1);KB=s1.docs.map(function(d){return Object.assign({},d.data(),{_did:d.id});});
+    var q2=query(collection(DB,'briefs'),orderBy('id','desc'));
+    var s2=await getDocs(q2);BR=s2.docs.map(function(d){return Object.assign({},d.data(),{_did:d.id});});
+    window._KB=[...KB,...BR];ss('','Synced');uCnt();renderKB();renderBR();
+  }catch(e){ss('err2','Load error');window._KB=[];}
+}
+async function svFB(entry,col){if(!DB)return null;try{var r=await addDoc(collection(DB,col),entry);return r.id;}catch(e){return null;}}
+async function dlFB(did,col){if(!DB||!did)return;try{await deleteDoc(doc(DB,col,did));}catch(e){}}
+
+function uCnt(){
+  var n=KB.length+BR.length,s=n+' saved entr'+(n===1?'y':'ies');
+  var h=document.getElementById('hdr-sub');if(h)h.textContent=s;
+  var c=document.getElementById('kbcnt2');if(c)c.textContent=s;
 }
 
-async function saveEntryToFirebase(entry,collName){
-  if(!db)return null;
-  try{const ref=await addDoc(collection(db,collName),entry);return ref.id;}catch(e){return null;}
-}
-async function deleteEntryFromFirebase(docId,collName){
-  if(!db||!docId)return;
-  try{await deleteDoc(doc(db,collName,docId));}catch(e){}
-}
-
-function updateKBCount(){
-  const n=kb.length+briefs.length;
-  const s=`${n} saved entr${n===1?'y':'ies'}`;
-  const h=document.getElementById('header-sub');if(h)h.textContent=s;
-  const sc=document.getElementById('settings-kb-count');if(sc)sc.textContent=s;
-}
-
-function switchTab(t){
-  closeAllMenus();closeAllActionMenus();stopSpeaking();stopMic();
-  ['research','summarize','kb','briefs','settings'].forEach(id=>{
-    document.getElementById('pane-'+id).classList.toggle('active',id===t);
-    document.getElementById('tab-'+id).classList.toggle('active',id===t);
+function T(t){
+  stopSpk();mStop();closeM();
+  ['r','s','k','b','x'].forEach(function(id){
+    document.getElementById('pane-'+id).classList.toggle('on',id===t);
+    document.getElementById('tab-'+id).classList.toggle('on',id===t);
   });
-  if(t==='kb')renderKB();
-  if(t==='briefs')renderBriefs();
+  if(t==='k')renderKB();
+  if(t==='b')renderBR();
 }
-window.switchTab=switchTab;
+window.T=T;
 
-function clearResearch(){
-  stopSpeaking();stopMic();
-  document.getElementById('rq').value='';
-  document.getElementById('r-result-wrap').style.display='none';
-  document.getElementById('rsave').style.display='none';
-  document.getElementById('rstatus').style.display='none';
-  document.getElementById('r-error').style.display='none';
-  removeAttach('r');lastR='';
+function setLight(on){document.body.classList.toggle('light',on);localStorage.setItem('ra-light',on?'1':'');}
+window.setLight=setLight;
+function chgKey(){var k=prompt('New Anthropic API key:');if(k&&k.trim()){localStorage.setItem('ra-k',k.trim());uks();}}
+window.chgKey=chgKey;
+function chgFB(){var p=prompt('Firebase Project ID:','research-agent-83fe8');if(p){localStorage.setItem('ra-fp',p.trim());location.reload();}}
+window.chgFB=chgFB;
+
+function clrR(){stopSpk();mStop();document.getElementById('rq').value='';document.getElementById('rw').style.display='none';document.getElementById('rsv').style.display='none';document.getElementById('rst').style.display='none';document.getElementById('rerr').style.display='none';rmAt('r');LR='';}
+window.clrR=clrR;
+function clrS(){stopSpk();mStop();document.getElementById('stxt').value='';document.getElementById('surl').value='';document.getElementById('sw').style.display='none';document.getElementById('ssv').style.display='none';document.getElementById('sst').style.display='none';document.getElementById('serr').style.display='none';rmAt('s');LS='';}
+window.clrS=clrS;
+
+async function paste(){
+  try{var t=await navigator.clipboard.readText();if(t)document.getElementById('surl').value=t.trim();}
+  catch(e){var t2=prompt('Paste URL:');if(t2)document.getElementById('surl').value=t2.trim();}
 }
-window.clearResearch=clearResearch;
+window.paste=paste;
 
-function clearSummarize(){
-  stopSpeaking();stopMic();
-  document.getElementById('stext').value='';document.getElementById('surl').value='';
-  document.getElementById('s-result-wrap').style.display='none';
-  document.getElementById('ssave').style.display='none';
-  document.getElementById('sstatus').style.display='none';
-  document.getElementById('s-error').style.display='none';
-  removeAttach('s');lastS='';
-}
-window.clearSummarize=clearSummarize;
-
-async function pasteClipboard(){
-  try{const text=await navigator.clipboard.readText();if(text)document.getElementById('surl').value=text.trim();}
-  catch(e){const t=prompt('Paste your URL:');if(t)document.getElementById('surl').value=t.trim();}
-}
-window.pasteClipboard=pasteClipboard;
-
-function toggleMenu(id){const menu=document.getElementById(id);const wasOpen=menu.classList.contains('open');closeAllMenus();if(!wasOpen)menu.classList.add('open');}
-window.toggleMenu=toggleMenu;
-function closeAllMenus(){document.querySelectorAll('.attach-menu').forEach(m=>m.classList.remove('open'));}
-function toggleActionMenu(id){const menu=document.getElementById(id);const wasOpen=menu.classList.contains('open');closeAllActionMenus();if(!wasOpen)menu.classList.add('open');}
-window.toggleActionMenu=toggleActionMenu;
-function closeAllActionMenus(){document.querySelectorAll('.action-menu,.kb-export-menu').forEach(m=>m.classList.remove('open'));}
-window.closeAllActionMenus=closeAllActionMenus;
-
-function triggerAttach(tab,type){closeAllMenus();document.getElementById(tab+'-'+type+'-input').click();}
-window.triggerAttach=triggerAttach;
-function removeAttach(tab){
-  if(tab==='r')rAttach=null;else sAttach=null;
-  document.getElementById(tab+'-attach-preview').style.display='none';
-  ['camera','photos','file'].forEach(t=>{const el=document.getElementById(tab+'-'+t+'-input');if(el)el.value='';});
-}
-window.removeAttach=removeAttach;
-function handleAttach(event,tab){
-  const file=event.target.files[0];if(!file)return;
-  const isImage=file.type.startsWith('image/'),isPDF=file.type==='application/pdf';
-  if(!isImage&&!isPDF){alert('Please attach an image or PDF.');return;}
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const base64=e.target.result.split(',')[1];
-    const attach={base64,mediaType:file.type,name:file.name,isImage};
-    if(tab==='r')rAttach=attach;else sAttach=attach;
-    const preview=document.getElementById(tab+'-attach-preview');
-    const thumb=document.getElementById(tab+'-attach-thumb');
-    if(isImage){thumb.src=e.target.result;thumb.style.display='block';}else{thumb.style.display='none';}
-    document.getElementById(tab+'-attach-name').textContent=file.name;
-    document.getElementById(tab+'-attach-type').textContent=isImage?'Image':'PDF';
-    preview.style.display='flex';
+function amenu(id){var m=document.getElementById(id),was=m.classList.contains('on');closeM();if(!was)m.classList.add('on');}
+window.amenu=amenu;
+function closeM(){document.querySelectorAll('.amenu,.amenu2').forEach(function(m){m.classList.remove('on');});}
+window.closeM=closeM;
+function attach(t,tp){closeM();document.getElementById(t+'-'+tp).click();}
+window.attach=attach;
+function rmAt(t){if(t==='r')rAt=null;else sAt=null;document.getElementById(t+'ap').style.display='none';['c','p','f'].forEach(function(x){var el=document.getElementById(t+'-'+x);if(el)el.value='';});}
+window.rmAt=rmAt;
+function onAt(ev,t){
+  var f=ev.target.files[0];if(!f)return;
+  var img=f.type.startsWith('image/'),pdf=f.type==='application/pdf';
+  if(!img&&!pdf){alert('Please attach an image or PDF.');return;}
+  var rd=new FileReader();
+  rd.onload=function(e){
+    var b64=e.target.result.split(',')[1];
+    var at={b64:b64,mt:f.type,name:f.name,img:img};
+    if(t==='r')rAt=at;else sAt=at;
+    var prev=document.getElementById(t+'ap'),th=document.getElementById(t+'at');
+    if(img){th.src=e.target.result;th.style.display='block';}else{th.style.display='none';}
+    document.getElementById(t+'an').textContent=f.name;
+    document.getElementById(t+'at2').textContent=img?'Image':'PDF';
+    prev.style.display='flex';
   };
-  reader.readAsDataURL(file);
+  rd.readAsDataURL(f);
 }
-window.handleAttach=handleAttach;
-
-function buildContent(text,attach){
-  if(!attach)return text;
-  const parts=[];
-  if(attach.isImage)parts.push({type:'image',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
-  else parts.push({type:'document',source:{type:'base64',media_type:attach.mediaType,data:attach.base64}});
-  parts.push({type:'text',text});return parts;
+window.onAt=onAt;
+function bldC(text,at){
+  if(!at)return text;
+  var p=[];
+  if(at.img)p.push({type:'image',source:{type:'base64',media_type:at.mt,data:at.b64}});
+  else p.push({type:'document',source:{type:'base64',media_type:at.mt,data:at.b64}});
+  p.push({type:'text',text:text});return p;
 }
 
-async function callAPI(system,userContent,stream,onChunk){
-  const key=getAnthropicKey();
-  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+// MIC
+function mic(fid,bid){
+  if(mFld===fid){mStop();return;}
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){alert('Voice not supported. Try Safari on iPhone or Chrome on MacBook.');return;}
+  mStop();
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  mRec=new SR();mRec.continuous=true;mRec.interimResults=true;mRec.lang='en-US';
+  var fl=document.getElementById(fid),btn=document.getElementById(bid);
+  var ex=fl.value;if(ex&&!ex.endsWith(' '))ex+=' ';
+  mRec.onstart=function(){mFld=fid;if(btn){btn.textContent='⏹';btn.style.color='var(--danger)';}};
+  mRec.onresult=function(e){var interim='',fin='';for(var i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}fl.value=ex+fin+(interim||'');if(fin)ex=fl.value;};
+  mRec.onerror=function(e){if(e.error!=='aborted')alert('Mic error: '+e.error);mStop();};
+  mRec.onend=function(){mStop();};
+  mRec.start();
+}
+window.mic=mic;
+function mStop(){
+  if(mRec){try{mRec.stop();}catch(e){}mRec=null;}
+  if(mFld){var btn=document.getElementById(mFld.replace('rq','rqm').replace('surl','sum').replace('stxt','stm'));if(btn){btn.textContent='🎤';btn.style.color='var(--accent)';}}
+  mFld=null;
+}
+
+async function callAPI(sys,uc,stream,onChunk){
+  var key=gk();
+  var resp=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,stream:stream,system,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:userContent}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,stream:stream,system:sys,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:uc}]})
   });
-  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API error '+resp.status);}
-  if(!stream){const data=await resp.json();return data.content?.filter(b=>b.type==='text').map(b=>b.text).join('\n')||'';}
-  const reader=resp.body.getReader();const dec=new TextDecoder();let buf='',full='';
-  while(true){
-    const{done,value}=await reader.read();if(done)break;
-    buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
-    for(const line of lines){
-      if(!line.startsWith('data: '))continue;const d=line.slice(6).trim();if(d==='[DONE]')continue;
-      try{const j=JSON.parse(d);if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){full+=j.delta.text;if(onChunk)onChunk(full);}}catch(e){}
-    }
-  }
+  if(!resp.ok){var er=await resp.json();throw new Error(er.error?.message||'API error '+resp.status);}
+  if(!stream){var d=await resp.json();return d.content?.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n')||'';}
+  var rdr=resp.body.getReader(),dec=new TextDecoder(),buf='',full='';
+  while(true){var _r=await rdr.read();if(_r.done)break;buf+=dec.decode(_r.value,{stream:true});var lines=buf.split('\n');buf=lines.pop();
+    for(var i=0;i<lines.length;i++){var ln=lines[i];if(!ln.startsWith('data: '))continue;var d2=ln.slice(6).trim();if(d2==='[DONE]')continue;
+      try{var j=JSON.parse(d2);if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){full+=j.delta.text;if(onChunk)onChunk(full);}}catch(e){}}}
   return full;
 }
 
-// ── BRIEF GENERATION ───────────────────────────────────
-async function generateBrief(tab,briefType){
-  const text=tab==='r'?lastR:lastS;if(!text){alert('Generate a research result first.');return;}
-  const title=tab==='r'?getRTitle():getSTitle();
-
-  const overlay=document.getElementById('brief-overlay');
-  const overlayText=document.getElementById('brief-overlay-text');
-  overlay.classList.add('active');
-  overlayText.textContent=`Generating ${BRIEF_LABELS[briefType]}…`;
-
-  const prompts={
-    marketing:`You are a professional marketing copywriter and brand strategist. Transform the following research into a compelling marketing brief with these exact sections:
-1. HEADLINE — a powerful one-line value proposition
-2. WHAT IS IT — 2-3 sentences explaining the product/service/company clearly
-3. HOW IT WORKS — 3-5 key capabilities as a table (Capability | What It Does | Why It Matters)
-4. THREE LEVELS / USE CASES — organized tiers or user segments with descriptions
-5. WHY IT'S EXTRAORDINARY — 5-6 compelling bullet points
-6. WHO USES IT — table of user types, use cases, and value delivered
-7. BOTTOM LINE — summary comparison table or key metrics
-Format as clean structured text with clear section headers. Be persuasive, professional, and concise.
-
-Research content:
-${text}`,
-
-    financial:`You are a senior financial analyst. Transform the following research into a professional investment brief. 
-First, identify any ticker symbols mentioned (look for patterns like TSXV: XXX, NYSE: XXX, NASDAQ: XXX, or standalone tickers).
-Then use web_search to find current live price data for those tickers.
-Structure the brief with these exact sections:
-1. INVESTMENT SNAPSHOT — table with: Price, 52W Range, Avg Analyst Target, Rating, Beta
-2. COMPANY OVERVIEW — key facts table (Flagship Asset, Market, Status, Key Metrics)
-3. STRATEGIC INVESTORS — table of investors, stakes, significance
-4. PROJECT CATALYSTS & TIMELINE — table of milestones, dates, details
-5. ANALYST TARGETS — price targets table with sources and upside %
-6. TECHNICAL INDICATORS — key technicals table with signals
-7. ENTRY, EXIT & POSITIONING — specific price levels with rationale
-8. KEY RISKS — numbered risk list
-9. BOTTOM LINE SUMMARY — verdict table with factor, reading, signal columns
-Include disclaimer: For informational purposes only. Not financial advice.
-
-Research content:
-${text}`,
-
-    scientific:`You are a research scientist and academic writer. Transform the following into a structured scientific brief with these exact sections:
-1. ABSTRACT — 150-word summary of key findings
-2. BACKGROUND & CONTEXT — what problem this addresses and why it matters
-3. METHODOLOGY — how the research/analysis was conducted, data sources
-4. KEY FINDINGS — numbered list of major findings with evidence
-5. DATA QUALITY & LIMITATIONS — honest assessment of confidence, gaps, caveats
-6. IMPLICATIONS — what these findings mean for the field or application
-7. FURTHER RESEARCH — 3-5 specific questions or experiments warranted
-8. CITATIONS & SOURCES — any sources referenced
-Use precise, academic language. Distinguish clearly between established fact, interpretation, and speculation.
-
-Research content:
-${text}`,
-
-    paper:`You are an expert academic and technical writer. Transform the following into a formal research paper with these exact sections:
-1. EXECUTIVE SUMMARY — 200-word overview for busy decision-makers
-2. INTRODUCTION — background, problem statement, scope of analysis
-3. BACKGROUND — historical context, prior work, relevant landscape
-4. ANALYSIS — thorough examination of evidence, arguments, data
-5. KEY FINDINGS — structured findings with supporting evidence
-6. DISCUSSION — interpretation, competing perspectives, implications
-7. CONCLUSIONS — what we can conclude with confidence
-8. FURTHER READING & NEXT STEPS — recommended resources and actions
-9. DISCLAIMER — appropriate limitations statement
-Write in a formal but accessible style. Use precise language. Structure clearly.
-
-Research content:
-${text}`
-  };
-
+async function doR(){
+  var q=document.getElementById('rq').value.trim();if(!q&&!rAt){alert('Add a question or attach a file.');return;}
+  mStop();var mode=document.getElementById('rmode').value;
+  var btn=document.getElementById('rbtn');btn.disabled=true;
+  var st=document.getElementById('rst'),stx=document.getElementById('rstx'),rw=document.getElementById('rw'),res=document.getElementById('rres'),sv=document.getElementById('rsv'),er=document.getElementById('rerr');
+  stopSpk();st.style.display='flex';stx.textContent='Searching…';rw.style.display='block';res.className='res stream';res.textContent='';sv.style.display='none';er.style.display='none';
+  var modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis.',papers:'Focus on academic research and key papers.',compare:'Compare the main approaches and viewpoints.'};
+  var pt=rAt&&!q?'Analyze this '+(rAt.img?'image':'document')+' and provide research insights.':rAt?q+'\n\nAttached for context.':q;
   try{
-    const briefContent=await callAPI('You are an expert at transforming research into professional structured briefs. Always use web_search when financial data or current information is needed.',prompts[briefType],false,null);
-    overlay.classList.remove('active');
-    if(!briefContent||briefContent.length<50)throw new Error('Brief generation failed. Try again.');
-
-    // Open brief in new window
-    openBriefWindow(briefContent,title,briefType);
-
-    // Auto-save to briefs KB
-    const entry={id:Date.now(),title:title||'Untitled Brief',briefType,content:briefContent,date:new Date().toLocaleDateString('en-CA'),type:'brief'};
-    const docId=await saveEntryToFirebase(entry,'briefs');
-    if(docId)entry._docId=docId;
-    else{const local=JSON.parse(localStorage.getItem('ra-briefs')||'[]');local.unshift(entry);localStorage.setItem('ra-briefs',JSON.stringify(local));}
-    briefs.unshift(entry);window._kb=[...kb,...briefs];updateKBCount();
-
-  }catch(e){
-    overlay.classList.remove('active');
-    alert('Error generating brief: '+e.message);
-  }
+    stx.textContent='Generating…';
+    var full=await callAPI('You are a rigorous research assistant. '+modes[mode]+' Use web_search for current info. Be thorough. No filler.',bldC(pt,rAt),true,function(c){res.textContent=c;});
+    if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
+    LR=full;res.className='res';document.getElementById('rti').value=(q||rAt?.name||'Research').slice(0,60);
+  }catch(e){rw.style.display='none';er.style.display='block';er.textContent='Error: '+e.message;}
+  st.style.display='none';btn.disabled=false;
 }
-window.generateBrief=generateBrief;
+window.doR=doR;
 
-function openBriefWindow(content,title,briefType){
-  const colors={marketing:{accent:'#6c63ff',badge:'📊 Marketing Brief'},financial:{accent:'#2ecc71',badge:'💰 Financial Brief'},scientific:{accent:'#f39c12',badge:'🔬 Scientific Brief'},paper:{accent:'#e74c3c',badge:'📄 Research Paper'}};
-  const c=colors[briefType]||colors.paper;
-  const date=new Date().toLocaleDateString('en-CA');
-  // Convert structured text to HTML sections
-  const htmlContent_=content.replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br/>');
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${esc(title)}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#f0f0f0;padding:0}.container{max-width:780px;margin:0 auto;padding:32px 24px 60px}.top-bar{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid #333}.logo{font-size:28px}.brand{font-size:15px;font-weight:600}.brand-sub{font-size:12px;color:#666;margin-top:2px}.brief-badge{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;background:rgba(255,255,255,0.08);border:0.5px solid ${c.accent};border-radius:99px;font-size:12px;font-weight:500;color:${c.accent};margin-left:auto}h1{font-size:22px;font-weight:700;color:#f0f0f0;margin-bottom:6px;line-height:1.3}.meta{font-size:13px;color:#666;margin-bottom:24px}.player-bar{background:rgba(108,99,255,0.1);border:0.5px solid ${c.accent};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:28px}.play-btn{width:40px;height:40px;border-radius:50%;background:${c.accent};border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}.player-info{flex:1}.player-status{font-size:12px;color:${c.accent};margin-bottom:5px;opacity:0.8}.progress-bar{height:3px;background:rgba(255,255,255,0.1);border-radius:99px}.progress-fill{height:100%;background:${c.accent};border-radius:99px;width:0%;transition:width 0.5s}.player-controls{display:flex;align-items:center;gap:8px}.stop-btn{background:none;border:none;color:#666;font-size:18px;cursor:pointer}.speed-sel{background:#242424;border:0.5px solid #333;border-radius:6px;color:#a0a0a0;font-size:12px;padding:2px 8px;height:28px}.content{font-size:15px;line-height:1.85;color:#d0d0d0;white-space:pre-wrap;word-break:break-word}.share-bar{display:flex;gap:10px;margin-top:32px;padding-top:24px;border-top:0.5px solid #333;flex-wrap:wrap}.share-btn{height:40px;padding:0 18px;border-radius:8px;border:0.5px solid #444;background:#1a1a1a;color:#f0f0f0;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.share-btn:active{opacity:0.7}.disclaimer{font-size:12px;color:#555;margin-top:32px;line-height:1.6;padding-top:20px;border-top:0.5px solid #2a2a2a}@media print{.player-bar,.share-bar{display:none}.body{background:#fff;color:#000}.content{color:#000}}</style></head><body><div class="container"><div class="top-bar"><div class="logo">🧠</div><div><div class="brand">Research Agent</div><div class="brand-sub">AI Research Platform</div></div><div class="brief-badge">${c.badge}</div></div><h1>${esc(title)}</h1><div class="meta">${esc(date)}</div><div class="player-bar"><button class="play-btn" id="playbtn" onclick="togglePlay()">▶</button><div class="player-info"><div class="player-status" id="pstatus">Tap ▶ to read aloud</div><div class="progress-bar"><div class="progress-fill" id="prog"></div></div></div><div class="player-controls"><button class="stop-btn" onclick="stopPlay()">⏹</button><select class="speed-sel" id="spd"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select></div></div><div class="content">${esc(content)}</div><div class="share-bar"><button class="share-btn" onclick="shareThis()">📤 Share</button><button class="share-btn" onclick="copyAll()">📋 Copy</button><button class="share-btn" onclick="window.print()">🖨 Print / PDF</button></div><div class="disclaimer">⚠ For informational and educational purposes only. Not financial, legal, or professional advice. Generated by Research Agent · ${esc(date)}</div></div><script>var u=null,pa=false,ti=null,pr=0,tx=${JSON.stringify(content)};function togglePlay(){if(u&&!pa){speechSynthesis.pause();pa=true;document.getElementById('playbtn').textContent='▶';document.getElementById('pstatus').textContent='Paused';return;}if(u&&pa){speechSynthesis.resume();pa=false;document.getElementById('playbtn').textContent='⏸';document.getElementById('pstatus').textContent='Reading aloud…';return;}startPlay();}function startPlay(){stopPlay();var sp=parseFloat(document.getElementById('spd').value||'1');u=new SpeechSynthesisUtterance(tx);u.rate=sp;u.lang='en-US';var se=(tx.split(/\\s+/).length/150)*60/sp;pr=0;ti=setInterval(function(){pr=Math.min(99,pr+(100/se));document.getElementById('prog').style.width=pr+'%';},1000);u.onend=stopPlay;u.onerror=stopPlay;document.getElementById('playbtn').textContent='⏸';document.getElementById('pstatus').textContent='Reading aloud…';speechSynthesis.speak(u);}function stopPlay(){if(ti){clearInterval(ti);ti=null;}if(u){speechSynthesis.cancel();u=null;}pa=false;pr=0;document.getElementById('playbtn').textContent='▶';document.getElementById('pstatus').textContent='Tap ▶ to read aloud';document.getElementById('prog').style.width='0%';}function shareThis(){if(navigator.share){navigator.share({title:${JSON.stringify(title)},text:tx.substring(0,300)+'…',url:window.location.href}).catch(function(){});}else{navigator.clipboard.writeText(window.location.href).then(function(){alert('Link copied!');});}}function copyAll(){navigator.clipboard.writeText(tx).then(function(){alert('Copied!');});}<\/script></body></html>`);
-  win.document.close();
+async function doS(){
+  var url=document.getElementById('surl').value.trim(),txt=document.getElementById('stxt').value.trim();
+  if(!url&&!txt&&!sAt){alert('Add a URL, paste text, or attach a file.');return;}
+  mStop();var type=document.getElementById('stype').value;
+  var btn=document.getElementById('sbtn');btn.disabled=true;
+  var st=document.getElementById('sst'),stx=document.getElementById('sstx'),sw=document.getElementById('sw'),res=document.getElementById('sres'),sv=document.getElementById('ssv'),er=document.getElementById('serr');
+  stopSpk();st.style.display='flex';stx.textContent='Processing…';sw.style.display='block';res.className='res stream';res.textContent='';sv.style.display='none';er.style.display='none';
+  var types={summary:'Write a concise 3-5 paragraph summary.',bullets:'Extract key points as a bullet list.',critique:'Critical analysis: strengths, weaknesses, gaps.',eli5:'Explain in plain language for a non-expert.',extract:'Extract: findings, methodology, sources, conclusions.'};
+  var pt='';
+  if(url&&txt)pt='URL: '+url+'\n\nContent:\n'+txt;
+  else if(url)pt='Find and summarize content at: '+url+'\n\nIf social media, search for the post content.';
+  else if(txt)pt='Summarize:\n\n'+txt;
+  else if(sAt)pt='Summarize this '+(sAt.img?'image':'document')+'.';
+  if(sAt&&(url||txt))pt+='\n\nAlso attached: '+(sAt.img?'image':'document')+'.';
+  try{
+    var full=await callAPI('You are an expert summarizer. '+types[type]+' Use web_search when given a URL. Complete fully. No filler.',bldC(pt,sAt),true,function(c){res.textContent=c;});
+    if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
+    LS=full;res.className='res';document.getElementById('sti').value=(url||txt||sAt?.name||'Summary').replace(/^https?:\/\//,'').slice(0,60);
+  }catch(e){sw.style.display='none';er.style.display='block';er.textContent='Error: '+e.message;}
+  st.style.display='none';btn.disabled=false;
 }
+window.doS=doS;
 
-// ── RENDER BRIEFS TAB ──────────────────────────────────
-function renderBriefs(){
-  const listEl=document.getElementById('briefs-list');if(!listEl)return;
-  if(!briefs.length){
-    listEl.innerHTML=`<div class="empty"><div class="icon">✨</div>No briefs yet. Generate one from any Research or Summary result using the Brief button.</div>`;
-    return;
-  }
-  const grouped={};
-  BRIEF_CATEGORIES.forEach(c=>{grouped[c]=briefs.filter(b=>b.briefType===c);});
-  let html='';
-  BRIEF_CATEGORIES.forEach(cat=>{
-    const entries=grouped[cat];if(!entries.length)return;
-    html+=`<div class="kb-section"><div class="kb-section-header">${BRIEF_LABELS[cat]}<span class="kb-section-count">${entries.length}</span></div>`;
-    entries.forEach(e=>{
-      const tr=e.content.length>200;
-      html+=`<div class="kb-card">
-        <div class="kb-card-head"><div class="kb-card-title" onclick="toggleBriefExpand(${e.id})">${esc(e.title)}</div></div>
-        <div class="kb-card-meta"><span class="badge ${e.briefType}">${BRIEF_LABELS[e.briefType]}</span><span>${e.date}</span></div>
-        <div class="kb-card-body${tr?' trunc':''}" id="briefbody-${e.id}">${esc(e.content)}</div>
-        <div class="kb-player-bar" id="kb-player-${e.id}">
-          <button class="kb-play-btn" id="kb-pp-${e.id}" onclick="toggleKBPause()">⏸</button>
-          <div class="player-info" style="flex:1;min-width:0"><div class="player-label" id="kb-label-${e.id}">Reading…</div><div class="player-progress"><div class="player-progress-fill" id="kb-prog-${e.id}" style="width:0%"></div></div></div>
-          <button class="player-stop" onclick="stopSpeaking()">⏹</button>
-          <select class="player-speed" id="kb-speed-${e.id}" onchange="changeKBSpeed(${e.id})" style="background:var(--bg3)"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>
-        </div>
-        <div class="kb-card-actions">
-          <button class="kb-action-btn" id="kb-readtop-${e.id}" onclick="toggleKBSpeak(${e.id})">▶ Read</button>
-          <button class="kb-action-btn" onclick="openBriefWindow(getKBText(${e.id}),'${esc(e.title).replace(/'/g,"\\'")}','${e.briefType}')">🔍 View</button>
-          <div class="kb-export-wrap">
-            <button class="kb-action-btn" onclick="toggleActionMenu('kb-export-${e.id}')">📤 Export ▾</button>
-            <div class="kb-export-menu" id="kb-export-${e.id}">
-              <button class="action-item" onclick="exportPDF(()=>getKBText(${e.id}),()=>getKBTitle(${e.id}));closeAllActionMenus()"><span>📄</span> PDF</button>
-              <button class="action-item" onclick="exportHTML(()=>getKBText(${e.id}),()=>getKBTitle(${e.id}),'brief');closeAllActionMenus()"><span>🌐</span> HTML</button>
-              <button class="action-item" onclick="copyText(()=>getKBText(${e.id}));closeAllActionMenus()"><span>📋</span> Copy</button>
-              <button class="action-item" onclick="copyAndShare(()=>getKBText(${e.id}),()=>getKBTitle(${e.id}));closeAllActionMenus()"><span>📤</span> Share</button>
-            </div>
-          </div>
-          <button class="kb-action-btn danger" onclick="deleteBrief(${e.id})">🗑 Delete</button>
-        </div>
-      </div>`;
-    });
+function rtitle(){return(document.getElementById('rti')?.value||'Research Report').trim();}
+function stitle(){return(document.getElementById('sti')?.value||'Summary').trim();}
+window.rtitle=rtitle;window.stitle=stitle;
+
+function showSave(t){var sv=document.getElementById(t==='r'?'rsv':'ssv');if(sv){sv.style.display='flex';sv.scrollIntoView({behavior:'smooth',block:'nearest'});}}
+window.showSave=showSave;
+
+async function saveKB(t){
+  var ir=t==='r';
+  var title=(document.getElementById(ir?'rti':'sti').value.trim()||'Untitled');
+  var tag=document.getElementById(ir?'rtg':'stg').value;
+  var content=ir?LR:LS;if(!content)return;
+  var entry={id:Date.now(),title:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary'};
+  var did=await svFB(entry,'knowledge_base');
+  if(did)entry._did=did;
+  KB.unshift(entry);window._KB=[...KB,...BR];uCnt();
+  var btn=document.getElementById(ir?'rsb':'ssb');
+  var orig=btn.textContent;btn.textContent='✅ Saved!';
+  setTimeout(function(){btn.textContent=orig;},2000);
+}
+window.saveKB=saveKB;
+
+async function delKB(id){
+  if(!confirm('Delete this entry?'))return;
+  var e=KB.find(function(x){return x.id===id;});
+  if(e?._did)await dlFB(e._did,'knowledge_base');
+  KB=KB.filter(function(x){return x.id!==id;});window._KB=[...KB,...BR];uCnt();renderKB();
+}
+window.delKB=delKB;
+
+async function delBR(id){
+  if(!confirm('Delete this brief?'))return;
+  var e=BR.find(function(x){return x.id===id;});
+  if(e?._did)await dlFB(e._did,'briefs');
+  BR=BR.filter(function(x){return x.id!==id;});window._KB=[...KB,...BR];uCnt();renderBR();
+}
+window.delBR=delBR;
+
+function renderKB(){
+  var tags=[...new Set(KB.map(function(e){return e.tag;}))].filter(Boolean);
+  var tc=document.getElementById('kbtags');
+  if(tc)tc.innerHTML=tags.map(function(t){return'<button class="chip'+(ATag===t?' on':'')+'" onclick="setTag(\''+t+'\')">'+esc(t)+'</button>';}).join('')+'<span class="cnt">'+KB.length+' entr'+(KB.length===1?'y':'ies')+'</span>';
+  var list=document.getElementById('kblist');if(!list)return;
+  var q=(document.getElementById('ksrch')?.value||'').toLowerCase();
+  var entries=KB;
+  if(ATag)entries=entries.filter(function(e){return e.tag===ATag;});
+  if(q)entries=entries.filter(function(e){return e.title.toLowerCase().includes(q)||e.content.toLowerCase().includes(q);});
+  if(!entries.length){list.innerHTML='<div class="empty"><div class="ico">'+(KB.length?'🔍':'📭')+'</div>'+(KB.length?'No results.':'Nothing saved yet.')+'</div>';return;}
+  list.innerHTML=entries.map(function(e){var tr=e.content.length>200;return kbCard(e,tr,'delKB');}).join('');
+}
+window.renderKB=renderKB;
+
+function setTag(t){ATag=ATag===t?null:t;renderKB();}
+window.setTag=setTag;
+
+function renderBR(){
+  var list=document.getElementById('brlist');if(!list)return;
+  if(!BR.length){list.innerHTML='<div class="empty"><div class="ico">✨</div>No briefs yet. Generate one from any Research or Summary result.</div>';return;}
+  var html='';
+  BCATS.forEach(function(cat){
+    var entries=BR.filter(function(e){return e.briefType===cat;});if(!entries.length)return;
+    html+='<div class="kbsec"><div class="kbsech">'+BLAB[cat]+'<span class="kbcnt">'+entries.length+'</span></div>';
+    entries.forEach(function(e){html+=kbCard(e,e.content.length>200,'delBR');});
     html+='</div>';
   });
-  listEl.innerHTML=html;
+  list.innerHTML=html;
 }
-window.renderBriefs=renderBriefs;
+window.renderBR=renderBR;
 
-function toggleBriefExpand(id){
-  const b=document.getElementById('briefbody-'+id);if(!b)return;
-  const exp=b.classList.toggle('expanded');b.classList.toggle('trunc',!exp);
-}
-window.toggleBriefExpand=toggleBriefExpand;
-
-async function deleteBrief(id){
-  if(!confirm('Delete this brief?'))return;
-  const entry=briefs.find(e=>e.id===id);
-  if(entry?._docId)await deleteEntryFromFirebase(entry._docId,'briefs');
-  briefs=briefs.filter(e=>e.id!==id);window._kb=[...kb,...briefs];updateKBCount();renderBriefs();
-}
-window.deleteBrief=deleteBrief;
-
-// ── RETROACTIVE BRIEF CONVERSION ───────────────────────
-async function convertExistingEntries(){
-  if(!kb.length)return;
-  const toConvert=kb.filter(e=>!e.briefConverted&&e.content&&e.content.length>100);
-  if(!toConvert.length)return;
-  const overlay=document.getElementById('brief-overlay');
-  const overlayText=document.getElementById('brief-overlay-text');
-  for(let i=0;i<toConvert.length;i++){
-    const entry=toConvert[i];
-    overlay.classList.add('active');
-    overlayText.textContent=`Converting ${i+1}/${toConvert.length}: ${entry.title}…`;
-    // Detect type
-    const isFinancial=/\$|ticker|NYSE|TSXV|NASDAQ|stock|share|price|investor|dividend|EPS|revenue|market cap/i.test(entry.content);
-    const isScientific=/hypothesis|methodology|experiment|dataset|findings|abstract|literature|correlation|p-value/i.test(entry.content);
-    const isMarketing=/value prop|customer|audience|brand|marketing|campaign|conversion|ROI|engagement/i.test(entry.content);
-    const briefType=isFinancial?'financial':isScientific?'scientific':isMarketing?'marketing':'paper';
-    try{
-      const briefContent=await callAPI('You are an expert at transforming research into professional structured briefs. Always use web_search when financial data or current prices are needed.',getBriefPrompt(briefType,entry.content),false,null);
-      if(briefContent&&briefContent.length>50){
-        const brief={id:Date.now()+i,title:entry.title,briefType,content:briefContent,date:entry.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
-        const docId=await saveEntryToFirebase(brief,'briefs');
-        if(docId)brief._docId=docId;
-        briefs.unshift(brief);
-      }
-    }catch(e){console.error('Conversion error:',e);}
-    await new Promise(r=>setTimeout(r,500));
-  }
-  window._kb=[...kb,...briefs];updateKBCount();renderBriefs();
-  overlay.classList.remove('active');
+function kbCard(e,tr,delFn){
+  var id=e.id;
+  var bc=e.briefType?({marketing:'mk',financial:'fi',scientific:'sc',paper:'pa'}[e.briefType]||''):'';
+  return'<div class="kbc"><div class="kbch"><div class="kbct" onclick="kbExp('+id+')">'+esc(e.title)+'</div></div>'+
+    '<div class="kbcm"><span class="badge '+bc+'">'+esc(e.tag||e.briefType||e.type||'note')+'</span><span>'+e.date+'</span></div>'+
+    '<div class="kbcb'+(tr?' tr':''")+'" id="kbcb-'+id+'">'+esc(e.content)+'</div>'+
+    '<div class="kbpl" id="kbpl-'+id+'">'+
+      '<button class="kbpb" id="kbpp-'+id+'" onclick="pp()">⏸</button>'+
+      '<div class="pinfo" style="flex:1;min-width:0"><div class="plbl" id="kbpbl-'+id+'">Reading…</div><div class="pbar"><div class="pfill" id="kbpf-'+id+'" style="width:0%"></div></div></div>'+
+      '<button class="pstop" onclick="stopSpk()">⏹</button>'+
+      '<select class="pspd" id="kbspd-'+id+'" onchange="kbSpk('+id+')" style="background:var(--bg3)"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select>'+
+    '</div>'+
+    '<div class="kbca">'+
+      '<button class="kbab" id="kbrd-'+id+'" onclick="kbSpk('+id+')">▶ Read</button>'+
+      '<div class="awrap"><button class="kbab" onclick="amenu(\'kbex-'+id+'\')">📤 Export ▾</button>'+
+        '<div class="amenu" id="kbex-'+id+'">'+
+          '<button class="aitem" onclick="xPDF(function(){return getKBT('+id+');},function(){return getKBN('+id+');});closeM()"><span>📄</span> PDF</button>'+
+          '<button class="aitem" onclick="xHTML(function(){return getKBT('+id+');},function(){return getKBN('+id+');});closeM()"><span>🌐</span> HTML</button>'+
+          '<button class="aitem" onclick="xCopy(function(){return getKBT('+id+');});closeM()"><span>📋</span> Copy</button>'+
+          '<button class="aitem" onclick="xShare(function(){return getKBT('+id+');},function(){return getKBN('+id+');});closeM()"><span>📤</span> Share</button>'+
+        '</div>'+
+      '</div>'+
+      '<button class="kbab danger" onclick="'+delFn+'('+id+')">🗑 Delete</button>'+
+    '</div></div>';
 }
 
-function getBriefPrompt(briefType,text){
-  const prompts={
-    financial:`You are a senior financial analyst. Transform this research into a professional investment brief with sections: Investment Snapshot (use web_search to get current price data for any tickers mentioned), Company Overview, Strategic Investors, Catalysts & Timeline, Analyst Targets, Technical Indicators, Entry/Exit Positioning, Key Risks, Bottom Line Summary. Include disclaimer.\n\n${text}`,
-    scientific:`Transform this into a scientific brief with sections: Abstract, Background, Methodology, Key Findings, Data Quality & Limitations, Implications, Further Research, Citations.\n\n${text}`,
-    marketing:`Transform this into a marketing brief with sections: Headline, What Is It, How It Works (table), Use Cases, Why It's Extraordinary, Who Uses It (table), Bottom Line.\n\n${text}`,
-    paper:`Transform this into a research paper with sections: Executive Summary, Introduction, Background, Analysis, Key Findings, Discussion, Conclusions, Further Reading.\n\n${text}`
+function kbExp(id){var b=document.getElementById('kbcb-'+id);if(!b)return;var ex=b.classList.toggle('exp');b.classList.toggle('tr',!ex);}
+window.kbExp=kbExp;
+function getKBT(id){var e=[...KB,...BR].find(function(x){return x.id===id;});return e?e.content:'';}
+function getKBN(id){var e=[...KB,...BR].find(function(x){return x.id===id;});return e?e.title:'Entry';}
+window.getKBT=getKBT;window.getKBN=getKBN;
+
+// BRIEF GENERATION
+async function brief(tab,type){
+  var text=tab==='r'?LR:LS;if(!text){alert('Generate a research result first.');return;}
+  var title=tab==='r'?rtitle():stitle();
+  var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
+  ov.classList.add('on');ot.textContent='Generating '+BLAB[type]+'…';
+  var prompts={
+    marketing:'Transform this research into a marketing brief with sections: 1.HEADLINE 2.WHAT IS IT 3.HOW IT WORKS (table: Capability|What It Does|Why It Matters) 4.USE CASES 5.WHY IT\'S EXTRAORDINARY (bullets) 6.WHO USES IT (table) 7.BOTTOM LINE. Be persuasive and professional.\n\n',
+    financial:'You are a senior financial analyst. Find any ticker symbols, use web_search to get live prices. Create an investment brief with sections: 1.INVESTMENT SNAPSHOT (table with live price,52W range,target,rating,beta) 2.COMPANY OVERVIEW 3.STRATEGIC INVESTORS (table) 4.CATALYSTS & TIMELINE (table) 5.ANALYST TARGETS 6.TECHNICAL INDICATORS 7.ENTRY/EXIT POSITIONING 8.KEY RISKS 9.BOTTOM LINE SUMMARY. Include disclaimer.\n\n',
+    scientific:'Transform into a scientific brief: 1.ABSTRACT (150 words) 2.BACKGROUND 3.METHODOLOGY 4.KEY FINDINGS (numbered) 5.DATA QUALITY & LIMITATIONS 6.IMPLICATIONS 7.FURTHER RESEARCH 8.CITATIONS. Use precise academic language.\n\n',
+    paper:'Transform into a research paper: 1.EXECUTIVE SUMMARY 2.INTRODUCTION 3.BACKGROUND 4.ANALYSIS 5.KEY FINDINGS 6.DISCUSSION 7.CONCLUSIONS 8.FURTHER READING. Formal but accessible.\n\n'
   };
-  return prompts[briefType];
+  try{
+    var bc=await callAPI('You are an expert at creating professional structured briefs. Use web_search when financial or current data is needed.',prompts[type]+text,false,null);
+    ov.classList.remove('on');
+    if(!bc||bc.length<50)throw new Error('Brief generation failed.');
+    openBW(bc,title,type);
+    var entry={id:Date.now(),title:title,briefType:type,content:bc,date:new Date().toLocaleDateString('en-CA'),type:'brief'};
+    var did=await svFB(entry,'briefs');if(did)entry._did=did;
+    BR.unshift(entry);window._KB=[...KB,...BR];uCnt();
+  }catch(e){ov.classList.remove('on');alert('Error: '+e.message);}
 }
+window.brief=brief;
 
-
-// ── INIT ───────────────────────────────────────────────
-async function startApp(){
-  await initFirebase();
-  await loadKB();
-  updateKeyStatus();
-  if(localStorage.getItem('ra-light')==='1'){
-    document.body.classList.add('light');
-    const t=document.getElementById('light-toggle');if(t)t.checked=true;
-  }
-  setTimeout(()=>convertExistingEntries(),3000);
+function openBW(content,title,type){
+  var cols={marketing:'#6c63ff',financial:'#2ecc71',scientific:'#f39c12',paper:'#e74c3c'};
+  var col=cols[type]||'#6c63ff';
+  var date=new Date().toLocaleDateString('en-CA');
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>'+esc(title)+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f0f;color:#f0f0f0}.c{max-width:780px;margin:0 auto;padding:32px 24px 60px}.tb{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid #333}.lg{font-size:28px}.br{font-size:15px;font-weight:600}.bs{font-size:12px;color:#666;margin-top:2px}.bb{display:inline-flex;align-items:center;height:28px;padding:0 12px;background:rgba(255,255,255,0.08);border:0.5px solid '+col+';border-radius:99px;font-size:12px;font-weight:500;color:'+col+';margin-left:auto}h1{font-size:22px;font-weight:700;margin-bottom:6px;line-height:1.3}.mt{font-size:13px;color:#666;margin-bottom:24px}.pl{background:rgba(108,99,255,0.1);border:0.5px solid '+col+';border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:28px}.pb{width:40px;height:40px;border-radius:50%;background:'+col+';border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}.pi{flex:1}.ps{font-size:12px;color:'+col+';margin-bottom:5px;opacity:0.8}.pg{height:3px;background:rgba(255,255,255,0.1);border-radius:99px}.pf{height:100%;background:'+col+';border-radius:99px;width:0%;transition:width 0.5s}.pc{display:flex;align-items:center;gap:8px}.sp{background:none;border:none;color:#666;font-size:18px;cursor:pointer}.ss{background:#242424;border:0.5px solid #333;border-radius:6px;color:#a0a0a0;font-size:12px;padding:2px 8px;height:28px}.ct{font-size:15px;line-height:1.85;color:#d0d0d0;white-space:pre-wrap;word-break:break-word}.sb{display:flex;gap:10px;margin-top:32px;padding-top:24px;border-top:0.5px solid #333;flex-wrap:wrap}.sbtn{height:40px;padding:0 18px;border-radius:8px;border:0.5px solid #444;background:#1a1a1a;color:#f0f0f0;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.disc{font-size:12px;color:#555;margin-top:32px;line-height:1.6;padding-top:20px;border-top:0.5px solid #2a2a2a}</style></head><body><div class="c"><div class="tb"><div class="lg">🧠</div><div><div class="br">Research Agent</div><div class="bs">AI Research Platform</div></div><div class="bb">'+BLAB[type]+'</div></div><h1>'+esc(title)+'</h1><div class="mt">'+esc(date)+'</div><div class="pl"><button class="pb" id="pb" onclick="tp()">▶</button><div class="pi"><div class="ps" id="ps">Tap ▶ to read aloud</div><div class="pg"><div class="pf" id="pf"></div></div></div><div class="pc"><button class="sp" onclick="st()">⏹</button><select class="ss" id="spd"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select></div></div><div class="ct">'+esc(content)+'</div><div class="sb"><button class="sbtn" onclick="sh()">📤 Share</button><button class="sbtn" onclick="cp()">📋 Copy</button><button class="sbtn" onclick="window.print()">🖨 Print/PDF</button></div><div class="disc">⚠ For informational purposes only. Not financial or professional advice. Generated by Research Agent · '+esc(date)+'</div></div><script>var u=null,pa=false,ti=null,pr=0,tx='+JSON.stringify(content)+';function tp(){if(u&&!pa){speechSynthesis.pause();pa=true;document.getElementById("pb").textContent="▶";document.getElementById("ps").textContent="Paused";return;}if(u&&pa){speechSynthesis.resume();pa=false;document.getElementById("pb").textContent="⏸";document.getElementById("ps").textContent="Reading aloud…";return;}st2();}function st2(){st();var sp=parseFloat(document.getElementById("spd").value||"1");u=new SpeechSynthesisUtterance(tx);u.rate=sp;u.lang="en-US";var se=(tx.split(/\\s+/).length/150)*60/sp;pr=0;ti=setInterval(function(){pr=Math.min(99,pr+(100/se));document.getElementById("pf").style.width=pr+"%";},1000);u.onend=st;u.onerror=st;document.getElementById("pb").textContent="⏸";document.getElementById("ps").textContent="Reading aloud…";speechSynthesis.speak(u);}function st(){if(ti){clearInterval(ti);ti=null;}if(u){speechSynthesis.cancel();u=null;}pa=false;pr=0;document.getElementById("pb").textContent="▶";document.getElementById("ps").textContent="Tap ▶ to read aloud";document.getElementById("pf").style.width="0%";}function sh(){if(navigator.share){navigator.share({title:'+JSON.stringify(title)+',text:tx.substring(0,200)+"…",url:window.location.href}).catch(function(){});}else{navigator.clipboard.writeText(window.location.href).then(function(){alert("Link copied!");});}}function cp(){navigator.clipboard.writeText(tx).then(function(){alert("Copied!");});}<\/script></body></html>');
+  win.document.close();
 }
+window.openBW=openBW;
 
-// Entry point — runs on page load
+// EXPORTS
+function xPDF(getText,getTitle){var t=getText();if(!t)return;var ti=getTitle();var w=window.open('','_blank');w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+esc(ti)+'</title><style>body{font-family:-apple-system,sans-serif;font-size:13pt;line-height:1.8;color:#111;max-width:750px;margin:40px auto;padding:0 24px}h1{font-size:18pt;margin-bottom:8px}p.mt{font-size:10pt;color:#666;margin-bottom:32px}pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13pt;line-height:1.8}@media print{body{margin:0;padding:24px}}</style></head><body><h1>'+esc(ti)+'</h1><p class="mt">'+new Date().toLocaleDateString('en-CA')+' · Research Agent</p><pre>'+esc(t)+'</pre></body></html>');w.document.close();setTimeout(function(){w.focus();w.print();},400);}
+window.xPDF=xPDF;
+function xHTML(getText,getTitle){var t=getText();if(!t)return;var ti=getTitle();var date=new Date().toLocaleDateString('en-CA');var html='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+esc(ti)+'</title><style>body{font-family:-apple-system,sans-serif;background:#0f0f0f;color:#f0f0f0;}.c{max-width:720px;margin:0 auto;padding:32px 24px 60px}h1{font-size:22px;font-weight:600;margin-bottom:8px}.mt{font-size:13px;color:#666;margin-bottom:28px}.pl{background:rgba(108,99,255,0.12);border:0.5px solid #6c63ff;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:24px}.pb{width:40px;height:40px;border-radius:50%;background:#6c63ff;border:none;color:#fff;font-size:16px;cursor:pointer}.pi{flex:1}.ps{font-size:12px;color:#a099ff;margin-bottom:5px}.pg{height:3px;background:rgba(255,255,255,0.1);border-radius:99px}.pf{height:100%;background:#6c63ff;border-radius:99px;width:0%;transition:width 0.5s}.pc{display:flex;align-items:center;gap:8px}.sp{background:none;border:none;color:#666;font-size:18px;cursor:pointer}.ss{background:#242424;border:0.5px solid #333;border-radius:6px;color:#a0a0a0;font-size:12px;padding:2px 8px;height:28px}.ct{font-size:15px;line-height:1.85;color:#d0d0d0;white-space:pre-wrap;word-break:break-word}.sb{display:flex;gap:10px;margin-top:32px;padding-top:24px;border-top:0.5px solid #333;flex-wrap:wrap}.sbtn{height:40px;padding:0 18px;border-radius:8px;border:0.5px solid #444;background:#1a1a1a;color:#f0f0f0;font-size:13px;font-weight:500;cursor:pointer}.disc{font-size:12px;color:#555;margin-top:32px;line-height:1.6;padding-top:20px;border-top:0.5px solid #2a2a2a}</style></head><body><div class="c"><h1>'+esc(ti)+'</h1><div class="mt">'+esc(date)+'</div><div class="pl"><button class="pb" id="pb" onclick="tp()">▶</button><div class="pi"><div class="ps" id="ps">Tap ▶ to read aloud</div><div class="pg"><div class="pf" id="pf"></div></div></div><div class="pc"><button class="sp" onclick="st()">⏹</button><select class="ss" id="spd"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select></div></div><div class="ct">'+esc(t)+'</div><div class="sb"><button class="sbtn" onclick="sh()">📤 Share</button><button class="sbtn" onclick="cp()">📋 Copy</button><button class="sbtn" onclick="window.print()">🖨 Print/PDF</button></div><div class="disc">⚠ For informational purposes only. Not professional advice. Generated by Research Agent · '+esc(date)+'</div></div><script>var u=null,pa=false,ti=null,pr=0,tx='+JSON.stringify(t)+';function tp(){if(u&&!pa){speechSynthesis.pause();pa=true;document.getElementById("pb").textContent="▶";document.getElementById("ps").textContent="Paused";return;}if(u&&pa){speechSynthesis.resume();pa=false;document.getElementById("pb").textContent="⏸";document.getElementById("ps").textContent="Reading aloud…";return;}st2();}function st2(){st();var sp=parseFloat(document.getElementById("spd").value||"1");u=new SpeechSynthesisUtterance(tx);u.rate=sp;u.lang="en-US";var se=(tx.split(/\\s+/).length/150)*60/sp;pr=0;ti=setInterval(function(){pr=Math.min(99,pr+(100/se));document.getElementById("pf").style.width=pr+"%";},1000);u.onend=st;u.onerror=st;document.getElementById("pb").textContent="⏸";document.getElementById("ps").textContent="Reading aloud…";speechSynthesis.speak(u);}function st(){if(ti){clearInterval(ti);ti=null;}if(u){speechSynthesis.cancel();u=null;}pa=false;pr=0;document.getElementById("pb").textContent="▶";document.getElementById("ps").textContent="Tap ▶ to read aloud";document.getElementById("pf").style.width="0%";}function sh(){if(navigator.share){navigator.share({title:'+JSON.stringify(ti)+',text:tx.substring(0,200)+"…",url:window.location.href}).catch(function(){});}else{navigator.clipboard.writeText(window.location.href).then(function(){alert("Link copied!");});}}function cp(){navigator.clipboard.writeText(tx).then(function(){alert("Copied!");});}<\/script></div></body></html>';
+  var blob=new Blob([html],{type:'text/html'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=(ti.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'report')+'.html';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);}
+window.xHTML=xHTML;
+function xCopy(getText){var t=getText();if(!t)return;navigator.clipboard.writeText(t).then(function(){alert('Copied!');}).catch(function(){alert('Copy failed.');});}
+window.xCopy=xCopy;
+async function xShare(getText,getTitle){var t=getText();if(!t)return;var ti=getTitle();try{await navigator.clipboard.writeText(t);}catch(e){}if(navigator.share){try{await navigator.share({title:ti,text:t.substring(0,500)+'…'});return;}catch(e){}}alert('Text copied! Paste it anywhere.');}
+window.xShare=xShare;
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+document.addEventListener('click',function(e){if(!e.target.closest('.awrap')&&!e.target.closest('.awrap2'))closeM();});
+
+// STARTUP
 (async function(){
-  const ak=getAnthropicKey();
-  const fp=getFBProjectId();
-  const fk=getFBApiKey();
-  
-  if(ak&&fp&&fk){
-    // Already have keys — go straight to app
-    document.getElementById('setup').style.display='none';
-    document.getElementById('app').style.display='flex';
-    await startApp();
-    return;
+  var ak=gk();
+  if(!ak){
+    ak=window.prompt('Welcome to Research Agent!\n\nPaste your Anthropic API key:\n(from console.anthropic.com → API Keys)');
+    if(!ak||!ak.trim()){alert('API key required. Please refresh and try again.');return;}
+    localStorage.setItem('ra-k',ak.trim());
+    localStorage.setItem('ra-fp','research-agent-83fe8');
+    localStorage.setItem('ra-fk','AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
   }
-  
-  // No keys — ask via prompt (bypasses Chrome autofill entirely)
-  const newKey=window.prompt('Research Agent Setup (1 of 1)\n\nPaste your Anthropic API key:\n(from console.anthropic.com → API Keys)\n\nFirebase keys are pre-configured.');
-  if(!newKey||!newKey.trim()){
-    document.getElementById('setup').style.display='flex';
-    document.getElementById('app').style.display='none';
-    return;
-  }
-  localStorage.setItem('ra-api-key',newKey.trim());
-  localStorage.setItem('ra-fb-project','research-agent-83fe8');
-  localStorage.setItem('ra-fb-apikey','AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
-  document.getElementById('setup').style.display='none';
   document.getElementById('app').style.display='flex';
-  await startApp();
+  if(localStorage.getItem('ra-light')==='1'){document.body.classList.add('light');var lt=document.getElementById('ltog');if(lt)lt.checked=true;}
+  await iFB();
+  await ldKB();
+  uks();
 })();
-
-// Window exports
-window.saveSetup=function(){
-  var k=window.prompt('Paste your Anthropic API key:');
-  if(!k)return;
-  localStorage.setItem('ra-api-key',k.trim());
-  localStorage.setItem('ra-fb-project','research-agent-83fe8');
-  localStorage.setItem('ra-fb-apikey','AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
-  window.location.reload();
-};
 
 </script>
 </body>
