@@ -177,16 +177,38 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
 <div id="setup">
   <div style="font-size:40px;margin-bottom:16px">🧠</div>
   <h1>Research Agent</h1>
-  <p>Enter your keys once to get started. Everything syncs across your devices.</p>
+  <p>Enter your keys once to get started.</p>
   <div class="step"><strong>Anthropic API key</strong> — from console.anthropic.com → API Keys</div>
-  <input class="setup-input" id="setup-anthropic" type="password" placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" spellcheck="false"/>
-  <div class="step"><strong>Firebase Project ID</strong> — for cloud sync across all your devices</div>
-  <input class="setup-input" id="setup-firebase" type="text" placeholder="research-agent-83fe8" autocomplete="off" autocorrect="off" spellcheck="false"/>
-  <div class="step"><strong>Firebase API Key</strong> — from Firebase project settings</div>
-  <input class="setup-input" id="setup-fbkey" type="password" placeholder="AIzaSy…" autocomplete="off" autocorrect="off" spellcheck="false"/>
-  <button class="btn primary" onclick="saveSetup()" style="margin-top:8px">Save &amp; Start →</button>
-  <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Keys saved only on this device. Knowledge base syncs via Firebase.</p>
+  <input class="setup-input" id="setup-anthropic" type="password" placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')doSave()"/>
+  <div class="step"><strong>Firebase Project ID</strong></div>
+  <input class="setup-input" id="setup-firebase" type="text" placeholder="research-agent-83fe8" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')doSave()"/>
+  <div class="step"><strong>Firebase API Key</strong></div>
+  <input class="setup-input" id="setup-fbkey" type="password" placeholder="AIzaSy…" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')doSave()"/>
+  <button onclick="doSave()" style="margin-top:8px;width:100%;height:52px;background:#6c63ff;color:#fff;border:none;border-radius:10px;font-size:17px;font-weight:600;cursor:pointer">Save &amp; Start →</button>
+  <div id="setup-error" style="color:#e74c3c;font-size:13px;margin-top:12px;display:none"></div>
+  <p style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.6">Keys saved only on this device.</p>
 </div>
+
+<script>
+function doSave(){
+  var ak=document.getElementById('setup-anthropic').value.trim();
+  var fp=document.getElementById('setup-firebase').value.trim();
+  var fk=document.getElementById('setup-fbkey').value.trim();
+  var err=document.getElementById('setup-error');
+  if(!ak){err.textContent='Please enter your Anthropic API key';err.style.display='block';return;}
+  if(!fp){err.textContent='Please enter your Firebase Project ID';err.style.display='block';return;}
+  if(!fk){err.textContent='Please enter your Firebase API key';err.style.display='block';return;}
+  try{
+    localStorage.setItem('ra-api-key',ak);
+    localStorage.setItem('ra-fb-project',fp);
+    localStorage.setItem('ra-fb-apikey',fk);
+    window.location.reload();
+  }catch(e){
+    err.textContent='Could not save: '+e.message;
+    err.style.display='block';
+  }
+}
+</script>
 
 <div class="brief-overlay" id="brief-overlay">
   <div class="brief-spinner"></div>
@@ -433,19 +455,24 @@ input:checked+.toggle-slider:before{transform:translateX(20px);background:#fff}
 
 
 <script>
-// Global setup handler — must be outside module for onclick to work
+// Global setup handler
 function saveSetup(){
-  var ak=document.getElementById('setup-anthropic').value.trim();
-  var fp=document.getElementById('setup-firebase').value.trim();
-  var fk=document.getElementById('setup-fbkey').value.trim();
-  if(!ak||!ak.startsWith('sk-ant')){alert('Anthropic key should start with sk-ant-api03-');return;}
-  if(!fp){alert('Please enter your Firebase Project ID');return;}
-  if(!fk||!fk.startsWith('AIza')){alert('Firebase API key should start with AIza');return;}
-  localStorage.setItem('ra-api-key',ak);
-  localStorage.setItem('ra-fb-project',fp);
-  localStorage.setItem('ra-fb-apikey',fk);
-  // Reload to init with new keys
-  window.location.reload();
+  try{
+    var ak=document.getElementById('setup-anthropic').value.trim();
+    var fp=document.getElementById('setup-firebase').value.trim();
+    var fk=document.getElementById('setup-fbkey').value.trim();
+    if(!ak){alert('Please enter your Anthropic API key');return;}
+    if(!fp){alert('Please enter your Firebase Project ID');return;}
+    if(!fk){alert('Please enter your Firebase API key');return;}
+    localStorage.setItem('ra-api-key',ak);
+    localStorage.setItem('ra-fb-project',fp);
+    localStorage.setItem('ra-fb-apikey',fk);
+    document.getElementById('setup').style.display='none';
+    document.getElementById('app').style.display='flex';
+    window.location.reload();
+  }catch(e){
+    alert('Error saving: '+e.message);
+  }
 }
 </script>
 
