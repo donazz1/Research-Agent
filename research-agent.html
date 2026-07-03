@@ -346,7 +346,9 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
     </div>
 
     <div class="pane" id="pane-b">
-      <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Generated briefs organized by type. Use the &#10024; Brief button on any research result.</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Generated briefs organized by type. Use the &#10024; Brief button on any research result.</p>
+      <button onclick="MAN_CONVERT()" id="cvt-btn" style="width:100%;height:44px;background:var(--accent);color:#fff;border:none;border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px">&#9889; Convert KB Entries to Briefs</button>
+      <div id="cvt-status" style="font-size:13px;color:var(--text2);margin-bottom:12px;display:none"></div>
       <div id="brlist"></div>
     </div>
 
@@ -821,7 +823,16 @@ document.addEventListener('click',function(e){if(!e.target.closest('.awrap')&&!e
   setTimeout(AUTO_CONVERT, 3000);
 })();
 
-async function AUTO_CONVERT(){
+window.MAN_CONVERT=async function(){
+  var btn=document.getElementById('cvt-btn');
+  var stat=document.getElementById('cvt-status');
+  if(btn)btn.disabled=true;
+  if(stat){stat.style.display='block';stat.textContent='Starting conversion...';}
+  await AUTO_CONVERT(true);
+  if(btn)btn.disabled=false;
+};
+
+async function AUTO_CONVERT(manual){
   if(!DB)return;
   var existing=BR.map(function(b){return b.title;});
   var toConvert=KB.filter(function(e){return e.content&&e.content.length>100&&!existing.includes(e.title);});
@@ -851,6 +862,8 @@ async function AUTO_CONVERT(){
     await new Promise(function(r){setTimeout(r,1500);});
   }
   ov.classList.remove('on');
+  var stat3=document.getElementById('cvt-status');
+  if(stat3){stat3.textContent=BR.length>0?'Done! '+BR.length+' briefs generated.':'No new entries to convert.';}
   RND_BR();
 }
 </script>
