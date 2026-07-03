@@ -347,7 +347,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 
     <div class="pane" id="pane-b">
       <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Generated briefs organized by type. Use the &#10024; Brief button on any research result.</p>
-      <button onclick="MAN_CONVERT()" id="cvt-btn" style="width:100%;height:44px;background:var(--accent);color:#fff;border:none;border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px">&#9889; Convert KB Entries to Briefs</button>
+      <button id="cvt-btn" style="width:100%;height:44px;background:var(--accent);color:#fff;border:none;border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px">&#9889; Convert KB Entries to Briefs</button>
       <div id="cvt-status" style="font-size:13px;color:var(--text2);margin-bottom:12px;display:none"></div>
       <div id="brlist"></div>
     </div>
@@ -805,6 +805,10 @@ window.X_SHARE=async function(gt,gti){
 };
 
 document.addEventListener('click',function(e){if(!e.target.closest('.awrap')&&!e.target.closest('.awrap2'))CM();});
+
+document.getElementById('cvt-btn').addEventListener('click', function(){
+  if(window.MAN_CONVERT) window.MAN_CONVERT();
+});
 
 (async function(){
   var ak=GK();
