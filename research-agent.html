@@ -818,7 +818,41 @@ document.addEventListener('click',function(e){if(!e.target.closest('.awrap')&&!e
     var lt=document.getElementById('ltog');if(lt)lt.checked=true;
   }
   await IFB();await LD_KB();UKS();
+  setTimeout(AUTO_CONVERT, 3000);
 })();
+
+async function AUTO_CONVERT(){
+  if(!DB)return;
+  var existing=BR.map(function(b){return b.title;});
+  var toConvert=KB.filter(function(e){return e.content&&e.content.length>100&&!existing.includes(e.title);});
+  if(!toConvert.length)return;
+  var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
+  for(var i=0;i<toConvert.length;i++){
+    var e=toConvert[i];
+    ov.classList.add('on');ot.textContent='Converting '+(i+1)+'/'+toConvert.length+': '+e.title+'...';
+    var isF=/\$|ticker|NYSE|TSXV|NASDAQ|stock|share price|investor|market cap|EPS|revenue/i.test(e.content);
+    var isSc=/hypothesis|methodology|experiment|dataset|findings|abstract|correlation|p-value/i.test(e.content);
+    var isMk=/value prop|customer|audience|brand|marketing|campaign|conversion/i.test(e.content);
+    var type=isF?'financial':isSc?'scientific':isMk?'marketing':'paper';
+    var prompts={
+      financial:'Senior financial analyst: find tickers, use web_search for live prices. Create investment brief: 1.INVESTMENT SNAPSHOT (live prices) 2.COMPANY OVERVIEW 3.CATALYSTS 4.ANALYST TARGETS 5.RISKS 6.BOTTOM LINE. Include disclaimer.\n\n',
+      scientific:'Transform into scientific brief: 1.ABSTRACT 2.BACKGROUND 3.METHODOLOGY 4.KEY FINDINGS 5.LIMITATIONS 6.IMPLICATIONS 7.FURTHER RESEARCH\n\n',
+      marketing:'Transform into marketing brief: 1.HEADLINE 2.WHAT IS IT 3.HOW IT WORKS (table) 4.USE CASES 5.WHY EXTRAORDINARY 6.WHO USES IT (table) 7.BOTTOM LINE\n\n',
+      paper:'Transform into research paper: 1.EXECUTIVE SUMMARY 2.INTRODUCTION 3.BACKGROUND 4.ANALYSIS 5.KEY FINDINGS 6.DISCUSSION 7.CONCLUSIONS\n\n'
+    };
+    try{
+      var bc=await CALL('Expert brief writer. Use web_search for current financial data.',prompts[type]+e.content,false,null);
+      if(bc&&bc.length>50){
+        var entry={id:Date.now()+i,title:e.title,briefType:type,content:bc,date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
+        var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
+        BR.unshift(entry);window._KB=KB.concat(BR);U_CNT();
+      }
+    }catch(err){console.error('Convert error:',err);}
+    await new Promise(function(r){setTimeout(r,1500);});
+  }
+  ov.classList.remove('on');
+  RND_BR();
+}
 </script>
 </body>
 </html>
