@@ -1562,14 +1562,31 @@ hr{border:none;border-top:1px solid #1e1e1e;margin:24px 0}
 .disc{font-size:11px;color:#444;margin-top:28px;line-height:1.6;padding-top:18px;border-top:1px solid #1a1a1a}
 /* PRINT */
 @media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   .back-bar,.player,.action-bar{display:none!important}
-  body{background:#fff;color:#111}
-  .cover h1,.section-title{color:#111}
-  .kpi-box{background:#f5f5f5;border-color:#ddd}
-  .kpi-value{color:#111}
-  th{background:#f0f0f0;color:#111}
-  td,p,li{color:#333}
-  h1,h2,h3{color:#111}
+  body{background:#fff!important;color:#111!important;font-size:11pt}
+  .page{padding:0!important;max-width:100%!important}
+  .cover{background:#fff!important;border-bottom:2px solid ${col}!important;padding:24pt 0 16pt!important}
+  .cover h1{color:#111!important;font-size:22pt!important}
+  .cover .sub,.cover .date-line{color:#555!important}
+  .kpi-banner{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:8pt!important;margin:16pt 0!important}
+  .kpi-box{background:#f8f8f8!important;border:1pt solid #ddd!important;padding:10pt!important;page-break-inside:avoid}
+  .kpi-label{color:#888!important;font-size:8pt!important}
+  .kpi-value{color:#111!important;font-size:14pt!important}
+  .section{page-break-inside:avoid;margin-bottom:20pt!important}
+  .section-title{color:#111!important;border-bottom:1pt solid #ccc!important;font-size:12pt!important}
+  .section-num{color:${col}!important}
+  table{page-break-inside:avoid;margin:8pt 0!important}
+  th{background:#f0f0f0!important;color:#111!important;font-size:9pt!important;padding:6pt 8pt!important;border:0.5pt solid #ccc!important}
+  td{color:#333!important;font-size:9pt!important;padding:5pt 8pt!important;border:0.5pt solid #ddd!important}
+  tr:nth-child(even) td{background:#fafafa!important}
+  h1,h2{color:#111!important;border-bottom:0.5pt solid #ccc!important;font-size:13pt!important}
+  h3,h4{color:#333!important}
+  p,li{color:#333!important;font-size:10pt!important}
+  strong{color:#111!important}
+  blockquote{border-left:3pt solid ${col}!important;background:#f8f8f8!important;color:#444!important}
+  .disc{color:#888!important;font-size:8pt!important;border-top:0.5pt solid #ddd!important}
+  a{color:#333!important;text-decoration:none!important}
 }
 </style>
 </head>
