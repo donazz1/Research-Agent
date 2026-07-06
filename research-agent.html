@@ -723,41 +723,51 @@ function ESC(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function mdToHtml(md){
   if(!md)return'';
   var h=md;
-  // Tables
+  // Normalize line endings
+  h=h.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  // Fix inline headings - add newlines before ## markers
+  h=h.replace(/([^\n])(#{1,4} )/g,'$1\n$2');
+  // Fix --- separators on same line
+  h=h.replace(/([^\n])(---)/g,'$1\n$2');
+  h=h.replace(/(---)/g,'$1\n');
+  // Tables - must come before other replacements
   h=h.replace(/\|(.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)*)/g,function(m,hdr,rows){
-    var th=hdr.split('|').filter(function(c){return c.trim();}).map(function(c){return'<th>'+c.trim()+'</th>';}).join('');
-    var tr=rows.trim().split('\n').map(function(r){return'<tr>'+r.split('|').filter(function(c){return c.trim();}).map(function(c){return'<td>'+c.trim()+'</td>';}).join('')+'</tr>';}).join('');
-    return'<table><thead><tr>'+th+'</tr></thead><tbody>'+tr+'</tbody></table>';
+    var ths=hdr.split('|').filter(function(c){return c.trim();}).map(function(c){return'<th>'+c.trim()+'</th>';}).join('');
+    var trs=rows.trim().split('\n').map(function(r){
+      var cells=r.split('|').filter(function(c){return c.trim();}).map(function(c){return'<td>'+c.trim()+'</td>';}).join('');
+      return cells?'<tr>'+cells+'</tr>':'';
+    }).filter(Boolean).join('');
+    return'<table><thead><tr>'+ths+'</tr></thead><tbody>'+trs+'</tbody></table>\n';
   });
   // Headings
-  h=h.replace(/^#{1} (.+)$/gm,'<h1>$1</h1>');
-  h=h.replace(/^#{2} (.+)$/gm,'<h2>$1</h2>');
-  h=h.replace(/^#{3} (.+)$/gm,'<h3>$1</h3>');
-  h=h.replace(/^#{4} (.+)$/gm,'<h4>$1</h4>');
-  // Bold
+  h=h.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
+  h=h.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  h=h.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  h=h.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  // Bold and italic
+  h=h.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
   h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  // Italic
-  h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
-  // Blockquote
+  h=h.replace(/\*([^*\n]+?)\*/g,'<em>$1</em>');
+  // Blockquotes
   h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
-  // Horizontal rule
+  // HR
   h=h.replace(/^---+$/gm,'<hr/>');
-  // Bullet lists
-  h=h.replace(/((?:^[*\-] .+\n?)+)/gm,function(m){
-    var items=m.trim().split('\n').map(function(l){return'<li>'+l.replace(/^[*\-] /,'')+'</li>';}).join('');
-    return'<ul>'+items+'</ul>';
+  // Bullet lists - group consecutive items
+  h=h.replace(/((?:^[*\-\u2022] .+\n?)+)/gm,function(m){
+    var items=m.trim().split('\n').map(function(l){return'<li>'+l.replace(/^[*\-\u2022] /,'')+'</li>';}).join('');
+    return'<ul>'+items+'</ul>\n';
   });
   // Numbered lists
   h=h.replace(/((?:^\d+\. .+\n?)+)/gm,function(m){
     var items=m.trim().split('\n').map(function(l){return'<li>'+l.replace(/^\d+\. /,'')+'</li>';}).join('');
-    return'<ol>'+items+'</ol>';
+    return'<ol>'+items+'</ol>\n';
   });
-  // Paragraphs - wrap loose lines
-  h=h.replace(/^(?!<[a-z]|$)(.+)$/gm,'<p>$1</p>');
-  // Clean up empty lines
-  h=h.replace(/\n{3,}/g,'\n\n');
+  // Paragraphs for bare lines
+  h=h.replace(/^(?!<[a-zA-Z\/!])(.{2,})$/gm,'<p>$1</p>');
   return h;
 }
+
+
 
 function OPN_BW(content,title,type){
   var cols={marketing:'#6c63ff',financial:'#2ecc71',scientific:'#f39c12',paper:'#e74c3c'};
@@ -883,6 +893,7 @@ function KBC(e,delFn){
     '</div>'+
     '<div class="kbca">'+
       '<button class="kbab" id="kbrd-'+id+'" onclick="KB_SPK('+id+')">&#9654; Read</button>'+
+      (e.briefType?'<button class="kbab" style="border-color:var(--accent);color:var(--accent)" onclick="VIEW_BRIEF('+id+')">&#128196; View</button>':'')+
       '<div class="awrap"><button class="kbab" onclick="AM(\'kbex-'+id+'\')">Export &#9660;</button>'+
         '<div class="amenu" id="kbex-'+id+'">'+
           '<button class="aitem" onclick="X_PDF(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128196; PDF</button>'+
@@ -894,6 +905,11 @@ function KBC(e,delFn){
     '</div></div>';
 }
 
+window.VIEW_BRIEF=function(id){
+  var e=KB.concat(BR).find(function(x){return x.id===id;});
+  if(!e)return;
+  OPN_BW(e.content,e.title,e.briefType||'paper');
+};
 window.KB_EXP=function(id){var b=document.getElementById('kbcb-'+id);if(!b)return;var ex=b.classList.toggle('exp');b.classList.toggle('tr',!ex);};
 window.GET_T=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?e.content:'';};
 window.GET_N=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?e.title:'Entry';};
@@ -974,10 +990,24 @@ async function AUTO_CONVERT(manual){
   for(var i=0;i<toConvert.length;i++){
     var e=toConvert[i];
     ov.classList.add('on');ot.textContent='Converting '+(i+1)+'/'+toConvert.length+': '+e.title+'...';
-    var isF=/\$|ticker|NYSE|TSXV|NASDAQ|stock|share price|investor|market cap|EPS|revenue/i.test(e.content);
-    var isSc=/hypothesis|methodology|experiment|dataset|findings|abstract|correlation|p-value/i.test(e.content);
-    var isMk=/value prop|customer|audience|brand|marketing|campaign|conversion/i.test(e.content);
-    var type=isF?'financial':isSc?'scientific':isMk?'marketing':'paper';
+    // Score each type - highest score wins
+    var fScore=0,mScore=0,sScore=0;
+    var c=e.content+' '+e.title;
+    // Financial signals
+    if(/\bNYSE:|TSXV:|NASDAQ:|NYSE :|TSX:/i.test(c))fScore+=10;
+    if(/\bstock price|share price|market cap|EPS|P\/E ratio|dividend|earnings per share/i.test(c))fScore+=5;
+    if(/\binvestment brief|analyst target|buy rating|strong buy|price target/i.test(c))fScore+=5;
+    if(/\$[0-9]+\.[0-9]+|\bCAD|\bUSD/.test(c)&&!/marketing budget|monthly cost|entry fee/i.test(c))fScore+=2;
+    // Marketing signals
+    if(/\bmarketing brief|marketing strategy|brand|target audience|customer segment|go-to-market/i.test(c))mScore+=10;
+    if(/\bcafé|cafe|restaurant|tavern|gaming|retail|hospitality|loyalty program|event marketing/i.test(c))mScore+=8;
+    if(/\bsocial media|instagram|facebook|tiktok|seo|content calendar|paid ads/i.test(c))mScore+=5;
+    if(/\bvalue proposition|use cases|who uses it|bottom line/i.test(c)&&!/investment/i.test(c))mScore+=3;
+    // Scientific signals
+    if(/\bhypothesis|methodology|experiment|dataset|abstract|p-value|correlation|clinical/i.test(c))sScore+=10;
+    if(/\bpeer.reviewed|journal|findings|statistical|randomized|control group/i.test(c))sScore+=5;
+    var maxScore=Math.max(fScore,mScore,sScore);
+    var type=maxScore===0?'paper':fScore===maxScore?'financial':mScore===maxScore?'marketing':'scientific';
     var prompts={
       financial:'Senior financial analyst. Use web_search for live prices on any tickers. Rich markdown brief with ## headers and | tables: ## INVESTMENT SNAPSHOT | Metric | Value | Signal | ## COMPANY OVERVIEW ## CATALYSTS | Milestone | Date | Detail | ## ANALYST TARGETS ## RISKS ## BOTTOM LINE | Factor | Reading | Signal | Include disclaimer.\n\n',
       scientific:'Rich markdown scientific brief with ## headers: ## ABSTRACT ## BACKGROUND ## METHODOLOGY ## KEY FINDINGS ## LIMITATIONS ## IMPLICATIONS ## FURTHER RESEARCH\n\n',
