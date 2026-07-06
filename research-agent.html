@@ -701,6 +701,724 @@ window.BRIEF=async function(tab,type){
   var title=tab==='r'?window.R_TTL():window.S_TTL();
   var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
   ov.classList.add('on');ot.textContent='Generating '+BLAB[type]+'...';
+  // Extract clean title from content
+  var cleanTitle = title;
+  var titleMatch = content.match(/(?:^|
+)(?:#{1,2} )?([A-Z][A-Za-z0-9 ,&.'()\-]{3,60})(?:\s*[-—|]|\s*\(|
+)/);
+  if(titleMatch) cleanTitle = titleMatch[1].trim().replace(/^#+\s*/,'');
+  if(cleanTitle.length > 60) cleanTitle = title;
+
+  var sysPrompt = 'You are an expert brief writer. Output ONLY clean styled HTML (no DOCTYPE, no html/head/body tags). Use inline styles. Make it look professional and publication-ready like a consultant report.';
+
+  var prompts={
+    marketing:'Create a professional marketing brief as clean HTML with inline styles. Dark theme: background sections use #1a1a1a, text #e8e8e8. Use this exact structure:\n\n<h1 style="font-size:28px;font-weight:800;color:#fff;margin:0 0 4px">[COMPANY NAME]</h1>\n<p style="color:#888;font-size:14px;margin:0 0 24px">[tagline or location]</p>\n\nThen a KPI banner row with 4 key stats in boxes (background:#242424;border:1px solid #333;border-radius:8px;padding:16px;text-align:center) showing market size, growth rate, unique positioning, catchment/reach.\n\nThen numbered sections using <h2 style="font-size:18px;color:#6c63ff;border-bottom:1px solid #333;padding-bottom:8px;margin:28px 0 12px"> for headers.\n\nUse <table style="width:100%;border-collapse:collapse;margin:12px 0"> with <th style="background:#242424;color:#fff;padding:10px 14px;text-align:left;border:1px solid #333"> and <td style="padding:9px 14px;border:1px solid #2a2a2a;color:#ccc"> for all tables.\n\nSections: 1.Business Overview (table), 2.Target Audiences (table), 3.Strategy (table with pillars), 4.Events & Programming (table), 5.Budget & Loyalty, 6.Roadmap, 7.KPIs (table), 8.Bottom Line (table).\n\nEnd with: <p style="font-size:11px;color:#555;margin-top:32px;padding-top:16px;border-top:1px solid #1e1e1e">Marketing brief prepared by Research Agent</p>\n\nResearch content:\n\n',
+    financial:'Create a professional investment brief as clean HTML with inline styles. Dark theme: background #0f0f0f, sections #1a1a1a, text #e8e8e8. Use web_search to get CURRENT live prices for any tickers mentioned.\n\nStart with:\n<h1 style="font-size:28px;font-weight:800;color:#fff;margin:0 0 4px">[COMPANY NAME] ([TICKER])</h1>\n<p style="color:#888;font-size:14px;margin:0 0 24px">Complete Investment Brief · As of [today date] · For Informational Purposes Only</p>\n\nThen a KPI banner with 6 metrics in a flex row: Price, 52W High, Market Cap, Next Earnings, RSI, IV Rank. Each box: background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px 16px;text-align:center with label in color:#888;font-size:11px and value in color:#fff;font-size:18px;font-weight:700.\n\nThen numbered sections with <h2 style="font-size:18px;color:#2ecc71;border-bottom:1px solid #333;padding-bottom:8px;margin:28px 0 12px">:\n1.Recent Financials (table), 2.Upcoming Earnings, 3.M&A & Corporate Events, 4.Key Product Catalysts (table), 5.Analyst Consensus & Targets (table), 6.Technical Analysis - Key Levels (table), 7.Options Strategy (table), 8.Key Risks, 9.Bottom Line Summary (table with Factor/Reading/Signal columns).\n\nEnd with disclaimer in <p style="font-size:11px;color:#555;margin-top:32px;padding-top:16px;border-top:1px solid #1e1e1e">\n\nResearch content:\n\n',
+    scientific:'Create a professional scientific brief as clean HTML with inline styles. Dark theme. Structure: Title h1, then sections: Abstract, Background, Methodology, Key Findings (numbered list), Data Quality & Limitations, Implications, Further Research, Citations. Use #f39c12 for h2 headers. Tables where appropriate. Research content:\n\n',
+    paper:'Create a formal research paper as clean HTML with inline styles. Dark theme. Structure: Executive Summary, Introduction, Background, Analysis, Key Findings, Discussion, Conclusions, Further Reading. Use #e74c3c for h2 headers. Research content:\n\n'
+  };
+
+  try{
+    var bc=await CALL('Expert brief writer. Use web_search for current financial data when needed.',UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Research"/>
+<meta name="theme-color" content="#0f0f0f"/>
+<title>Research Agent</title>
+<link rel="apple-touch-icon" href="icon.png"/>
+<style>
+:root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--bg4:#2e2e2e;--text:#f0f0f0;--text2:#a0a0a0;--text3:#666;--border:#333;--border2:#444;--accent:#6c63ff;--success:#2ecc71;--danger:#e74c3c;--warn:#f39c12;--radius:12px;--rsm:8px;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
+body.light{--bg:#f5f5f5;--bg2:#fff;--bg3:#efefef;--bg4:#e8e8e8;--text:#111;--text2:#555;--text3:#999;--border:#d0d0d0;--border2:#bbb}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:16px;overscroll-behavior:none}
+input,textarea,select,button{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+#setup{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+#setup h1{font-size:26px;font-weight:700;color:var(--text);margin-bottom:10px;text-align:center}
+#setup p{font-size:15px;color:var(--text2);margin-bottom:24px;text-align:center;line-height:1.6;max-width:400px}
+#key-area{width:100%;max-width:460px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:10px;padding:14px;font-size:13px;color:var(--text);font-family:monospace;resize:none;outline:none;height:80px;display:block;margin-bottom:8px}
+#setup-err{color:var(--danger);font-size:13px;margin-bottom:8px;min-height:18px;text-align:center;width:100%;max-width:460px}
+#setup-btn{width:100%;max-width:460px;height:52px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:17px;font-weight:600;cursor:pointer}
+#app{display:none;flex-direction:column;height:100vh;height:100dvh}
+#hdr{padding:calc(var(--st) + 12px) 16px 12px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#hdr-t{font-size:17px;font-weight:600}
+#hdr-s{font-size:12px;color:var(--text2);margin-top:1px}
+#hdr-y{font-size:11px;color:var(--text3);margin-top:1px}
+#tabs{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0;overflow-x:auto}
+#tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:10px 12px;font-size:12px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+#bdy{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pane{display:none;padding:16px 16px calc(var(--sb) + 16px)}
+.pane.on{display:block}
+.lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;margin-top:18px}
+.lbl:first-child{margin-top:0}
+.inp{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rsm);padding:12px 14px;font-size:15px;color:var(--text);outline:none;-webkit-appearance:none}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--text3)}
+textarea.inp{resize:none;line-height:1.6}
+select.inp{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-color:var(--bg2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 18px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;width:100%;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.small{height:36px;font-size:13px;padding:0 14px;width:auto}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn:active{opacity:0.7}
+.btn:disabled{opacity:0.35}
+.gap{height:12px}
+.row{display:flex;gap:8px;align-items:flex-start}
+.ibtn{height:44px;width:44px;flex-shrink:0;font-size:18px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rsm);cursor:pointer}
+.irow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.irow .inp{flex:1;height:44px;padding:0 12px}
+.rwrap{margin-top:12px;display:none}
+.rtbar{display:flex;justify-content:flex-end;margin-bottom:6px}
+.rbtn2{height:30px;padding:0 14px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.rbtn2.on{border-color:var(--accent);color:var(--accent)}
+.res{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.res.stream{border-left:2px solid var(--accent)}
+.player{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--rsm);padding:10px 14px;display:none;align-items:center;gap:10px;margin-top:10px}
+.player.on{display:flex}
+.ppbtn{width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
+.pnfo{flex:1;min-width:0}
+.plbl{font-size:11px;color:#a099ff;margin-bottom:4px}
+.pbar{height:3px;background:rgba(108,99,255,0.2);border-radius:99px}
+.pfill{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width 0.5s linear}
+.pstop{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.pspd{height:28px;background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;padding:0 8px;flex-shrink:0;appearance:none}
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.awrap{position:relative}
+.abtn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.abtn.brief{border-color:var(--accent);color:var(--accent)}
+.amenu{position:absolute;top:44px;left:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:100;display:none;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
+.amenu.on{display:block}
+.aitem{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:14px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
+.aitem:last-child{border-bottom:none}
+.aitem:active{background:var(--bg3)}
+.savbtn{height:40px;padding:0 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
+.awrap2{position:relative;flex-shrink:0}
+.atog{width:44px;height:44px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.amenu2{position:absolute;bottom:52px;right:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;width:158px;z-index:100;display:none}
+.amenu2.on{display:block}
+.aitem2{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:15px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
+.aitem2:last-child{border-bottom:none}
+.aprev{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:var(--rsm);padding:10px 12px;margin-top:8px;border:0.5px solid var(--border)}
+.ainfo{flex:1;min-width:0}
+.aname{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atype2{font-size:11px;color:var(--text3);margin-top:2px}
+.arm{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.saverow{margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:14px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
+.saverow label{font-size:12px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+.stat{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:8px 0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.4s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
+.errb{background:rgba(231,76,60,0.15);border:0.5px solid var(--danger);border-radius:var(--rsm);padding:10px 14px;font-size:13px;color:#ff8080;margin-top:8px;line-height:1.5;display:none}
+.kbc{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.kbch{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.kbct{font-size:15px;font-weight:600;color:var(--text);flex:1;line-height:1.4;cursor:pointer}
+.kbcm{font-size:12px;color:var(--text3);margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap}
+.kbcb{font-size:14px;color:var(--text2);line-height:1.6;max-height:80px;overflow:hidden;position:relative}
+.kbcb.exp{max-height:none}
+.kbcb.tr::after{content:"";position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--bg2))}
+.kbca{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.kbab{height:32px;padding:0 12px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
+.kbab.danger{border-color:var(--danger);color:var(--danger)}
+.kbpl{background:rgba(108,99,255,0.12);border:0.5px solid var(--accent);border-radius:var(--rsm);padding:8px 12px;display:none;align-items:center;gap:8px;margin-top:8px}
+.kbpl.on{display:flex}
+.kbpb{width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--bg3);color:var(--text2);font-weight:500;border:0.5px solid var(--border)}
+.fr{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.empty{text-align:center;padding:48px 16px;color:var(--text3);font-size:15px}
+.empty .ico{font-size:40px;margin-bottom:12px}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:0.5px solid var(--border)}
+.srow:last-child{border-bottom:none}
+.sbox{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.slbl{font-size:15px}
+.ssub{font-size:12px;color:var(--text2);margin-top:2px}
+.tog{position:relative;width:48px;height:28px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.togl{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border-radius:99px;transition:0.3s;border:0.5px solid var(--border)}
+.togl::before{content:"";position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:0.3s}
+input:checked + .togl{background:var(--accent)}
+input:checked + .togl::before{transform:translateX(20px);background:#fff}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.ov.on{display:flex}
+.spin{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ovtxt{color:var(--text);font-size:15px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div id="setup">
+  <div style="font-size:48px;margin-bottom:16px">&#129504;</div>
+  <h1>Research Agent</h1>
+  <p>Paste your Anthropic API key below to get started.<br/>Get one at console.anthropic.com</p>
+  <textarea id="key-area" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="document.getElementById('key-count').textContent=this.value.length>0?this.value.length+' characters typed':'';document.getElementById('setup-err').textContent='';"></textarea>
+  <div id="key-count" style="font-size:12px;color:var(--accent);min-height:18px;text-align:right;width:100%;max-width:460px;margin-bottom:4px"></div>
+  <div id="setup-err"></div>
+  <button id="setup-btn" onclick="doSetup()">Save &amp; Start &#8594;</button>
+  <p style="font-size:12px;color:var(--text3);margin-top:16px;text-align:center">Firebase sync is pre-configured. Key saved only on this device.</p>
+</div>
+
+<div class="ov" id="ov">
+  <div class="spin"></div>
+  <div class="ovtxt" id="ovtxt">Generating brief...</div>
+</div>
+
+<div id="app">
+  <div id="hdr">
+    <div style="font-size:22px">&#129504;</div>
+    <div style="flex:1">
+      <div id="hdr-t">Research Agent</div>
+      <div id="hdr-s">Loading...</div>
+      <div id="hdr-y">
+        <span id="sdot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:4px;vertical-align:middle"></span>
+        <span id="stxt">Connecting...</span>
+      </div>
+    </div>
+  </div>
+  <div id="tabs">
+    <button class="tab on" onclick="TAB('r')" id="tab-r">Research</button>
+    <button class="tab" onclick="TAB('s')" id="tab-s">Summarize</button>
+    <button class="tab" onclick="TAB('k')" id="tab-k">Knowledge Base</button>
+    <button class="tab" onclick="TAB('b')" id="tab-b">Briefs</button>
+    <button class="tab" onclick="TAB('x')" id="tab-x">Settings</button>
+  </div>
+  <div id="bdy">
+
+    <div class="pane on" id="pane-r">
+      <div class="lbl">Research question</div>
+      <div class="row">
+        <textarea class="inp" id="rq" placeholder="What do you want to research?..." rows="3" style="flex:1"></textarea>
+        <button class="ibtn" onclick="MIC('rq','rqm')" id="rqm" style="color:var(--accent);align-self:flex-start">&#127908;</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="CLR_R()">&#10005;</button>
+      </div>
+      <div id="rap" style="display:none" class="aprev">
+        <img id="rat" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
+        <div class="ainfo"><div class="aname" id="ran"></div><div class="atype2" id="rat2"></div></div>
+        <button class="arm" onclick="RM_AT('r')">&#215;</button>
+      </div>
+      <div class="gap"></div>
+      <div class="lbl">Mode</div>
+      <select class="inp" id="rmode">
+        <option value="overview">Overview - clear comprehensive summary</option>
+        <option value="deep">Deep dive - detailed analysis and nuance</option>
+        <option value="papers">Academic - focus on research and papers</option>
+        <option value="compare">Compare - contrast approaches or options</option>
+      </select>
+      <div class="gap"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" onclick="DO_R()" id="rbtn" style="flex:1">&#128269; Research</button>
+        <div class="awrap2">
+          <button class="atog" onclick="AM('rm')">&#65291;</button>
+          <div class="amenu2" id="rm">
+            <button class="aitem2" onclick="AT('r','c')">&#128247; Camera</button>
+            <button class="aitem2" onclick="AT('r','p')">&#128444; Photos</button>
+            <button class="aitem2" onclick="AT('r','f')">&#128196; File</button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="r-c" accept="image/*" capture="environment" style="display:none" onchange="ON_AT(event,'r')"/>
+      <input type="file" id="r-p" accept="image/*" style="display:none" onchange="ON_AT(event,'r')"/>
+      <input type="file" id="r-f" accept="image/*,application/pdf" style="display:none" onchange="ON_AT(event,'r')"/>
+      <div id="rst" class="stat" style="display:none"><span class="dot"></span><span id="rstx">Searching...</span></div>
+      <div id="rerr" class="errb"></div>
+      <div class="rwrap" id="rw">
+        <div class="rtbar"><button class="rbtn2" id="rrd" onclick="SPK('r')">&#9654; Read</button></div>
+        <div class="res" id="rres"></div>
+        <div class="player" id="rpl">
+          <button class="ppbtn" id="rpp" onclick="PP()">&#9208;</button>
+          <div class="pnfo"><div class="plbl" id="rpbl">Reading...</div><div class="pbar"><div class="pfill" id="rpf" style="width:0%"></div></div></div>
+          <button class="pstop" onclick="STOP_SPK()">&#9209;</button>
+          <select class="pspd" id="rspd" onchange="CH_SPD('r')">
+            <option value="0.8">0.8x</option><option value="1" selected>1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option>
+          </select>
+        </div>
+        <div class="acts">
+          <div class="awrap">
+            <button class="abtn brief" onclick="AM('rbr')">&#10024; Brief &#9660;</button>
+            <div class="amenu" id="rbr">
+              <button class="aitem" onclick="BRIEF('r','marketing');CM()">&#128202; Marketing Brief</button>
+              <button class="aitem" onclick="BRIEF('r','financial');CM()">&#128176; Financial Brief</button>
+              <button class="aitem" onclick="BRIEF('r','scientific');CM()">&#128300; Scientific Brief</button>
+              <button class="aitem" onclick="BRIEF('r','paper');CM()">&#128196; Research Paper</button>
+            </div>
+          </div>
+          <div class="awrap">
+            <button class="abtn" onclick="AM('rex')">&#128228; Export &#9660;</button>
+            <div class="amenu" id="rex">
+              <button class="aitem" onclick="X_PDF(function(){return LR;},function(){return R_TTL();});CM()">&#128196; Save as PDF</button>
+              <button class="aitem" onclick="X_HTML(function(){return LR;},function(){return R_TTL();});CM()">&#127760; Save as HTML</button>
+              <button class="aitem" onclick="X_COPY(function(){return LR;});CM()">&#128203; Copy text</button>
+              <button class="aitem" onclick="X_SHARE(function(){return LR;},function(){return R_TTL();});CM()">&#128228; Copy and Share</button>
+            </div>
+          </div>
+          <button class="savbtn" onclick="SHOW_SV('r')">&#128204; Save</button>
+        </div>
+      </div>
+      <div id="rsv" class="saverow" style="display:none">
+        <label>Save to knowledge base</label>
+        <input class="inp" id="rti" placeholder="Title..." style="height:44px"/>
+        <select class="inp" id="rtg" style="height:44px">
+          <option value="research">Research Note</option><option value="business">Business</option>
+          <option value="tech">Tech</option><option value="science">Science</option>
+          <option value="ai-ml">AI/ML</option><option value="health">Health</option><option value="general">General</option>
+        </select>
+        <button class="btn" onclick="SAVE_KB('r')" id="rsb">&#128204; Save to KB</button>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-s">
+      <div class="lbl">URL</div>
+      <div class="irow">
+        <input class="inp" id="surl" placeholder="https://... paste any link" type="url"/>
+        <button class="ibtn" onclick="PASTE()" style="font-size:18px">&#128203;</button>
+        <button class="ibtn" onclick="MIC('surl','sum')" id="sum" style="color:var(--accent);font-size:18px">&#127908;</button>
+        <button style="width:44px;height:44px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer" onclick="document.getElementById('surl').value=''">&#10005;</button>
+      </div>
+      <div class="lbl">Or paste text</div>
+      <div class="row">
+        <textarea class="inp" id="stxt" placeholder="Paste abstract, article, or any text..." rows="4" style="flex:1"></textarea>
+        <button class="ibtn" onclick="MIC('stxt','stm')" id="stm" style="color:var(--accent);align-self:flex-start;font-size:18px">&#127908;</button>
+        <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="CLR_S()">&#10005;</button>
+      </div>
+      <div id="sap" style="display:none" class="aprev">
+        <img id="sat" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
+        <div class="ainfo"><div class="aname" id="san"></div><div class="atype2" id="sat2"></div></div>
+        <button class="arm" onclick="RM_AT('s')">&#215;</button>
+      </div>
+      <div class="gap"></div>
+      <div class="lbl">Output style</div>
+      <select class="inp" id="stype" style="height:44px">
+        <option value="summary">Concise summary</option><option value="bullets">Key bullet points</option>
+        <option value="critique">Critical analysis</option><option value="eli5">Plain-language explanation</option>
+        <option value="extract">Extract findings and methods</option>
+      </select>
+      <div class="gap"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" onclick="DO_S()" id="sbtn" style="flex:1">&#128196; Summarize</button>
+        <div class="awrap2">
+          <button class="atog" onclick="AM('sm')">&#65291;</button>
+          <div class="amenu2" id="sm">
+            <button class="aitem2" onclick="AT('s','c')">&#128247; Camera</button>
+            <button class="aitem2" onclick="AT('s','p')">&#128444; Photos</button>
+            <button class="aitem2" onclick="AT('s','f')">&#128196; File</button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="s-c" accept="image/*" capture="environment" style="display:none" onchange="ON_AT(event,'s')"/>
+      <input type="file" id="s-p" accept="image/*" style="display:none" onchange="ON_AT(event,'s')"/>
+      <input type="file" id="s-f" accept="image/*,application/pdf" style="display:none" onchange="ON_AT(event,'s')"/>
+      <div id="sst" class="stat" style="display:none"><span class="dot"></span><span id="sstx">Processing...</span></div>
+      <div id="serr" class="errb"></div>
+      <div class="rwrap" id="sw">
+        <div class="rtbar"><button class="rbtn2" id="srd" onclick="SPK('s')">&#9654; Read</button></div>
+        <div class="res" id="sres"></div>
+        <div class="player" id="spl">
+          <button class="ppbtn" id="spp" onclick="PP()">&#9208;</button>
+          <div class="pnfo"><div class="plbl" id="spbl">Reading...</div><div class="pbar"><div class="pfill" id="spf" style="width:0%"></div></div></div>
+          <button class="pstop" onclick="STOP_SPK()">&#9209;</button>
+          <select class="pspd" id="sspd" onchange="CH_SPD('s')">
+            <option value="0.8">0.8x</option><option value="1" selected>1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option>
+          </select>
+        </div>
+        <div class="acts">
+          <div class="awrap">
+            <button class="abtn brief" onclick="AM('sbr')">&#10024; Brief &#9660;</button>
+            <div class="amenu" id="sbr">
+              <button class="aitem" onclick="BRIEF('s','marketing');CM()">&#128202; Marketing Brief</button>
+              <button class="aitem" onclick="BRIEF('s','financial');CM()">&#128176; Financial Brief</button>
+              <button class="aitem" onclick="BRIEF('s','scientific');CM()">&#128300; Scientific Brief</button>
+              <button class="aitem" onclick="BRIEF('s','paper');CM()">&#128196; Research Paper</button>
+            </div>
+          </div>
+          <div class="awrap">
+            <button class="abtn" onclick="AM('sex')">&#128228; Export &#9660;</button>
+            <div class="amenu" id="sex">
+              <button class="aitem" onclick="X_PDF(function(){return LS;},function(){return S_TTL();});CM()">&#128196; Save as PDF</button>
+              <button class="aitem" onclick="X_HTML(function(){return LS;},function(){return S_TTL();});CM()">&#127760; Save as HTML</button>
+              <button class="aitem" onclick="X_COPY(function(){return LS;});CM()">&#128203; Copy text</button>
+              <button class="aitem" onclick="X_SHARE(function(){return LS;},function(){return S_TTL();});CM()">&#128228; Copy and Share</button>
+            </div>
+          </div>
+          <button class="savbtn" onclick="SHOW_SV('s')">&#128204; Save</button>
+        </div>
+      </div>
+      <div id="ssv" class="saverow" style="display:none">
+        <label>Save to knowledge base</label>
+        <input class="inp" id="sti" placeholder="Title..." style="height:44px"/>
+        <select class="inp" id="stg" style="height:44px">
+          <option value="summary">Summary</option><option value="business">Business</option>
+          <option value="tech">Tech</option><option value="science">Science</option>
+          <option value="ai-ml">AI/ML</option><option value="health">Health</option><option value="general">General</option>
+        </select>
+        <button class="btn" onclick="SAVE_KB('s')" id="ssb">&#128204; Save to KB</button>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-k">
+      <input class="inp" id="ksrch" placeholder="Search knowledge base..." oninput="RND_KB()" style="height:44px;margin-bottom:12px"/>
+      <div class="fr" id="kbtags"></div>
+      <div id="kblist"></div>
+    </div>
+
+    <div class="pane" id="pane-b">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Generated briefs organized by type. Use the &#10024; Brief button on any research result.</p>
+      <div style="display:flex;gap:8px;margin-bottom:16px"><button id="cvt-btn" style="flex:1;height:44px;background:var(--accent);color:#fff;border:none;border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer">&#9889; Convert KB to Briefs</button><button id="regen-btn" style="flex:1;height:44px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer">&#128260; Regenerate All</button></div>
+      <div id="cvt-status" style="font-size:13px;color:var(--text2);margin-bottom:12px;display:none"></div>
+      <div id="brlist"></div>
+    </div>
+
+    <div class="pane" id="pane-x">
+      <div class="lbl">Appearance</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0;padding-bottom:0">
+          <div><div class="slbl">Light mode</div><div class="ssub">Toggle dark/light</div></div>
+          <label class="tog"><input type="checkbox" id="ltog" onchange="SET_LIGHT(this.checked)"/><span class="togl"></span></label>
+        </div>
+      </div>
+      <div class="lbl">API Keys</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0">
+          <div><div class="slbl">Anthropic API key</div><div class="ssub" id="akstat">Checking...</div></div>
+          <button class="btn small" onclick="CHG_KEY()">Change</button>
+        </div>
+        <div class="srow">
+          <div><div class="slbl">Firebase sync</div><div class="ssub" id="fbstat">Checking...</div></div>
+          <button class="btn small" onclick="CHG_FB()">Change</button>
+        </div>
+        <div class="srow" style="padding-bottom:0">
+          <div><div class="slbl">Pricing</div><div class="ssub">~$0.01-0.05 per query</div></div>
+          <button class="btn small" onclick="window.open('https://console.anthropic.com','_blank')">Console</button>
+        </div>
+      </div>
+      <div class="lbl">Knowledge base</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0">
+          <div><div class="slbl">Saved entries</div><div class="ssub" id="kbcnt2">0 entries</div></div>
+        </div>
+        <div class="srow" style="padding-bottom:0">
+          <div><div class="slbl">Storage</div><div class="ssub">Synced via Firebase</div></div>
+        </div>
+      </div>
+      <div class="lbl">Danger zone</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0;padding-bottom:0">
+          <div><div class="slbl">Clear local data</div><div class="ssub">Removes keys from this device</div></div>
+          <button class="btn small danger" onclick="if(confirm('Clear all local data?')){localStorage.clear();location.reload();}">Clear</button>
+        </div>
+      </div>
+      <div style="height:40px"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function doSetup() {
+  var ta = document.getElementById('key-area');
+  var k = ta ? ta.value.trim() : '';
+  var err = document.getElementById('setup-err');
+  if (!k) { if (err) err.textContent = 'Please paste your API key first.'; return; }
+  try {
+    localStorage.setItem('ra-k', k);
+    localStorage.setItem('ra-fp', 'research-agent-83fe8');
+    localStorage.setItem('ra-fk', 'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
+    // Verify it was saved
+    var saved = localStorage.getItem('ra-k');
+    if (!saved) {
+      if (err) err.textContent = 'Storage failed - try a different browser.';
+      return;
+    }
+    // Don't reload - just switch screens directly
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    if (err) err.textContent = '';
+    // Trigger app init without reload
+    if (window.START_APP) window.START_APP();
+  } catch(e) {
+    if (err) err.textContent = 'Error: ' + e.message;
+  }
+}
+
+var _U=null,_PA=false,_PT=null,_PV=0,_SC=null;
+function STOP_SPK(){
+  if(_PT){clearInterval(_PT);_PT=null;}
+  if(_U){try{speechSynthesis.cancel();}catch(e){}_U=null;}
+  _PA=false;_PV=0;
+  if(_SC){
+    var c=_SC;
+    var pb=document.getElementById(c.pid);if(pb)pb.classList.remove('on');
+    var rd=document.getElementById(c.rid);if(rd){rd.textContent='\u25b6 Read';rd.classList.remove('on');}
+    var pp2=document.getElementById(c.ppid);if(pp2)pp2.textContent='\u23f8';
+    var pf=document.getElementById(c.pfid);if(pf)pf.style.width='0%';
+  }
+  document.querySelectorAll('.kbpl').forEach(function(b){b.classList.remove('on');});
+  _SC=null;
+}
+function _DO_SPK(text,spd,ctx){
+  if(!text)return;STOP_SPK();
+  try{
+    var u=new SpeechSynthesisUtterance(text);
+    u.rate=spd||1;u.lang='en-US';u.pitch=1;
+    var w=text.split(/\s+/).length,s=(w/150)*60/(spd||1);
+    _PV=0;_PT=setInterval(function(){if(!_PA){_PV=Math.min(99,_PV+(100/s));var pf=document.getElementById(ctx.pfid);if(pf)pf.style.width=_PV+'%';}},1000);
+    u.onend=STOP_SPK;u.onerror=STOP_SPK;
+    _U=u;_SC=ctx;_PA=false;
+    var pb=document.getElementById(ctx.pid);if(pb)pb.classList.add('on');
+    var rd=document.getElementById(ctx.rid);if(rd){rd.textContent='\u23f9 Stop';rd.classList.add('on');}
+    var pp2=document.getElementById(ctx.ppid);if(pp2)pp2.textContent='\u23f8';
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function SPK(t){
+  var text=t==='r'?window.LR:window.LS;if(!text)return;
+  if(_SC&&_SC.tab===t){STOP_SPK();return;}
+  var spd=parseFloat((document.getElementById(t+'spd')||{value:'1'}).value||'1');
+  _DO_SPK(text,spd,{tab:t,pid:t+'pl',ppid:t+'pp',pfid:t+'pf',plid:t+'pbl',rid:t+'rd'});
+}
+function PP(){
+  if(!_SC)return;
+  var p2=document.getElementById(_SC.ppid),pl=document.getElementById(_SC.plid);
+  if(_PA){speechSynthesis.resume();_PA=false;if(p2)p2.textContent='\u23f8';if(pl)pl.textContent='Reading...';}
+  else{speechSynthesis.pause();_PA=true;if(p2)p2.textContent='\u25b6';if(pl)pl.textContent='Paused';}
+}
+function CH_SPD(t){
+  if(!_SC||_SC.tab!==t)return;
+  var text=t==='r'?window.LR:window.LS;
+  var spd=parseFloat((document.getElementById(t+'spd')||{value:'1'}).value||'1');
+  STOP_SPK();setTimeout(function(){_DO_SPK(text,spd,{tab:t,pid:t+'pl',ppid:t+'pp',pfid:t+'pf',plid:t+'pbl',rid:t+'rd'});},150);
+}
+function KB_SPK(id){
+  var e=(window._KB||[]).find(function(x){return x.id===id;});if(!e)return;
+  var t='kb'+id;if(_SC&&_SC.tab===t){STOP_SPK();return;}
+  _DO_SPK(e.content,1,{tab:t,pid:'kbpl-'+id,ppid:'kbpp-'+id,pfid:'kbpf-'+id,plid:'kbpbl-'+id,rid:'kbrd-'+id});
+}
+</script>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+var DB=null,KB=[],BR=[],ATag=null;
+window.LR='';window.LS='';
+var rAt=null,sAt=null,mRec=null,mFld=null;
+window._KB=[];
+var BLAB={marketing:'Marketing Brief',financial:'Financial Brief',scientific:'Scientific Brief',paper:'Research Paper'};
+var BCATS=['marketing','financial','scientific','paper'];
+
+function GK(){return localStorage.getItem('ra-k')||'';}
+function GFP(){return localStorage.getItem('ra-fp')||'research-agent-83fe8';}
+function GFK(){return localStorage.getItem('ra-fk')||'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8';}
+
+function SS(s,t){
+  var d=document.getElementById('sdot'),x=document.getElementById('stxt');
+  if(d)d.style.background=s==='err'?'var(--danger)':s==='sync'?'var(--warn)':'var(--success)';
+  if(x)x.textContent=t;
+}
+function UKS(){
+  var k=GK(),el=document.getElementById('akstat');if(el)el.textContent=k?'Connected - ends in ...'+k.slice(-4):'Not set';
+  var fb=document.getElementById('fbstat');if(fb)fb.textContent=DB?'Synced':'Not connected';
+}
+async function IFB(){
+  try{
+    SS('sync','Connecting...');
+    var app=initializeApp({apiKey:GFK(),authDomain:GFP()+'.firebaseapp.com',projectId:GFP(),storageBucket:GFP()+'.firebasestorage.app',messagingSenderId:'',appId:''});
+    DB=getFirestore(app);SS('ok','Synced');UKS();
+  }catch(e){SS('err','Sync error');}
+}
+async function LD_KB(){
+  try{
+    SS('sync','Loading...');
+    var q1=query(collection(DB,'knowledge_base'),orderBy('id','desc'));
+    var s1=await getDocs(q1);KB=s1.docs.map(function(d){return Object.assign({},d.data(),{_did:d.id});});
+    var q2=query(collection(DB,'briefs'),orderBy('id','desc'));
+    var s2=await getDocs(q2);BR=s2.docs.map(function(d){return Object.assign({},d.data(),{_did:d.id});});
+    window._KB=KB.concat(BR);SS('ok','Synced');U_CNT();RND_KB();RND_BR();
+  }catch(e){SS('err','Load error');}
+}
+async function SV_FB(entry,col){if(!DB)return null;try{var r=await addDoc(collection(DB,col),entry);return r.id;}catch(e){return null;}}
+async function DL_FB(did,col){if(!DB||!did)return;try{await deleteDoc(doc(DB,col,did));}catch(e){}}
+
+function U_CNT(){
+  var n=KB.length+BR.length,s=n+' saved entr'+(n===1?'y':'ies');
+  var h=document.getElementById('hdr-s');if(h)h.textContent=s;
+  var c=document.getElementById('kbcnt2');if(c)c.textContent=s;
+}
+
+window.TAB=function(t){
+  STOP_SPK();M_STOP();CM();
+  ['r','s','k','b','x'].forEach(function(id){
+    document.getElementById('pane-'+id).classList.toggle('on',id===t);
+    document.getElementById('tab-'+id).classList.toggle('on',id===t);
+  });
+  if(t==='k')RND_KB();if(t==='b')RND_BR();
+};
+window.SET_LIGHT=function(on){document.body.classList.toggle('light',on);localStorage.setItem('ra-light',on?'1':'');};
+window.CHG_KEY=function(){var k=prompt('New Anthropic API key:');if(k&&k.trim()){localStorage.setItem('ra-k',k.trim());UKS();}};
+window.CHG_FB=function(){var p=prompt('Firebase Project ID:','research-agent-83fe8');if(p){localStorage.setItem('ra-fp',p.trim());location.reload();}};
+window.CLR_R=function(){
+  STOP_SPK();M_STOP();document.getElementById('rq').value='';
+  document.getElementById('rw').style.display='none';document.getElementById('rsv').style.display='none';
+  document.getElementById('rst').style.display='none';document.getElementById('rerr').style.display='none';
+  RM_AT('r');window.LR='';
+};
+window.CLR_S=function(){
+  STOP_SPK();M_STOP();document.getElementById('stxt').value='';document.getElementById('surl').value='';
+  document.getElementById('sw').style.display='none';document.getElementById('ssv').style.display='none';
+  document.getElementById('sst').style.display='none';document.getElementById('serr').style.display='none';
+  RM_AT('s');window.LS='';
+};
+window.PASTE=async function(){
+  try{var t=await navigator.clipboard.readText();if(t)document.getElementById('surl').value=t.trim();}
+  catch(e){var t2=prompt('Paste URL:');if(t2)document.getElementById('surl').value=t2.trim();}
+};
+window.AM=function(id){var m=document.getElementById(id),was=m.classList.contains('on');CM();if(!was)m.classList.add('on');};
+window.CM=function(){document.querySelectorAll('.amenu,.amenu2').forEach(function(m){m.classList.remove('on');});};
+window.AT=function(t,tp){CM();document.getElementById(t+'-'+tp).click();};
+window.RM_AT=function(t){
+  if(t==='r')rAt=null;else sAt=null;
+  document.getElementById(t+'ap').style.display='none';
+  ['c','p','f'].forEach(function(x){var el=document.getElementById(t+'-'+x);if(el)el.value='';});
+};
+window.ON_AT=function(ev,t){
+  var f=ev.target.files[0];if(!f)return;
+  var img=f.type.startsWith('image/'),pdf=f.type==='application/pdf';
+  if(!img&&!pdf){alert('Please attach an image or PDF.');return;}
+  var rd=new FileReader();
+  rd.onload=function(e){
+    var b64=e.target.result.split(',')[1];
+    var at={b64:b64,mt:f.type,name:f.name,img:img};
+    if(t==='r')rAt=at;else sAt=at;
+    var prev=document.getElementById(t+'ap'),th=document.getElementById(t+'at');
+    if(img){th.src=e.target.result;th.style.display='block';}else{th.style.display='none';}
+    document.getElementById(t+'an').textContent=f.name;
+    document.getElementById(t+'at2').textContent=img?'Image':'PDF';
+    prev.style.display='flex';
+  };
+  rd.readAsDataURL(f);
+};
+function BLD_C(text,at){
+  if(!at)return text;
+  var p=[];
+  if(at.img)p.push({type:'image',source:{type:'base64',media_type:at.mt,data:at.b64}});
+  else p.push({type:'document',source:{type:'base64',media_type:at.mt,data:at.b64}});
+  p.push({type:'text',text:text});return p;
+}
+window.MIC=function(fid,bid){
+  if(mFld===fid){M_STOP();return;}
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){alert('Voice not supported on this browser.');return;}
+  M_STOP();
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  mRec=new SR();mRec.continuous=true;mRec.interimResults=true;mRec.lang='en-US';
+  var fl=document.getElementById(fid),btn=document.getElementById(bid);
+  var ex=fl.value;if(ex&&!ex.endsWith(' '))ex+=' ';
+  mRec.onstart=function(){mFld=fid;if(btn){btn.textContent='\u23f9';btn.style.color='var(--danger)';}};
+  mRec.onresult=function(e){
+    var interim='',fin='';
+    for(var i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+    fl.value=ex+fin+(interim||'');if(fin)ex=fl.value;
+  };
+  mRec.onerror=function(e){if(e.error!=='aborted')alert('Mic error: '+e.error);M_STOP();};
+  mRec.onend=M_STOP;mRec.start();
+};
+function M_STOP(){
+  if(mRec){try{mRec.stop();}catch(e){}mRec=null;}
+  if(mFld){
+    var bid=mFld==='rq'?'rqm':mFld==='surl'?'sum':'stm';
+    var btn=document.getElementById(bid);
+    if(btn){btn.innerHTML='&#127908;';btn.style.color='var(--accent)';}
+  }
+  mFld=null;
+}
+
+async function CALL(sys,uc,stream,onChunk){
+  var resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':GK(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,stream:stream,system:sys,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:uc}]})
+  });
+  if(!resp.ok){var er=await resp.json();throw new Error(er.error?er.error.message:'API error '+resp.status);}
+  if(!stream){var d=await resp.json();return(d.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n');}
+  var rdr=resp.body.getReader(),dec=new TextDecoder(),buf='',full='';
+  while(true){
+    var rv=await rdr.read();if(rv.done)break;
+    buf+=dec.decode(rv.value,{stream:true});var lines=buf.split('\n');buf=lines.pop();
+    for(var i=0;i<lines.length;i++){
+      var ln=lines[i];if(!ln.startsWith('data: '))continue;
+      var d2=ln.slice(6).trim();if(d2==='[DONE]')continue;
+      try{var j=JSON.parse(d2);if(j.type==='content_block_delta'&&j.delta&&j.delta.type==='text_delta'){full+=j.delta.text;if(onChunk)onChunk(full);}}catch(e){}
+    }
+  }
+  return full;
+}
+
+window.DO_R=async function(){
+  var q=document.getElementById('rq').value.trim();
+  if(!q&&!rAt){alert('Add a question or attach a file.');return;}
+  M_STOP();var mode=document.getElementById('rmode').value;
+  var btn=document.getElementById('rbtn');btn.disabled=true;
+  STOP_SPK();
+  document.getElementById('rst').style.display='flex';document.getElementById('rstx').textContent='Searching...';
+  document.getElementById('rw').style.display='block';document.getElementById('rres').className='res stream';document.getElementById('rres').textContent='';
+  document.getElementById('rsv').style.display='none';document.getElementById('rerr').style.display='none';
+  var modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis.',papers:'Focus on academic research and key papers.',compare:'Compare the main approaches and viewpoints.'};
+  var pt=rAt&&!q?'Analyze this '+(rAt.img?'image':'document')+' and provide research insights.':rAt?q+'\n\nAttached for context.':q;
+  try{
+    document.getElementById('rstx').textContent='Generating...';
+    var full=await CALL('You are a rigorous research assistant. '+modes[mode]+' Use web_search for current info. Be thorough. No filler.',BLD_C(pt,rAt),true,function(c){document.getElementById('rres').textContent=c;});
+    if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
+    window.LR=full;document.getElementById('rres').className='res';
+    document.getElementById('rti').value=(q||(rAt&&rAt.name)||'Research').slice(0,60);
+  }catch(e){document.getElementById('rw').style.display='none';document.getElementById('rerr').style.display='block';document.getElementById('rerr').textContent='Error: '+e.message;}
+  document.getElementById('rst').style.display='none';btn.disabled=false;
+};
+
+window.DO_S=async function(){
+  var url=document.getElementById('surl').value.trim(),txt=document.getElementById('stxt').value.trim();
+  if(!url&&!txt&&!sAt){alert('Add a URL, paste text, or attach a file.');return;}
+  M_STOP();var type=document.getElementById('stype').value;
+  var btn=document.getElementById('sbtn');btn.disabled=true;
+  STOP_SPK();
+  document.getElementById('sst').style.display='flex';document.getElementById('sstx').textContent='Processing...';
+  document.getElementById('sw').style.display='block';document.getElementById('sres').className='res stream';document.getElementById('sres').textContent='';
+  document.getElementById('ssv').style.display='none';document.getElementById('serr').style.display='none';
+  var types={summary:'Write a concise 3-5 paragraph summary.',bullets:'Extract key points as a bullet list.',critique:'Critical analysis.',eli5:'Explain in plain language.',extract:'Extract findings, methodology, conclusions.'};
+  var pt=url&&txt?'URL: '+url+'\n\nContent:\n'+txt:url?'Find and summarize content at: '+url+'\nIf social media, search for the post content.':txt?'Summarize:\n\n'+txt:'Summarize this '+(sAt?sAt.img?'image':'document':'content')+'.';
+  if(sAt&&(url||txt))pt+='\n\nAlso attached: '+(sAt.img?'image':'document')+'.';
+  try{
+    var full=await CALL('You are an expert summarizer. '+types[type]+' Use web_search when given a URL. Complete fully. No filler.',BLD_C(pt,sAt),true,function(c){document.getElementById('sres').textContent=c;});
+    if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
+    window.LS=full;document.getElementById('sres').className='res';
+    document.getElementById('sti').value=(url||txt||(sAt&&sAt.name)||'Summary').replace(/^https?:\/\//,'').slice(0,60);
+  }catch(e){document.getElementById('sw').style.display='none';document.getElementById('serr').style.display='block';document.getElementById('serr').textContent='Error: '+e.message;}
+  document.getElementById('sst').style.display='none';btn.disabled=false;
+};
+
+window.R_TTL=function(){var el=document.getElementById('rti');return(el?el.value.trim():'')||'Research Report';};
+window.S_TTL=function(){var el=document.getElementById('sti');return(el?el.value.trim():'')||'Summary';};
+window.SHOW_SV=function(t){var sv=document.getElementById(t==='r'?'rsv':'ssv');if(sv){sv.style.display='flex';sv.scrollIntoView({behavior:'smooth',block:'nearest'});}};
+
+window.SAVE_KB=async function(t){
+  var ir=t==='r';
+  var title=(document.getElementById(ir?'rti':'sti').value.trim()||'Untitled');
+  var tag=document.getElementById(ir?'rtg':'stg').value;
+  var content=ir?window.LR:window.LS;if(!content)return;
+  var entry={id:Date.now(),title:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary'};
+  var did=await SV_FB(entry,'knowledge_base');if(did)entry._did=did;
+  KB.unshift(entry);window._KB=KB.concat(BR);U_CNT();
+  var btnEl=document.getElementById(ir?'rsb':'ssb'),orig=btnEl.textContent;
+  btnEl.textContent='Saved!';setTimeout(function(){btnEl.textContent=orig;},2000);
+};
+
+window.BRIEF=async function(tab,type){
+  var text=tab==='r'?window.LR:window.LS;
+  if(!text){alert('Generate a research result first.');return;}
+  var title=tab==='r'?window.R_TTL():window.S_TTL();
+  var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
+  ov.classList.add('on');ot.textContent='Generating '+BLAB[type]+'...';
   var prompts={
     marketing:'You are a professional marketing strategist. Transform the research into a beautifully structured marketing brief using rich markdown. Use ## for section headers, **bold** for emphasis, | tables |, > blockquotes for callouts, and bullet lists. Sections:\n\n## 1. HEADLINE\n> One powerful value proposition\n\n## 2. WHAT IS IT\n\n## 3. HOW IT WORKS\n| Capability | What It Does | Why It Matters |\n|---|---|---|\n\n## 4. USE CASES\n\n## 5. WHY EXTRAORDINARY\n\n## 6. WHO USES IT\n| Audience | Profile | What Brings Them | Revenue |\n|---|---|---|---|\n\n## 7. BOTTOM LINE\nMake it compelling and publication-ready.\n\n',
     financial:'You are a senior financial analyst. Use web_search for live prices on any tickers mentioned. Transform into a professional investment brief using rich markdown with ## headers and | tables. Sections:\n\n## INVESTMENT SNAPSHOT\n| Metric | Value | Signal |\n|---|---|---|\n\n## COMPANY OVERVIEW\n\n## STRATEGIC INVESTORS\n| Investor | Stake | Significance |\n|---|---|---|\n\n## CATALYSTS & TIMELINE\n| Milestone | Date | Detail |\n|---|---|---|\n\n## ANALYST TARGETS\n\n## TECHNICAL INDICATORS\n\n## ENTRY, EXIT & POSITIONING\n| Parameter | Level | Rationale |\n|---|---|---|\n\n## KEY RISKS\n\n## BOTTOM LINE SUMMARY\n| Factor | Reading | Signal |\n|---|---|---|\n\n> ⚠ For informational purposes only. Not financial advice.\n\n',
@@ -712,7 +1430,7 @@ window.BRIEF=async function(tab,type){
     ov.classList.remove('on');
     if(!bc||bc.length<50)throw new Error('Brief generation failed.');
     OPN_BW(bc,title,type);
-    var entry={id:Date.now(),title:title,briefType:type,content:bc,date:new Date().toLocaleDateString('en-CA'),type:'brief'};
+    var entry={id:Date.now(),title:cleanTitle,briefType:type,content:bc,date:new Date().toLocaleDateString('en-CA'),type:'brief'};
     var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
     BR.unshift(entry);window._KB=KB.concat(BR);U_CNT();
   }catch(e){ov.classList.remove('on');alert('Error: '+e.message);}
@@ -775,8 +1493,8 @@ function OPN_BW(content,title,type){
   var col=cols[type]||'#6c63ff',date=new Date().toLocaleDateString('en-CA');
   var win=window.open('','_blank');
   if(!win){alert('Please allow popups to view briefs.');return;}
-  var htmlContent=mdToHtml(content);
   var ti=ESC(title);
+  // content is already HTML from Claude - use directly
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>'+ti+'</title><style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
     'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f0f0f;color:#e8e8e8;line-height:1.7}'+
@@ -827,7 +1545,7 @@ function OPN_BW(content,title,type){
       '<div class="pinfo"><div class="pstat" id="ps">Tap to read aloud</div><div class="pbar"><div class="pfill" id="pf"></div></div></div>'+
       '<div class="pctrl"><button class="pstop" onclick="st()">&#9209;</button><select class="pspd" id="spd"><option value="0.8">0.8x</option><option value="1" selected>1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option></select></div>'+
     '</div>'+
-    '<div class="content">'+htmlContent+'</div>'+
+    '<div class="content" style="font-size:15px;line-height:1.7;color:#ccc">'+content+'</div>'+
     '<div class="actions">'+
       '<button class="actbtn" onclick="sh()">&#128228; Share</button>'+
       '<button class="actbtn" onclick="cp()">&#128203; Copy</button>'+
@@ -868,7 +1586,10 @@ window.RND_BR=function(){
   var list=document.getElementById('brlist');if(!list)return;
   if(!BR.length){list.innerHTML='<div class="empty"><div class="ico">&#10024;</div>No briefs yet. Use the Brief button on any Research or Summary result.</div>';return;}
   var html='';
-  BCATS.forEach(function(cat){
+  var filterEl=document.getElementById('brief-filter');
+  var activeFilter=filterEl?filterEl.value:'all';
+  var catsToShow=activeFilter==='all'?BCATS:[activeFilter];
+  catsToShow.forEach(function(cat){
     var entries=BR.filter(function(e){return e.briefType===cat;});if(!entries.length)return;
     html+='<div style="margin-bottom:20px"><div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;padding:8px 0;border-bottom:0.5px solid var(--border);margin-bottom:10px">'+BLAB[cat]+' <span style="font-size:11px;background:var(--bg3);color:var(--text3);padding:2px 8px;border-radius:99px;margin-left:4px">'+entries.length+'</span></div>';
     entries.forEach(function(e){html+=KBC(e,'DEL_BR');});
@@ -1008,16 +1729,18 @@ async function AUTO_CONVERT(manual){
     if(/\bpeer.reviewed|journal|findings|statistical|randomized|control group/i.test(c))sScore+=5;
     var maxScore=Math.max(fScore,mScore,sScore);
     var type=maxScore===0?'paper':fScore===maxScore?'financial':mScore===maxScore?'marketing':'scientific';
+    var sysP='You are an expert brief writer. Output ONLY clean styled HTML (no DOCTYPE, no html/head/body tags) using inline styles. Dark theme: bg #1a1a1a, text #e8e8e8. Professional consultant report style.';
     var prompts={
-      financial:'Senior financial analyst. Use web_search for live prices on any tickers. Rich markdown brief with ## headers and | tables: ## INVESTMENT SNAPSHOT | Metric | Value | Signal | ## COMPANY OVERVIEW ## CATALYSTS | Milestone | Date | Detail | ## ANALYST TARGETS ## RISKS ## BOTTOM LINE | Factor | Reading | Signal | Include disclaimer.\n\n',
-      scientific:'Rich markdown scientific brief with ## headers: ## ABSTRACT ## BACKGROUND ## METHODOLOGY ## KEY FINDINGS ## LIMITATIONS ## IMPLICATIONS ## FURTHER RESEARCH\n\n',
-      marketing:'Rich markdown marketing brief with ## headers and | tables: ## HEADLINE > value prop ## WHAT IS IT ## HOW IT WORKS | Capability | What It Does | Why It Matters | ## USE CASES ## WHY EXTRAORDINARY ## WHO USES IT | Audience | Profile | Value | ## BOTTOM LINE\n\n',
-      paper:'Rich markdown research paper with ## headers: ## EXECUTIVE SUMMARY ## INTRODUCTION ## BACKGROUND ## ANALYSIS ## KEY FINDINGS ## DISCUSSION ## CONCLUSIONS ## FURTHER READING\n\n'
+      financial:'Create a professional investment brief as clean HTML. Use web_search for current prices on any tickers. Start with company name in h1, then KPI banner row with key metrics, then numbered sections: Financials, Catalysts, Analyst Targets, Technical Levels, Key Risks, Bottom Line table. Include disclaimer. Research:\n\n',
+      scientific:'Create a professional scientific brief as clean HTML. Sections: Abstract, Background, Methodology, Key Findings, Limitations, Implications, Further Research. Research:\n\n',
+      marketing:'Create a professional marketing brief as clean HTML. Start with company name in h1, then KPI banner with 4 key stats, then numbered sections: Business Overview, Target Audiences, Strategy, Events, Budget, Roadmap, KPIs, Bottom Line. All with proper tables. Research:\n\n',
+      paper:'Create a formal research paper as clean HTML. Sections: Executive Summary, Introduction, Background, Analysis, Key Findings, Discussion, Conclusions, Further Reading. Research:\n\n'
     };
     try{
-      var bc=await CALL('Expert brief writer. Use web_search for current financial data.',prompts[type]+e.content,false,null);
+      var bc=await CALL(sysP,prompts[type]+e.content,false,null);
       if(bc&&bc.length>50){
-        var entry={id:Date.now()+i,title:e.title,briefType:type,content:bc,date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
+        var cleanT=e.title.replace(/^(need a|can you|please|give me|what is|tell me about|create|make|write|generate|do a|do an|provide|summarize|summary on|comprehensive|full|brief on)/gi,'').trim().replace(/^[^a-zA-Z0-9]*/,'').split('\n')[0].trim().slice(0,60)||e.title;
+var entry={id:Date.now()+i,title:cleanT,briefType:type,content:bc,date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
         var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
         BR.unshift(entry);window._KB=KB.concat(BR);U_CNT();
       }
