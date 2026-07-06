@@ -707,7 +707,6 @@ window.BRIEF=async function(tab,type){
     scientific:'Transform into a professional scientific brief using rich markdown with ## headers and tables. Sections:\n\n## ABSTRACT\n\n## BACKGROUND & CONTEXT\n\n## METHODOLOGY\n\n## KEY FINDINGS\n\n## DATA QUALITY & LIMITATIONS\n\n## IMPLICATIONS\n\n## FURTHER RESEARCH\n\n## CITATIONS\n\n',
     paper:'Transform into a formal research paper using rich markdown with ## headers. Sections:\n\n## EXECUTIVE SUMMARY\n\n## INTRODUCTION\n\n## BACKGROUND\n\n## ANALYSIS\n\n## KEY FINDINGS\n\n## DISCUSSION\n\n## CONCLUSIONS\n\n## FURTHER READING\n\n'
   };
-};
   try{
     var bc=await CALL('Expert brief writer. Use web_search for current financial data.',prompts[type]+text,false,null);
     ov.classList.remove('on');
