@@ -404,10 +404,25 @@ function doSetup() {
   var k = ta ? ta.value.trim() : '';
   var err = document.getElementById('setup-err');
   if (!k) { if (err) err.textContent = 'Please paste your API key first.'; return; }
-  localStorage.setItem('ra-k', k);
-  localStorage.setItem('ra-fp', 'research-agent-83fe8');
-  localStorage.setItem('ra-fk', 'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
-  window.location.reload();
+  try {
+    localStorage.setItem('ra-k', k);
+    localStorage.setItem('ra-fp', 'research-agent-83fe8');
+    localStorage.setItem('ra-fk', 'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8');
+    // Verify it was saved
+    var saved = localStorage.getItem('ra-k');
+    if (!saved) {
+      if (err) err.textContent = 'Storage failed - try a different browser.';
+      return;
+    }
+    // Don't reload - just switch screens directly
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    if (err) err.textContent = '';
+    // Trigger app init without reload
+    if (window.START_APP) window.START_APP();
+  } catch(e) {
+    if (err) err.textContent = 'Error: ' + e.message;
+  }
 }
 
 var _U=null,_PA=false,_PT=null,_PV=0,_SC=null;
@@ -921,6 +936,15 @@ document.getElementById('cvt-btn').addEventListener('click', function(){
   if(window.MAN_CONVERT) window.MAN_CONVERT();
 });
 
+window.START_APP = async function(){
+  if(localStorage.getItem('ra-light')==='1'){
+    document.body.classList.add('light');
+    var lt=document.getElementById('ltog');if(lt)lt.checked=true;
+  }
+  await IFB();await LD_KB();UKS();
+  setTimeout(AUTO_CONVERT, 3000);
+};
+
 (async function(){
   var ak=GK();
   if(!ak){
@@ -930,12 +954,7 @@ document.getElementById('cvt-btn').addEventListener('click', function(){
   }
   document.getElementById('setup').style.display='none';
   document.getElementById('app').style.display='flex';
-  if(localStorage.getItem('ra-light')==='1'){
-    document.body.classList.add('light');
-    var lt=document.getElementById('ltog');if(lt)lt.checked=true;
-  }
-  await IFB();await LD_KB();UKS();
-  setTimeout(AUTO_CONVERT, 3000);
+  await window.START_APP();
 })();
 
 window.MAN_CONVERT=async function(){
