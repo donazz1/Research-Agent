@@ -344,6 +344,10 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 
     <div class="pane" id="pane-k">
       <input class="inp" id="ksrch" placeholder="Search knowledge base..." oninput="RND_KB()" style="height:44px;margin-bottom:12px"/>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <button id="fixtitles-btn" style="height:36px;padding:0 14px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:var(--rsm);font-size:13px;font-weight:600;cursor:pointer">&#127991;&#65039; Fix Titles</button>
+        <span id="fixtitles-status" style="font-size:12px;color:var(--text2);display:none"></span>
+      </div>
       <div class="fr" id="kbtags"></div>
       <div id="kblist"></div>
     </div>
@@ -822,7 +826,8 @@ window.DO_R=async function(){
     var full=await CALL('You are a rigorous research assistant. '+modes[mode]+' Use web_search for current info. Be thorough. No filler.',BLD_C(pt,rAt),true,function(c){document.getElementById('rres').textContent=c;});
     if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
     window.LR=full;document.getElementById('rres').className='res';
-    document.getElementById('rti').value=(q||(rAt&&rAt.name)||'Research').slice(0,60);
+    document.getElementById('rstx').textContent='Naming...';
+    document.getElementById('rti').value=await GEN_CLEAN_TITLE(full,q||(rAt&&rAt.name)||'Research');
   }catch(e){document.getElementById('rw').style.display='none';document.getElementById('rerr').style.display='block';document.getElementById('rerr').textContent='Error: '+e.message;}
   document.getElementById('rst').style.display='none';btn.disabled=false;
 };
@@ -843,7 +848,8 @@ window.DO_S=async function(){
     var full=await CALL('You are an expert summarizer. '+types[type]+' Use web_search when given a URL. Complete fully. No filler.',BLD_C(pt,sAt),true,function(c){document.getElementById('sres').textContent=c;});
     if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
     window.LS=full;document.getElementById('sres').className='res';
-    document.getElementById('sti').value=(url||txt||(sAt&&sAt.name)||'Summary').replace(/^https?:\/\//,'').slice(0,60);
+    document.getElementById('sstx').textContent='Naming...';
+    document.getElementById('sti').value=await GEN_CLEAN_TITLE(full,url||txt||(sAt&&sAt.name)||'Summary');
   }catch(e){document.getElementById('sw').style.display='none';document.getElementById('serr').style.display='block';document.getElementById('serr').textContent='Error: '+e.message;}
   document.getElementById('sst').style.display='none';btn.disabled=false;
 };
@@ -857,7 +863,7 @@ window.SAVE_KB=async function(t){
   var title=(document.getElementById(ir?'rti':'sti').value.trim()||'Untitled');
   var tag=document.getElementById(ir?'rtg':'stg').value;
   var content=ir?window.LR:window.LS;if(!content)return;
-  var entry={id:Date.now(),title:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary'};
+  var entry={id:Date.now(),title:title,tag:tag,content:content,titleClean:true,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary'};
   var did=await SV_FB(entry,'knowledge_base');if(did)entry._did=did;
   KB.unshift(entry);window._KB=KB.concat(BR);U_CNT();
   var btnEl=document.getElementById(ir?'rsb':'ssb'),orig=btnEl.textContent;
@@ -898,6 +904,21 @@ function CLEAN_TITLE(raw){
   if(s.length>=3) r=s;
   if(r.length>60) r=r.slice(0,60).replace(/\s+\S*$/,'');
   return r||String(raw).slice(0,60);
+}
+// Derives a short, scannable title (subject name, not raw prompt/URL) from
+// the actual generated content. Used for Research/Summarize saves and for
+// retroactively fixing older KB entries whose titles are just truncated
+// prompt text or URLs.
+async function GEN_CLEAN_TITLE(content,fallback){
+  try{
+    var sys='You write extremely short titles. Output ONLY the title text itself — no quotes, no trailing punctuation, no preamble, no explanation. Maximum 6 words.';
+    var usr='Give a short title (max 6 words) naming the specific company, person, ticker, product, or topic this content is primarily about. If it is investment/financial content and a ticker is present, include the ticker. Content:\n\n'+String(content||'').slice(0,3000);
+    var raw=await CALL(sys,usr,false,null);
+    var t=CLEAN_TITLE((raw||'').replace(/^["'`]+|["'`]+$/g,''));
+    return t||CLEAN_TITLE(fallback||'')||'Untitled';
+  }catch(e){
+    return CLEAN_TITLE(fallback||'')||'Untitled';
+  }
 }
 // Guarantees the brief JSON always matches the shape MAKE_PDF expects, no
 // matter what the model returned — this is what makes PDF output consistent
@@ -1159,6 +1180,40 @@ document.getElementById('regen-btn').addEventListener('click', async function(){
 document.getElementById('cvt-btn').addEventListener('click', function(){
   if(window.MAN_CONVERT) window.MAN_CONVERT();
 });
+document.getElementById('fixtitles-btn').addEventListener('click', function(){
+  FIX_KB_TITLES();
+});
+
+// One-time (repeatable, but skips already-clean entries) migration: replaces
+// raw-prompt / raw-URL KB titles with a short subject name derived from the
+// actual saved content, so the list is scannable instead of a wall of
+// truncated prompts.
+async function FIX_KB_TITLES(){
+  var btn=document.getElementById('fixtitles-btn'),stat=document.getElementById('fixtitles-status');
+  var toFix=KB.filter(function(e){return !e.titleClean&&e.content&&e.content.length>20;});
+  if(!toFix.length){
+    stat.style.display='inline';stat.textContent='All titles already look clean.';
+    setTimeout(function(){stat.style.display='none';},3000);
+    return;
+  }
+  btn.disabled=true;stat.style.display='inline';
+  var done=0;
+  for(var i=0;i<toFix.length;i++){
+    var e=toFix[i];
+    stat.textContent='Renaming '+(i+1)+'/'+toFix.length+'...';
+    try{
+      var newTitle=await GEN_CLEAN_TITLE(e.content,e.title);
+      e.title=newTitle;e.titleClean=true;
+      if(e._did) await UP_FB(e._did,'knowledge_base',{title:newTitle,titleClean:true});
+      done++;
+    }catch(err){console.error('Title fix error:',err);}
+    RND_KB();
+    await new Promise(function(r){setTimeout(r,800);});
+  }
+  btn.disabled=false;
+  stat.textContent='Done — renamed '+done+' entr'+(done===1?'y':'ies')+'.';
+  setTimeout(function(){stat.style.display='none';},4000);
+}
 
 window.START_APP = async function(){
   if(localStorage.getItem('ra-light')==='1'){
@@ -1194,8 +1249,14 @@ window.MAN_CONVERT=async function(){
 
 async function AUTO_CONVERT(manual){
   if(!DB)return;
-  var existing=BR.map(function(b){return b.title;});
-  var toConvert=KB.filter(function(e){return e.content&&e.content.length>100&&!existing.includes(e.title);});
+  // Dedup by the *source KB entry's stable id*, not by brief title text —
+  // title text comes from the model and can vary slightly run to run, which
+  // let repeated "Convert KB to Briefs" clicks silently create duplicates.
+  var existingSourceIds=BR.map(function(b){return b.sourceId;}).filter(Boolean);
+  var existingTitles=BR.map(function(b){return b.title;}); // fallback for briefs made before this fix
+  var toConvert=KB.filter(function(e){
+    return e.content&&e.content.length>100&&existingSourceIds.indexOf(e.id)===-1&&existingTitles.indexOf(e.title)===-1;
+  });
   if(!toConvert.length){
     if(manual){var s0=document.getElementById('cvt-status');if(s0){s0.style.display='block';s0.textContent='No new entries to convert.';}}
     return;
@@ -1208,7 +1269,7 @@ async function AUTO_CONVERT(manual){
     var type=CLASSIFY_BRIEF_TYPE(e.content+' '+e.title);
     try{
       var briefData=await GEN_BRIEF_JSON(type,e.content,e.title);
-      var entry={id:Date.now()+i,title:briefData.title,briefType:type,
+      var entry={id:Date.now()+i,title:briefData.title,briefType:type,sourceId:e.id,
         content:JSON.stringify(briefData),briefJson:JSON.stringify(briefData),
         date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
       var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
