@@ -233,7 +233,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <div class="awrap">
             <button class="abtn" onclick="AM('rex')">&#128228; Export &#9660;</button>
             <div class="amenu" id="rex">
-              <button class="aitem" onclick="X_PDF(function(){return LR;},function(){return R_TTL();});CM()">&#128196; Save as PDF</button>
+              <button class="aitem" onclick="DL_PDF_LIVE(function(){return LR;},function(){return R_TTL();});CM()">&#128196; Save as PDF</button>
               <button class="aitem" onclick="X_HTML(function(){return LR;},function(){return R_TTL();});CM()">&#127760; Save as HTML</button>
               <button class="aitem" onclick="X_COPY(function(){return LR;});CM()">&#128203; Copy text</button>
               <button class="aitem" onclick="X_SHARE(function(){return LR;},function(){return R_TTL();});CM()">&#128228; Copy and Share</button>
@@ -321,7 +321,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <div class="awrap">
             <button class="abtn" onclick="AM('sex')">&#128228; Export &#9660;</button>
             <div class="amenu" id="sex">
-              <button class="aitem" onclick="X_PDF(function(){return LS;},function(){return S_TTL();});CM()">&#128196; Save as PDF</button>
+              <button class="aitem" onclick="DL_PDF_LIVE(function(){return LS;},function(){return S_TTL();});CM()">&#128196; Save as PDF</button>
               <button class="aitem" onclick="X_HTML(function(){return LS;},function(){return S_TTL();});CM()">&#127760; Save as HTML</button>
               <button class="aitem" onclick="X_COPY(function(){return LS;});CM()">&#128203; Copy text</button>
               <button class="aitem" onclick="X_SHARE(function(){return LS;},function(){return S_TTL();});CM()">&#128228; Copy and Share</button>
@@ -351,6 +351,13 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
     <div class="pane" id="pane-b">
       <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Generated briefs organized by type. Use the &#10024; Brief button on any research result.</p>
       <div style="display:flex;gap:8px;margin-bottom:16px"><button id="cvt-btn" style="flex:1;height:44px;background:var(--accent);color:#fff;border:none;border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer">&#9889; Convert KB to Briefs</button><button id="regen-btn" style="flex:1;height:44px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer">&#128260; Regenerate All</button></div>
+      <select class="inp" id="brief-filter" onchange="RND_BR()" style="height:40px;margin-bottom:16px">
+        <option value="all">All categories</option>
+        <option value="marketing">Marketing Briefs</option>
+        <option value="financial">Financial Briefs</option>
+        <option value="scientific">Scientific Briefs</option>
+        <option value="paper">Research Papers</option>
+      </select>
       <div id="cvt-status" style="font-size:13px;color:var(--text2);margin-bottom:12px;display:none"></div>
       <div id="brlist"></div>
     </div>
@@ -361,6 +368,13 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <div class="srow" style="padding-top:0;padding-bottom:0">
           <div><div class="slbl">Light mode</div><div class="ssub">Toggle dark/light</div></div>
           <label class="tog"><input type="checkbox" id="ltog" onchange="SET_LIGHT(this.checked)"/><span class="togl"></span></label>
+        </div>
+      </div>
+      <div class="lbl">Briefs</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0;padding-bottom:0">
+          <div><div class="slbl">Auto-convert on load</div><div class="ssub">Turn new KB entries into briefs automatically when the app opens</div></div>
+          <label class="tog"><input type="checkbox" id="actog" onchange="SET_AUTOCONV(this.checked)"/><span class="togl"></span></label>
         </div>
       </div>
       <div class="lbl">API Keys</div>
@@ -635,7 +649,7 @@ window.MAKE_PDF = function(briefJson, fallbackTitle, type) {
 
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import{getFirestore,collection,getDocs,addDoc,deleteDoc,updateDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 var DB=null,KB=[],BR=[],ATag=null;
 window.LR='';window.LS='';
@@ -676,6 +690,7 @@ async function LD_KB(){
 }
 async function SV_FB(entry,col){if(!DB)return null;try{var r=await addDoc(collection(DB,col),entry);return r.id;}catch(e){return null;}}
 async function DL_FB(did,col){if(!DB||!did)return;try{await deleteDoc(doc(DB,col,did));}catch(e){}}
+async function UP_FB(did,col,fields){if(!DB||!did)return;try{await updateDoc(doc(DB,col,did),fields);}catch(e){}}
 
 function U_CNT(){
   var n=KB.length+BR.length,s=n+' saved entr'+(n===1?'y':'ies');
@@ -692,6 +707,7 @@ window.TAB=function(t){
   if(t==='k')RND_KB();if(t==='b')RND_BR();
 };
 window.SET_LIGHT=function(on){document.body.classList.toggle('light',on);localStorage.setItem('ra-light',on?'1':'');};
+window.SET_AUTOCONV=function(on){localStorage.setItem('ra-autoconv',on?'1':'');};
 window.CHG_KEY=function(){var k=prompt('New Anthropic API key:');if(k&&k.trim()){localStorage.setItem('ra-k',k.trim());UKS();}};
 window.CHG_FB=function(){var p=prompt('Firebase Project ID:','research-agent-83fe8');if(p){localStorage.setItem('ra-fp',p.trim());location.reload();}};
 window.CLR_R=function(){
@@ -848,62 +864,137 @@ window.SAVE_KB=async function(t){
   btnEl.textContent='Saved!';setTimeout(function(){btnEl.textContent=orig;},2000);
 };
 
-window.BRIEF=async function(tab,type){
-  // Clean title from prompt text
-  var rawTitle2=tab==='r'?window.R_TTL():window.S_TTL();
-  var cleanTitle=rawTitle2
-    .replace(/^(need a|can you|please|give me|what is|tell me about|create a?|make a?|write a?|generate a?|do a?n?|provide a?|summarize|summary on|comprehensive|full|brief on|research on|what can you tell me about|i need|find out about|look up)/gi,'')
+// ── UNIFIED BRIEF SCHEMA + GENERATION PIPELINE ──────────────────────────
+// Single source of truth for schemas/prompts/cleaning/validation, shared by
+// the manual Brief button, batch auto-convert, and on-demand PDF generation.
+// This replaces the old duplicated (and drifting) schema copies.
+var BRIEF_SCHEMAS = {
+  marketing:'{"title":"Company name only","subtitle":"Type · location","tagline":"Key positioning tagline","type":"marketing","kpi":[{"value":"$X.XXB","label":"market size\n(year)"},{"value":"XX%","label":"CAGR or growth"},{"value":"key stat","label":"positioning metric"},{"value":"Xkm+","label":"catchment/reach"}],"sections":[{"num":1,"title":"Business & Market Overview","content":[{"type":"table","headers":["Item","Detail"],"widths":[0.28,0.72],"rows":[["Location","..."],["Concept","..."],["Positioning","..."],["Primary Market","..."],["Industry Growth","..."],["Nearest Competitor","..."]]},{"type":"text","text":"Brand positioning paragraph..."}]},{"num":2,"title":"Target Audiences","content":[{"type":"table","headers":["Segment","Profile","Key Hook"],"widths":[0.22,0.33,0.45],"rows":[["seg","profile","hook"]]}]},{"num":3,"title":"Marketing Strategy","content":[{"type":"table","headers":["Pillar","Strategy","Key Actions"],"widths":[0.22,0.28,0.50],"rows":[["pillar","strategy","actions"]]}]},{"num":4,"title":"Events & Programming","content":[{"type":"table","headers":["Event","When","Format & Revenue Model"],"widths":[0.25,0.15,0.60],"rows":[["event","when","format"]]}]},{"num":5,"title":"Budget & Loyalty Program","content":[{"type":"table","headers":["Tier","Monthly Fee","Benefits"],"widths":[0.20,0.15,0.65],"rows":[["tier","fee","benefits"]]},{"type":"table","headers":["Channel","Estimated Monthly Cost"],"widths":[0.70,0.30],"rows":[["channel","cost"]]},{"type":"text","text":"Budget commentary..."}]},{"num":6,"title":"90-Day Roadmap","content":[{"type":"table","headers":["Month","Priority Actions"],"widths":[0.18,0.82],"rows":[["Month 1\nFoundation","actions"],["Month 2\nActivation","actions"],["Month 3\nScale & Measure","actions"]]}]},{"num":7,"title":"Key Performance Indicators","content":[{"type":"table","headers":["KPI","6-Month Target","How to Measure"],"widths":[0.35,0.28,0.37],"rows":[["kpi","target","measure"]]}]},{"num":8,"title":"Bottom Line Summary","content":[{"type":"table","headers":["Factor","Reading","Opportunity"],"widths":[0.22,0.25,0.53],"rows":[["factor","reading","opportunity"]]},{"type":"text","text":"Summary paragraph 1"},{"type":"text","text":"Summary paragraph 2"},{"type":"text","text":"Closing one-liner"}]}]}',
+  financial:'{"title":"Company Name (TICKER)","subtitle":"Investment Brief · Exchange: TICKER","tagline":"Complete Investment Intelligence Brief","type":"financial","kpi":[{"value":"$XXX","label":"Current Price\n(live)"},{"value":"$XXX","label":"52-Week High"},{"value":"$XB","label":"Market Cap"},{"value":"Jul XX","label":"Next Earnings"}],"sections":[{"num":1,"title":"Investment Snapshot","content":[{"type":"table","headers":["Metric","Value","Signal"],"widths":[0.30,0.35,0.35],"rows":[["Last Close","$xxx","..."],["52W Range","$xxx - $xxx","..."],["Market Cap","$xB","..."],["P/E Ratio","xx","..."],["Volume","xxM","..."]]}]},{"num":2,"title":"Company Overview","content":[{"type":"table","headers":["Item","Detail"],"widths":[0.28,0.72],"rows":[["Business","..."],["Products","..."],["Revenue","..."],["Employees","..."]]}]},{"num":3,"title":"Recent Financials","content":[{"type":"table","headers":["Line Item","Value","YoY"],"widths":[0.40,0.30,0.30],"rows":[["Revenue","$xB","xx%"],["Gross Margin","xx%","..."],["Net Income","$xB","xx%"]]}]},{"num":4,"title":"Key Catalysts & Timeline","content":[{"type":"table","headers":["Milestone","Date","Detail"],"widths":[0.30,0.20,0.50],"rows":[["catalyst","date","detail"]]}]},{"num":5,"title":"Analyst Consensus & Targets","content":[{"type":"table","headers":["Firm","Rating","Target","Upside"],"widths":[0.30,0.20,0.25,0.25],"rows":[["firm","rating","$xxx","xx%"]]}]},{"num":6,"title":"Technical Analysis — Key Levels","content":[{"type":"table","headers":["Level","Price","Significance"],"widths":[0.30,0.25,0.45],"rows":[["Support","$xxx","..."],["Resistance","$xxx","..."],["50-Day MA","$xxx","..."],["200-Day MA","$xxx","..."]]}]},{"num":7,"title":"Entry, Exit & Positioning","content":[{"type":"table","headers":["Parameter","Level","Rationale"],"widths":[0.28,0.22,0.50],"rows":[["Entry Zone","$xxx","..."],["Target 1","$xxx","..."],["Stop Loss","$xxx","..."]]}]},{"num":8,"title":"Key Risks","content":[{"type":"bullets","items":["Risk 1","Risk 2","Risk 3","Risk 4","Risk 5"]}]},{"num":9,"title":"Bottom Line Summary","content":[{"type":"table","headers":["Factor","Reading","Signal"],"widths":[0.30,0.35,0.35],"rows":[["factor","reading","signal"]]},{"type":"text","text":"Investment thesis summary..."},{"type":"text","text":"\u26a0\ufe0f For informational purposes only. Not financial advice. Always conduct your own due diligence."}]}]}',
+  scientific:'{"title":"Study/Research Title","subtitle":"Scientific Brief","tagline":"Key finding in one line","type":"scientific","kpi":[{"value":"n=X","label":"sample size"},{"value":"p<0.xx","label":"significance"},{"value":"XX%","label":"key metric"},{"value":"20XX","label":"publication year"}],"sections":[{"num":1,"title":"Abstract","content":[{"type":"text","text":"150-word summary of the research, key findings, and implications..."}]},{"num":2,"title":"Background & Context","content":[{"type":"text","text":"What problem this addresses and why it matters..."}]},{"num":3,"title":"Methodology","content":[{"type":"table","headers":["Element","Detail"],"widths":[0.30,0.70],"rows":[["Study Type","..."],["Sample","..."],["Duration","..."],["Methods","..."]]}]},{"num":4,"title":"Key Findings","content":[{"type":"bullets","items":["Finding 1","Finding 2","Finding 3","Finding 4"]}]},{"num":5,"title":"Data Quality & Limitations","content":[{"type":"table","headers":["Factor","Assessment"],"widths":[0.35,0.65],"rows":[["Confidence Level","..."],["Sample Size","..."],["Key Limitations","..."]]}]},{"num":6,"title":"Implications","content":[{"type":"text","text":"What these findings mean for the field..."}]},{"num":7,"title":"Further Research","content":[{"type":"bullets","items":["Research question 1","Research question 2","Research question 3"]}]},{"num":8,"title":"Citations","content":[{"type":"text","text":"Key sources and references..."}]}]}',
+  paper:'{"title":"Research Title","subtitle":"Research Paper","tagline":"Executive summary in one line","type":"paper","kpi":[{"value":"XX","label":"key stat 1"},{"value":"XX%","label":"key stat 2"},{"value":"$XB","label":"key stat 3"},{"value":"20XX","label":"year"}],"sections":[{"num":1,"title":"Executive Summary","content":[{"type":"text","text":"200-word overview for busy decision-makers..."}]},{"num":2,"title":"Introduction","content":[{"type":"text","text":"Background, problem statement, scope of analysis..."}]},{"num":3,"title":"Background","content":[{"type":"text","text":"Historical context, prior work, relevant landscape..."}]},{"num":4,"title":"Analysis","content":[{"type":"table","headers":["Element","Finding"],"widths":[0.35,0.65],"rows":[["element","finding"]]},{"type":"text","text":"Deeper analysis..."}]},{"num":5,"title":"Key Findings","content":[{"type":"bullets","items":["Finding 1","Finding 2","Finding 3","Finding 4","Finding 5"]}]},{"num":6,"title":"Discussion","content":[{"type":"text","text":"Interpretation, competing perspectives, implications..."}]},{"num":7,"title":"Conclusions","content":[{"type":"text","text":"What we can conclude with confidence..."}]},{"num":8,"title":"Further Reading","content":[{"type":"text","text":"Recommended resources and next steps..."}]}]}'
+};
+
+var BRIEF_SYS_PROMPT='You are an expert brief writer. Output ONLY valid JSON (no markdown code blocks, no extra text, no explanation, no preamble). The JSON must exactly match the provided schema structure — same keys, same nesting, same content types. Fill ALL fields with real, specific content drawn from the research. Never leave placeholder text like "..." or "TBD" — if a field truly is not covered by the research, either write a brief factual statement based on what IS known or omit that row rather than inventing data. Escape all quotes and special characters properly for valid JSON. Use web_search for current financial data when needed. The "title" field must be a clean, short subject name only (a company, ticker, or topic) — never restate the user\'s question, instruction, or filler words like "summarize" or "brief on".';
+
+function CLEAN_JSON_TEXT(raw){
+  var t=(raw||'').trim();
+  t=t.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+  var s=t.indexOf('{'),e=t.lastIndexOf('}');
+  if(s>=0&&e>s) t=t.slice(s,e+1);
+  return t;
+}
+function TRY_PARSE_JSON(t){
+  if(!t) return null;
+  try{ return JSON.parse(t); }catch(e1){}
+  try{ return JSON.parse(t.replace(/,\s*([}\]])/g,'$1')); }catch(e2){}
+  return null;
+}
+function CLEAN_TITLE(raw){
+  if(!raw) return '';
+  var r=String(raw).replace(/^(need a|can you|please|give me|what is|tell me about|create a?|make a?|write a?|generate a?|do a?n?|provide a?|summarize|summary on|comprehensive|full|brief on|research on|what can you tell me about|i need|find out about|look up)/gi,'')
     .replace(/^[^a-zA-Z0-9(]*/,'').replace(/\s+/g,' ').trim();
-  var shortTitle2=cleanTitle.split(/\b(is|are|was|were|has|have|and the|,)/i)[0].trim();
-  if(shortTitle2.length>=3)cleanTitle=shortTitle2;
-  if(cleanTitle.length>60)cleanTitle=cleanTitle.slice(0,60).replace(/\s+\S*$/,'');
-  if(!cleanTitle)cleanTitle=rawTitle2.slice(0,60);
+  var s=r.split(/\b(is|are|was|were|has|have|and the|,)/i)[0].trim();
+  if(s.length>=3) r=s;
+  if(r.length>60) r=r.slice(0,60).replace(/\s+\S*$/,'');
+  return r||String(raw).slice(0,60);
+}
+// Guarantees the brief JSON always matches the shape MAKE_PDF expects, no
+// matter what the model returned — this is what makes PDF output consistent
+// every single time instead of hardcoding per-brief content.
+function NORMALIZE_BRIEF(parsed,type,fallbackTitle){
+  var data=(parsed&&typeof parsed==='object')?parsed:{};
+  data.type=type;
+  var cleanFallback=CLEAN_TITLE(fallbackTitle||'');
+  if(!data.title||String(data.title).trim().length<2||/^(need a|can you|please|summarize|research on|brief on)/i.test(data.title)){
+    data.title=cleanFallback||'Untitled Brief';
+  }
+  data.title=String(data.title).trim().slice(0,80);
+  if(data.subtitle) data.subtitle=String(data.subtitle).trim().slice(0,100);
+  if(data.tagline) data.tagline=String(data.tagline).trim().slice(0,140);
+  data.kpi=Array.isArray(data.kpi)?data.kpi.filter(function(k){return k&&(k.value||k.label);})
+    .map(function(k){return {value:String(k.value||'-').slice(0,20),label:String(k.label||'').slice(0,40)};}).slice(0,4):[];
+  data.sections=Array.isArray(data.sections)?data.sections:[];
+  data.sections=data.sections.filter(function(s){return s&&(s.title||s.content);}).map(function(s,i){
+    s.num=s.num||(i+1);
+    s.title=String(s.title||'Section '+(i+1)).slice(0,60);
+    s.content=Array.isArray(s.content)?s.content:[];
+    s.content=s.content.map(function(item){
+      if(!item||!item.type) return null;
+      if(item.type==='text'){item.text=String(item.text||'').trim();return item.text?item:null;}
+      if(item.type==='bullets'){item.items=(Array.isArray(item.items)?item.items:[]).map(String).filter(Boolean);return item.items.length?item:null;}
+      if(item.type==='table'){
+        item.headers=Array.isArray(item.headers)?item.headers.map(String):[];
+        item.rows=Array.isArray(item.rows)?item.rows.filter(function(r){return Array.isArray(r)&&r.length;}):[];
+        if(!item.rows.length) return null;
+        var nc=item.headers.length||item.rows[0].length;
+        if(!Array.isArray(item.widths)||item.widths.length<nc) item.widths=null;
+        return item;
+      }
+      return null;
+    }).filter(Boolean);
+    return s;
+  }).filter(function(s){return s.content.length>0;});
+  if(!data.sections.length){
+    data.sections=[{num:1,title:'Summary',content:[{type:'text',text:'No structured content was returned for this brief. Please regenerate.'}]}];
+  }
+  return data;
+}
+// Single generation pipeline: call Claude, clean the response, validate it,
+// and always resolve to a render-safe object. Used by the Brief button,
+// batch auto-convert, and on-demand PDF generation alike.
+async function GEN_BRIEF_JSON(type,sourceText,fallbackTitle){
+  var schema=BRIEF_SCHEMAS[type]||BRIEF_SCHEMAS.paper;
+  var userPrompt='Transform this research into a structured brief as JSON matching this exact schema:\n\n'+schema+
+    '\n\nIMPORTANT: Replace ALL placeholder values with real content from the research below. Output ONLY valid JSON.\n\nResearch:\n'+sourceText;
+  var raw=await CALL(BRIEF_SYS_PROMPT,userPrompt,false,null);
+  var parsed=TRY_PARSE_JSON(CLEAN_JSON_TEXT(raw));
+  return NORMALIZE_BRIEF(parsed,type,fallbackTitle);
+}
+// Shared keyword classifier — picks the best-fit brief type for arbitrary
+// research/summary/KB text so every export can get proper PDF styling
+// without the user having to hand-pick a category.
+function CLASSIFY_BRIEF_TYPE(text){
+  var c=text||'';
+  var fScore=0,mScore=0,sScore=0;
+  if(/\bNYSE:|TSXV:|NASDAQ:|NYSE :|TSX:/i.test(c))fScore+=10;
+  if(/\bstock price|share price|market cap|EPS|P\/E ratio|dividend|earnings per share/i.test(c))fScore+=5;
+  if(/\binvestment brief|analyst target|buy rating|strong buy|price target/i.test(c))fScore+=5;
+  if(/\$[0-9]+\.[0-9]+|\bCAD|\bUSD/.test(c)&&!/marketing budget|monthly cost|entry fee/i.test(c))fScore+=2;
+  if(/\bmarketing brief|marketing strategy|brand|target audience|customer segment|go-to-market/i.test(c))mScore+=10;
+  if(/\bcafé|cafe|restaurant|tavern|gaming|retail|hospitality|loyalty program|event marketing/i.test(c))mScore+=8;
+  if(/\bsocial media|instagram|facebook|tiktok|seo|content calendar|paid ads/i.test(c))mScore+=5;
+  if(/\bvalue proposition|use cases|who uses it|bottom line/i.test(c)&&!/investment/i.test(c))mScore+=3;
+  if(/\bhypothesis|methodology|experiment|dataset|abstract|p-value|correlation|clinical/i.test(c))sScore+=10;
+  if(/\bpeer.reviewed|journal|findings|statistical|randomized|control group/i.test(c))sScore+=5;
+  var maxScore=Math.max(fScore,mScore,sScore);
+  return maxScore===0?'paper':fScore===maxScore?'financial':mScore===maxScore?'marketing':'scientific';
+}
+
+window.BRIEF=async function(tab,type){
+  var rawTitle=tab==='r'?window.R_TTL():window.S_TTL();
   var text=tab==='r'?window.LR:window.LS;
   if(!text){alert('Generate a research result first.');return;}
-  var rawTitle=tab==='r'?window.R_TTL():window.S_TTL();
   var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
   ov.classList.add('on');ot.textContent='Generating '+{marketing:'Marketing Brief',financial:'Financial Brief',scientific:'Scientific Brief',paper:'Research Paper'}[type]+'...';
-
-  // JSON schema templates per type
-  var schemas={
-    marketing:'{"title":"Company name only","subtitle":"Type · location","tagline":"Key positioning tagline","type":"marketing","kpi":[{"value":"$X.XXB","label":"market size\n(year)"},{"value":"XX%","label":"CAGR or growth"},{"value":"key stat","label":"positioning metric"},{"value":"Xkm+","label":"catchment/reach"}],"sections":[{"num":1,"title":"Business & Market Overview","content":[{"type":"table","headers":["Item","Detail"],"widths":[0.28,0.72],"rows":[["Location","..."],["Concept","..."],["Positioning","..."],["Primary Market","..."],["Industry Growth","..."],["Nearest Competitor","..."]]},{"type":"text","text":"Brand positioning paragraph..."}]},{"num":2,"title":"Target Audiences","content":[{"type":"table","headers":["Segment","Profile","Key Hook"],"widths":[0.22,0.33,0.45],"rows":[["seg","profile","hook"]]}]},{"num":3,"title":"Marketing Strategy","content":[{"type":"table","headers":["Pillar","Strategy","Key Actions"],"widths":[0.22,0.28,0.50],"rows":[["pillar","strategy","actions"]]}]},{"num":4,"title":"Events & Programming","content":[{"type":"table","headers":["Event","When","Format & Revenue Model"],"widths":[0.25,0.15,0.60],"rows":[["event","when","format"]]}]},{"num":5,"title":"Budget & Loyalty Program","content":[{"type":"table","headers":["Tier","Monthly Fee","Benefits"],"widths":[0.20,0.15,0.65],"rows":[["tier","fee","benefits"]]},{"type":"table","headers":["Channel","Estimated Monthly Cost"],"widths":[0.70,0.30],"rows":[["channel","cost"]]},{"type":"text","text":"Budget commentary..."}]},{"num":6,"title":"90-Day Roadmap","content":[{"type":"table","headers":["Month","Priority Actions"],"widths":[0.18,0.82],"rows":[["Month 1\nFoundation","actions"],["Month 2\nActivation","actions"],["Month 3\nScale & Measure","actions"]]}]},{"num":7,"title":"Key Performance Indicators","content":[{"type":"table","headers":["KPI","6-Month Target","How to Measure"],"widths":[0.35,0.28,0.37],"rows":[["kpi","target","measure"]]}]},{"num":8,"title":"Bottom Line Summary","content":[{"type":"table","headers":["Factor","Reading","Opportunity"],"widths":[0.22,0.25,0.53],"rows":[["factor","reading","opportunity"]]},{"type":"text","text":"Summary paragraph 1"},{"type":"text","text":"Summary paragraph 2"},{"type":"text","text":"Closing one-liner"}]}]}',
-    financial:'{"title":"Company Name (TICKER)","subtitle":"Investment Brief · Exchange: TICKER","tagline":"Complete Investment Intelligence Brief","type":"financial","kpi":[{"value":"$XXX","label":"Current Price\n(live)"},{"value":"$XXX","label":"52-Week High"},{"value":"$XB","label":"Market Cap"},{"value":"Jul XX","label":"Next Earnings"}],"sections":[{"num":1,"title":"Investment Snapshot","content":[{"type":"table","headers":["Metric","Value","Signal"],"widths":[0.30,0.35,0.35],"rows":[["Last Close","$xxx","..."],["52W Range","$xxx - $xxx","..."],["Market Cap","$xB","..."],["P/E Ratio","xx","..."],["Volume","xxM","..."]]}]},{"num":2,"title":"Company Overview","content":[{"type":"table","headers":["Item","Detail"],"widths":[0.28,0.72],"rows":[["Business","..."],["Products","..."],["Revenue","..."],["Employees","..."]]}]},{"num":3,"title":"Recent Financials","content":[{"type":"table","headers":["Line Item","Value","YoY"],"widths":[0.40,0.30,0.30],"rows":[["Revenue","$xB","xx%"],["Gross Margin","xx%","..."],["Net Income","$xB","xx%"]]}]},{"num":4,"title":"Key Catalysts & Timeline","content":[{"type":"table","headers":["Milestone","Date","Detail"],"widths":[0.30,0.20,0.50],"rows":[["catalyst","date","detail"]]}]},{"num":5,"title":"Analyst Consensus & Targets","content":[{"type":"table","headers":["Firm","Rating","Target","Upside"],"widths":[0.30,0.20,0.25,0.25],"rows":[["firm","rating","$xxx","xx%"]]}]},{"num":6,"title":"Technical Analysis — Key Levels","content":[{"type":"table","headers":["Level","Price","Significance"],"widths":[0.30,0.25,0.45],"rows":[["Support","$xxx","..."],["Resistance","$xxx","..."],["50-Day MA","$xxx","..."],["200-Day MA","$xxx","..."]]}]},{"num":7,"title":"Entry, Exit & Positioning","content":[{"type":"table","headers":["Parameter","Level","Rationale"],"widths":[0.28,0.22,0.50],"rows":[["Entry Zone","$xxx","..."],["Target 1","$xxx","..."],["Stop Loss","$xxx","..."]]}]},{"num":8,"title":"Key Risks","content":[{"type":"bullets","items":["Risk 1","Risk 2","Risk 3","Risk 4","Risk 5"]}]},{"num":9,"title":"Bottom Line Summary","content":[{"type":"table","headers":["Factor","Reading","Signal"],"widths":[0.30,0.35,0.35],"rows":[["factor","reading","signal"]]},{"type":"text","text":"Investment thesis summary..."},{"type":"text","text":"\u26a0\ufe0f For informational purposes only. Not financial advice. Always conduct your own due diligence."}]}]}',
-    scientific:'{"title":"Study/Research Title","subtitle":"Scientific Brief","tagline":"Key finding in one line","type":"scientific","kpi":[{"value":"n=X","label":"sample size"},{"value":"p<0.xx","label":"significance"},{"value":"XX%","label":"key metric"},{"value":"20XX","label":"publication year"}],"sections":[{"num":1,"title":"Abstract","content":[{"type":"text","text":"150-word summary of the research, key findings, and implications..."}]},{"num":2,"title":"Background & Context","content":[{"type":"text","text":"What problem this addresses and why it matters..."}]},{"num":3,"title":"Methodology","content":[{"type":"table","headers":["Element","Detail"],"widths":[0.30,0.70],"rows":[["Study Type","..."],["Sample","..."],["Duration","..."],["Methods","..."]]}]},{"num":4,"title":"Key Findings","content":[{"type":"bullets","items":["Finding 1","Finding 2","Finding 3","Finding 4"]}]},{"num":5,"title":"Data Quality & Limitations","content":[{"type":"table","headers":["Factor","Assessment"],"widths":[0.35,0.65],"rows":[["Confidence Level","..."],["Sample Size","..."],["Key Limitations","..."]]}]},{"num":6,"title":"Implications","content":[{"type":"text","text":"What these findings mean for the field..."}]},{"num":7,"title":"Further Research","content":[{"type":"bullets","items":["Research question 1","Research question 2","Research question 3"]}]},{"num":8,"title":"Citations","content":[{"type":"text","text":"Key sources and references..."}]}]}',
-    paper:'{"title":"Research Title","subtitle":"Research Paper","tagline":"Executive summary in one line","type":"paper","kpi":[{"value":"XX","label":"key stat 1"},{"value":"XX%","label":"key stat 2"},{"value":"$XB","label":"key stat 3"},{"value":"20XX","label":"year"}],"sections":[{"num":1,"title":"Executive Summary","content":[{"type":"text","text":"200-word overview for busy decision-makers..."}]},{"num":2,"title":"Introduction","content":[{"type":"text","text":"Background, problem statement, scope of analysis..."}]},{"num":3,"title":"Background","content":[{"type":"text","text":"Historical context, prior work, relevant landscape..."}]},{"num":4,"title":"Analysis","content":[{"type":"table","headers":["Element","Finding"],"widths":[0.35,0.65],"rows":[["element","finding"]]},{"type":"text","text":"Deeper analysis..."}]},{"num":5,"title":"Key Findings","content":[{"type":"bullets","items":["Finding 1","Finding 2","Finding 3","Finding 4","Finding 5"]}]},{"num":6,"title":"Discussion","content":[{"type":"text","text":"Interpretation, competing perspectives, implications..."}]},{"num":7,"title":"Conclusions","content":[{"type":"text","text":"What we can conclude with confidence..."}]},{"num":8,"title":"Further Reading","content":[{"type":"text","text":"Recommended resources and next steps..."}]}]}'
-  };
-
-  var sysPrompt='You are an expert brief writer. Output ONLY valid JSON (no markdown code blocks, no extra text, no explanation). The JSON must exactly match the provided schema structure. Fill ALL fields with real content from the research. Do not leave placeholder values. Escape all quotes and special characters properly for valid JSON. Use web_search for current financial data when needed.';
-
-  var userPrompt='Transform this research into a structured brief as JSON matching this exact schema:\n\n'+schemas[type]+'\n\nIMPORTANT: Replace ALL placeholder values with real content from the research below. Output ONLY valid JSON.\n\nResearch:\n'+text;
-
   try{
-    var raw=await CALL(sysPrompt,userPrompt,false,null);
+    var briefData=await GEN_BRIEF_JSON(type,text,rawTitle);
     ov.classList.remove('on');
-    // Clean JSON response - strip any markdown code blocks
-    var cleaned=raw.trim().replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
-    // Find the JSON object
-    var jsonStart=cleaned.indexOf('{');
-    var jsonEnd=cleaned.lastIndexOf('}');
-    if(jsonStart>=0&&jsonEnd>jsonStart) cleaned=cleaned.slice(jsonStart,jsonEnd+1);
-    
-    var briefData=JSON.parse(cleaned);
-    briefData.type=type;
-    if(!briefData.title||briefData.title.length<2) briefData.title=cleanTitle;
-    
+
     // Show HTML preview
     OPN_BW(briefData,type);
-    
+
     // Save to Firebase with JSON
-    var entry={id:Date.now(),title:briefData.title||cleanTitle,briefType:type,
+    var entry={id:Date.now(),title:briefData.title,briefType:type,
       content:JSON.stringify(briefData),briefJson:JSON.stringify(briefData),
       date:new Date().toLocaleDateString('en-CA'),type:'brief'};
     var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
     BR.unshift(entry);window._KB=KB.concat(BR);U_CNT();
-    
+
   }catch(e){
     ov.classList.remove('on');
     console.error('Brief error:',e);
-    alert('Error generating brief: '+e.message+'\n\nTry again — Claude occasionally returns malformed JSON.');
+    alert('Error generating brief: '+e.message+'\n\nTry again — occasionally the model call itself fails (e.g. network).');
   }
 };
 
@@ -966,10 +1057,10 @@ function KBC(e,delFn){
     '<div class="kbca">'+
       '<button class="kbab" id="kbrd-'+id+'" onclick="KB_SPK('+id+')">&#9654; Read</button>'+
       (e.briefType?'<button class="kbab" style="border-color:var(--accent);color:var(--accent)" onclick="VIEW_BRIEF('+id+')">&#128196; View</button>':'')+
-      (e.briefJson?'<button class="kbab" style="border-color:var(--success);color:var(--success)" onclick="DL_PDF('+id+')">&#11015; PDF</button>':'')+
+      ((e.briefJson||(e.content&&e.content.length>=50))?'<button class="kbab" style="border-color:var(--success);color:var(--success)" onclick="DL_PDF('+id+')">&#11015; PDF</button>':'')+
       '<div class="awrap"><button class="kbab" onclick="AM(\'kbex-'+id+'\')">Export &#9660;</button>'+
         '<div class="amenu" id="kbex-'+id+'">'+
-          '<button class="aitem" onclick="X_PDF(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128196; PDF</button>'+
+          '<button class="aitem" onclick="DL_PDF('+id+');CM()">&#128196; PDF</button>'+
           '<button class="aitem" onclick="X_HTML(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#127760; HTML</button>'+
           '<button class="aitem" onclick="X_COPY(function(){return GET_T('+id+');});CM()">&#128203; Copy</button>'+
           '<button class="aitem" onclick="X_SHARE(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128228; Share</button>'+
@@ -978,15 +1069,56 @@ function KBC(e,delFn){
     '</div></div>';
 }
 
-window.DL_PDF=function(id){
+// Self-healing PDF export: if a structured brief already exists, render it
+// instantly. Otherwise (older entries, or plain research/summary/KB notes),
+// classify + generate the structured brief on the fly through the same
+// pipeline, cache it back onto the entry so future exports are instant, and
+// only then render. This is what makes every entry — not just entries made
+// via the ✨ Brief button — produce a properly styled PDF.
+window.DL_PDF=async function(id){
   var e=KB.concat(BR).find(function(x){return x.id===id;});
-  if(!e||!e.briefJson){alert('No PDF data for this brief. Please regenerate it.');return;}
-  if(window.MAKE_PDF){
-    try{
-      var data=JSON.parse(e.briefJson);
-      window.MAKE_PDF(data,e.title,e.briefType||'paper');
-    }catch(err){alert('PDF error: '+err.message);}
-  }else{alert('PDF library not loaded. Please refresh the page.');}
+  if(!e){alert('Entry not found.');return;}
+  if(!window.MAKE_PDF){alert('PDF library not loaded. Please refresh the page.');return;}
+  if(e.briefJson){
+    try{ window.MAKE_PDF(JSON.parse(e.briefJson),e.title,e.briefType||'paper'); return; }
+    catch(err){ /* fall through and regenerate below */ }
+  }
+  if(!e.content||e.content.length<50){alert('Not enough content in this entry to build a PDF.');return;}
+  var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
+  ov.classList.add('on');ot.textContent='Building PDF...';
+  try{
+    var type=e.briefType||CLASSIFY_BRIEF_TYPE(e.content+' '+e.title);
+    var data=await GEN_BRIEF_JSON(type,e.content,e.title);
+    e.briefJson=JSON.stringify(data);e.briefType=type;
+    if(e._did){
+      var col=BR.indexOf(e)>=0?'briefs':(KB.indexOf(e)>=0?'knowledge_base':null);
+      if(col) UP_FB(e._did,col,{briefJson:e.briefJson,briefType:type});
+    }
+    ov.classList.remove('on');
+    window.MAKE_PDF(data,e.title,type);
+    RND_KB();RND_BR();
+  }catch(err){
+    ov.classList.remove('on');
+    alert('Could not build PDF: '+err.message+'\n\nTry again — occasionally the model call itself fails.');
+  }
+};
+// Live variant for unsaved Research/Summarize results (no KB id yet) — same
+// on-the-fly generation, just skips the Firestore caching step.
+window.DL_PDF_LIVE=async function(getText,getTitle){
+  var text=getText(),title=getTitle();
+  if(!text){alert('Generate a result first.');return;}
+  if(!window.MAKE_PDF){alert('PDF library not loaded. Please refresh the page.');return;}
+  var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
+  ov.classList.add('on');ot.textContent='Building PDF...';
+  try{
+    var type=CLASSIFY_BRIEF_TYPE(text+' '+title);
+    var data=await GEN_BRIEF_JSON(type,text,title);
+    ov.classList.remove('on');
+    window.MAKE_PDF(data,title,type);
+  }catch(err){
+    ov.classList.remove('on');
+    alert('Could not build PDF: '+err.message+'\n\nTry again — occasionally the model call itself fails.');
+  }
 };
 window.VIEW_BRIEF=function(id){
   var e=KB.concat(BR).find(function(x){return x.id===id;});
@@ -997,12 +1129,6 @@ window.KB_EXP=function(id){var b=document.getElementById('kbcb-'+id);if(!b)retur
 window.GET_T=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?e.content:'';};
 window.GET_N=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?e.title:'Entry';};
 
-window.X_PDF=function(gt,gti){
-  var t=gt();if(!t)return;var ti=gti();
-  var w=window.open('','_blank');if(!w){alert('Allow popups to export.');return;}
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+ESC(ti)+'</title><style>body{font-family:-apple-system,sans-serif;font-size:13pt;line-height:1.8;color:#111;max-width:750px;margin:40px auto;padding:0 24px}pre{white-space:pre-wrap;font-family:inherit;font-size:13pt;line-height:1.8}@media print{body{margin:0;padding:24px}}</style></head><body><h1>'+ESC(ti)+'</h1><p style="color:#666;font-size:10pt;margin-bottom:32px">'+new Date().toLocaleDateString('en-CA')+' - Research Agent</p><pre>'+ESC(t)+'</pre></body></html>');
-  w.document.close();setTimeout(function(){w.focus();w.print();},400);
-};
 window.X_HTML=function(gt,gti){
   var t=gt();if(!t)return;var ti=gti();
   var blob=new Blob(['<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+ESC(ti)+'</title><style>body{font-family:-apple-system,sans-serif;background:#0f0f0f;color:#f0f0f0;max-width:720px;margin:0 auto;padding:32px 24px}pre{white-space:pre-wrap;font-family:inherit;font-size:15px;line-height:1.85;color:#d0d0d0}</style></head><body><h1 style="font-size:22px;margin-bottom:8px">'+ESC(ti)+'</h1><p style="color:#666;font-size:13px;margin-bottom:28px">'+new Date().toLocaleDateString('en-CA')+'</p><pre>'+ESC(t)+'</pre></body></html>'],{type:'text/html'});
@@ -1039,7 +1165,10 @@ window.START_APP = async function(){
     document.body.classList.add('light');
     var lt=document.getElementById('ltog');if(lt)lt.checked=true;
   }
+  var acOn=localStorage.getItem('ra-autoconv')==='1';
+  var at=document.getElementById('actog');if(at)at.checked=acOn;
   await IFB();await LD_KB();UKS();
+  if(acOn){ AUTO_CONVERT(false); } // fire-and-forget, doesn't block startup
 };
 
 (async function(){
@@ -1067,61 +1196,33 @@ async function AUTO_CONVERT(manual){
   if(!DB)return;
   var existing=BR.map(function(b){return b.title;});
   var toConvert=KB.filter(function(e){return e.content&&e.content.length>100&&!existing.includes(e.title);});
-  if(!toConvert.length)return;
+  if(!toConvert.length){
+    if(manual){var s0=document.getElementById('cvt-status');if(s0){s0.style.display='block';s0.textContent='No new entries to convert.';}}
+    return;
+  }
   var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
+  var okCount=0,failCount=0;
   for(var i=0;i<toConvert.length;i++){
     var e=toConvert[i];
     ov.classList.add('on');ot.textContent='Converting '+(i+1)+'/'+toConvert.length+': '+e.title+'...';
-    // Score each type - highest score wins
-    var fScore=0,mScore=0,sScore=0;
-    var c=e.content+' '+e.title;
-    // Financial signals
-    if(/\bNYSE:|TSXV:|NASDAQ:|NYSE :|TSX:/i.test(c))fScore+=10;
-    if(/\bstock price|share price|market cap|EPS|P\/E ratio|dividend|earnings per share/i.test(c))fScore+=5;
-    if(/\binvestment brief|analyst target|buy rating|strong buy|price target/i.test(c))fScore+=5;
-    if(/\$[0-9]+\.[0-9]+|\bCAD|\bUSD/.test(c)&&!/marketing budget|monthly cost|entry fee/i.test(c))fScore+=2;
-    // Marketing signals
-    if(/\bmarketing brief|marketing strategy|brand|target audience|customer segment|go-to-market/i.test(c))mScore+=10;
-    if(/\bcafé|cafe|restaurant|tavern|gaming|retail|hospitality|loyalty program|event marketing/i.test(c))mScore+=8;
-    if(/\bsocial media|instagram|facebook|tiktok|seo|content calendar|paid ads/i.test(c))mScore+=5;
-    if(/\bvalue proposition|use cases|who uses it|bottom line/i.test(c)&&!/investment/i.test(c))mScore+=3;
-    // Scientific signals
-    if(/\bhypothesis|methodology|experiment|dataset|abstract|p-value|correlation|clinical/i.test(c))sScore+=10;
-    if(/\bpeer.reviewed|journal|findings|statistical|randomized|control group/i.test(c))sScore+=5;
-    var maxScore=Math.max(fScore,mScore,sScore);
-    var type=maxScore===0?'paper':fScore===maxScore?'financial':mScore===maxScore?'marketing':'scientific';
-    var sysP='You are an expert brief writer. Output ONLY valid JSON (no markdown, no code blocks, no extra text). The JSON must exactly match the provided schema. Fill ALL fields with real data from the research. Escape all special characters properly.';
-    var jsonSchema={
-      marketing:'{"title":"Company name","subtitle":"Type · location","tagline":"positioning","type":"marketing","kpi":[{"value":"$X","label":"metric"},{"value":"X%","label":"metric"},{"value":"X","label":"metric"},{"value":"X","label":"metric"}],"sections":[{"num":1,"title":"Business Overview","content":[{"type":"table","headers":["Item","Detail"],"widths":[0.28,0.72],"rows":[["Location","..."],["Concept","..."],["Market","..."]]}]},{"num":2,"title":"Target Audiences","content":[{"type":"table","headers":["Segment","Profile","Key Hook"],"widths":[0.22,0.33,0.45],"rows":[["seg","profile","hook"]]}]},{"num":3,"title":"Marketing Strategy","content":[{"type":"table","headers":["Pillar","Strategy","Actions"],"widths":[0.22,0.28,0.50],"rows":[["pillar","strategy","actions"]]}]},{"num":4,"title":"Events & Programming","content":[{"type":"table","headers":["Event","When","Format"],"widths":[0.25,0.15,0.60],"rows":[["event","when","format"]]}]},{"num":5,"title":"Budget","content":[{"type":"table","headers":["Channel","Cost"],"widths":[0.65,0.35],"rows":[["channel","cost"]]}]},{"num":6,"title":"90-Day Roadmap","content":[{"type":"table","headers":["Month","Actions"],"widths":[0.20,0.80],"rows":[["Month 1","actions"]]}]},{"num":7,"title":"KPIs","content":[{"type":"table","headers":["KPI","Target","Measure"],"widths":[0.35,0.30,0.35],"rows":[["kpi","target","measure"]]}]},{"num":8,"title":"Bottom Line","content":[{"type":"table","headers":["Factor","Reading","Opportunity"],"widths":[0.25,0.25,0.50],"rows":[["factor","reading","opp"]]},{"type":"text","text":"closing summary"}]}]}',
-      financial:'{"title":"Company (TICKER)","subtitle":"Investment Brief","tagline":"Complete Investment Brief","type":"financial","kpi":[{"value":"$XXX","label":"Current Price"},{"value":"$XXX","label":"52W High"},{"value":"$XB","label":"Market Cap"},{"value":"Jul XX","label":"Next Earnings"}],"sections":[{"num":1,"title":"Investment Snapshot","content":[{"type":"table","headers":["Metric","Value","Signal"],"widths":[0.30,0.35,0.35],"rows":[["metric","value","signal"]]}]},{"num":2,"title":"Company Overview","content":[{"type":"table","headers":["Item","Detail"],"widths":[0.28,0.72],"rows":[["item","detail"]]}]},{"num":3,"title":"Key Catalysts","content":[{"type":"table","headers":["Milestone","Date","Detail"],"widths":[0.30,0.20,0.50],"rows":[["cat","date","detail"]]}]},{"num":4,"title":"Analyst Targets","content":[{"type":"table","headers":["Firm","Rating","Target","Upside"],"widths":[0.30,0.20,0.25,0.25],"rows":[["firm","rating","$xxx","xx%"]]}]},{"num":5,"title":"Technical Levels","content":[{"type":"table","headers":["Level","Price","Signal"],"widths":[0.33,0.33,0.34],"rows":[["Support","$xxx","..."],["Resistance","$xxx","..."]]}]},{"num":6,"title":"Entry & Exit","content":[{"type":"table","headers":["Parameter","Level","Rationale"],"widths":[0.28,0.22,0.50],"rows":[["Entry","$xxx","rationale"]]}]},{"num":7,"title":"Key Risks","content":[{"type":"bullets","items":["risk1","risk2","risk3"]}]},{"num":8,"title":"Bottom Line","content":[{"type":"table","headers":["Factor","Reading","Signal"],"widths":[0.30,0.35,0.35],"rows":[["factor","reading","signal"]]},{"type":"text","text":"thesis summary"},{"type":"text","text":"\u26a0\ufe0f For informational purposes only. Not financial advice."}]}]}',
-      scientific:'{"title":"Study Title","subtitle":"Scientific Brief","tagline":"Key finding","type":"scientific","kpi":[{"value":"n=X","label":"sample"},{"value":"p<0.05","label":"significance"},{"value":"XX%","label":"effect size"},{"value":"20XX","label":"year"}],"sections":[{"num":1,"title":"Abstract","content":[{"type":"text","text":"150-word summary"}]},{"num":2,"title":"Background","content":[{"type":"text","text":"context"}]},{"num":3,"title":"Methodology","content":[{"type":"table","headers":["Element","Detail"],"widths":[0.30,0.70],"rows":[["method","detail"]]}]},{"num":4,"title":"Key Findings","content":[{"type":"bullets","items":["finding1","finding2"]}]},{"num":5,"title":"Limitations","content":[{"type":"text","text":"limitations"}]},{"num":6,"title":"Implications","content":[{"type":"text","text":"implications"}]},{"num":7,"title":"Further Research","content":[{"type":"bullets","items":["question1"]}]}]}',
-      paper:'{"title":"Research Title","subtitle":"Research Paper","tagline":"Executive summary tagline","type":"paper","kpi":[{"value":"X","label":"stat1"},{"value":"X%","label":"stat2"},{"value":"$XB","label":"stat3"},{"value":"20XX","label":"year"}],"sections":[{"num":1,"title":"Executive Summary","content":[{"type":"text","text":"200-word summary"}]},{"num":2,"title":"Introduction","content":[{"type":"text","text":"background"}]},{"num":3,"title":"Analysis","content":[{"type":"table","headers":["Element","Finding"],"widths":[0.35,0.65],"rows":[["el","finding"]]}]},{"num":4,"title":"Key Findings","content":[{"type":"bullets","items":["finding1"]}]},{"num":5,"title":"Discussion","content":[{"type":"text","text":"discussion"}]},{"num":6,"title":"Conclusions","content":[{"type":"text","text":"conclusions"}]}]}'
-    };
-    var prompts={
-      financial:'Transform this research into a financial investment brief. Use web_search for current live prices on any tickers. Output ONLY valid JSON matching this schema exactly:\n\n'+jsonSchema.financial+'\n\nFill ALL values with real data. Research:\n\n',
-      scientific:'Transform into a scientific brief. Output ONLY valid JSON matching this schema:\n\n'+jsonSchema.scientific+'\n\nFill ALL values with real data. Research:\n\n',
-      marketing:'Transform into a marketing brief. Output ONLY valid JSON matching this schema:\n\n'+jsonSchema.marketing+'\n\nFill ALL values with real data. Research:\n\n',
-      paper:'Transform into a research paper. Output ONLY valid JSON matching this schema:\n\n'+jsonSchema.paper+'\n\nFill ALL values with real data. Research:\n\n'
-    };
+    var type=CLASSIFY_BRIEF_TYPE(e.content+' '+e.title);
     try{
-      var bc=await CALL(sysP,prompts[type]+e.content,false,null);
-      if(bc&&bc.length>50){
-        var cleanT=(function(t){
-  var r=t.replace(/^(need a|can you|please|give me|what is|tell me about|create a?|make a?|write a?|generate a?|do a?n?|provide a?|summarize|summary on|comprehensive|full|brief on|research on|what can you tell me about|i need|find out about)/gi,'').replace(/^[^a-zA-Z0-9(]*/,'').trim();
-  var s=r.split(/\b(is|are|was|were|has|have|and the|,)/i)[0].trim();
-  if(s.length>=3)r=s;
-  return(r.slice(0,60).replace(/\s+\S*$/,'')||t.slice(0,60));
-})(e.title);
-var entry={id:Date.now()+i,title:cleanT,briefType:type,content:bc,date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
-        var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
-        BR.unshift(entry);window._KB=KB.concat(BR);U_CNT();
-      }
-    }catch(err){console.error('Convert error:',err);}
+      var briefData=await GEN_BRIEF_JSON(type,e.content,e.title);
+      var entry={id:Date.now()+i,title:briefData.title,briefType:type,
+        content:JSON.stringify(briefData),briefJson:JSON.stringify(briefData),
+        date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
+      var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
+      BR.unshift(entry);window._KB=KB.concat(BR);U_CNT();
+      okCount++;
+    }catch(err){console.error('Convert error:',err);failCount++;}
     await new Promise(function(r){setTimeout(r,1500);});
   }
   ov.classList.remove('on');
   var stat3=document.getElementById('cvt-status');
-  if(stat3){stat3.textContent=BR.length>0?'Done! '+BR.length+' briefs generated.':'No new entries to convert.';}
+  if(stat3){
+    stat3.style.display='block';
+    stat3.textContent='Done! '+okCount+' brief'+(okCount===1?'':'s')+' generated'+(failCount?', '+failCount+' failed (try again)':'')+'.';
+  }
   RND_BR();
 }
 </script>
