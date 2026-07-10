@@ -794,11 +794,11 @@ function M_STOP(){
   mFld=null;
 }
 
-async function CALL(sys,uc,stream,onChunk){
+async function CALL(sys,uc,stream,onChunk,maxTok){
   var resp=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':GK(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,stream:stream,system:sys,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:uc}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTok||8000,stream:stream,system:sys,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:uc}]})
   });
   if(!resp.ok){var er=await resp.json();throw new Error(er.error?er.error.message:'API error '+resp.status);}
   if(!stream){var d=await resp.json();return(d.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n');}
@@ -973,9 +973,26 @@ async function GEN_BRIEF_JSON(type,sourceText,fallbackTitle){
   var schema=BRIEF_SCHEMAS[type]||BRIEF_SCHEMAS.paper;
   var userPrompt='Transform this research into a structured brief as JSON matching this exact schema:\n\n'+schema+
     '\n\nIMPORTANT: Replace ALL placeholder values with real content from the research below. Output ONLY valid JSON.\n\nResearch:\n'+sourceText;
-  var raw=await CALL(BRIEF_SYS_PROMPT,userPrompt,false,null);
-  var parsed=TRY_PARSE_JSON(CLEAN_JSON_TEXT(raw));
-  return NORMALIZE_BRIEF(parsed,type,fallbackTitle);
+  var data=null;
+  // Up to 2 attempts — financial briefs especially (biggest schema + live web
+  // search) can occasionally get cut off or wrapped in stray prose. A single
+  // retry with a stricter reminder recovers the large majority of these
+  // instead of silently saving a "no content" placeholder.
+  for(var attempt=0;attempt<2&&!data;attempt++){
+    try{
+      var sys=BRIEF_SYS_PROMPT+(attempt>0?' Your previous attempt did not return a single valid, complete JSON object. This time: output ONLY the JSON, with no text before or after it, and keep any prose fields concise enough that the full object fits in the response.':'');
+      var raw=await CALL(sys,userPrompt,false,null,16000);
+      var parsed=TRY_PARSE_JSON(CLEAN_JSON_TEXT(raw));
+      if(parsed&&Array.isArray(parsed.sections)&&parsed.sections.length) data=parsed;
+    }catch(err){console.error('GEN_BRIEF_JSON attempt '+(attempt+1)+' failed:',err);}
+  }
+  var titleFallback=fallbackTitle;
+  if(!data||!data.title||String(data.title).trim().length<2){
+    // Regex cleanup alone isn't reliable for messy raw prompts — fall back
+    // to the same AI title-generation used for KB entries.
+    titleFallback=await GEN_CLEAN_TITLE(sourceText,fallbackTitle);
+  }
+  return NORMALIZE_BRIEF(data,type,titleFallback);
 }
 // Shared keyword classifier — picks the best-fit brief type for arbitrary
 // research/summary/KB text so every export can get proper PDF styling
@@ -1149,7 +1166,14 @@ window.DL_PDF_LIVE=async function(getText,getTitle){
 window.VIEW_BRIEF=function(id){
   var e=KB.concat(BR).find(function(x){return x.id===id;});
   if(!e)return;
-  OPN_BW(e.content,e.title,e.briefType||'paper');
+  var data;
+  try{
+    data=e.briefJson?JSON.parse(e.briefJson):JSON.parse(e.content);
+  }catch(err){
+    alert('This brief\'s data looks corrupted and can\'t be previewed. Try deleting and regenerating it.');
+    return;
+  }
+  OPN_BW(data,e.briefType||data.type||'paper');
 };
 window.KB_EXP=function(id){var b=document.getElementById('kbcb-'+id);if(!b)return;var ex=b.classList.toggle('exp');b.classList.toggle('tr',!ex);};
 window.GET_T=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?e.content:'';};
