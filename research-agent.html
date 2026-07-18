@@ -662,7 +662,7 @@ async function IFB(){
     SS('sync','Connecting...');
     var app=initializeApp({apiKey:GFK(),authDomain:GFP()+'.firebaseapp.com',projectId:GFP(),storageBucket:GFP()+'.firebasestorage.app',messagingSenderId:'',appId:''});
     DB=getFirestore(app);SS('ok','Synced');UKS();
-  }catch(e){SS('err','Sync error');}
+  }catch(e){console.error('IFB error:',e);SS('err','Sync error: '+(e&&e.message?e.message:String(e)));}
 }
 async function LD_KB(){
   try{
@@ -672,7 +672,7 @@ async function LD_KB(){
     var q2=query(collection(DB,'briefs'),orderBy('id','desc'));
     var s2=await getDocs(q2);BR=s2.docs.map(function(d){return Object.assign({},d.data(),{_did:d.id});});
     window._KB=KB.concat(BR);SS('ok','Synced');U_CNT();RND_KB();RND_BR();
-  }catch(e){SS('err','Load error');}
+  }catch(e){console.error('LD_KB error:',e);SS('err','Load error: '+(e&&e.message?e.message:String(e)));}
 }
 async function SV_FB(entry,col){if(!DB)return null;try{var r=await addDoc(collection(DB,col),entry);return r.id;}catch(e){return null;}}
 async function DL_FB(did,col){if(!DB||!did)return;try{await deleteDoc(doc(DB,col,did));}catch(e){}}
