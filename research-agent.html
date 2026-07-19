@@ -402,6 +402,38 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 
 <script>
 function ESC(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function PARSE_BRIEF(raw){
+  if(raw&&typeof raw==='object')return raw;
+  var s=String(raw||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+  return JSON.parse(s);
+}
+function BR_TEXT(data){
+  var out=[];
+  if(data.title)out.push(data.title);
+  if(data.subtitle)out.push(data.subtitle);
+  if(data.tagline)out.push(data.tagline);
+  out.push('');
+  (data.kpi||[]).forEach(function(k){out.push((k.value||'')+' - '+(k.label||''));});
+  out.push('');
+  (data.sections||[]).forEach(function(sec){
+    out.push((sec.num?sec.num+'. ':'')+(sec.title||''));
+    (sec.content||[]).forEach(function(item){
+      if(item.type==='text'){out.push(item.text||'');}
+      else if(item.type==='bullets'){(item.items||[]).forEach(function(b){out.push('- '+b);});}
+      else if(item.type==='table'){
+        (item.rows||[]).forEach(function(row){out.push(row.join(' | '));});
+      }
+    });
+    out.push('');
+  });
+  return out.join('\n');
+}
+function GET_BRIEF_TEXT_OR_RAW(e){
+  if(e.briefType||e.briefJson){
+    try{return BR_TEXT(PARSE_BRIEF(e.briefJson||e.content));}catch(err){}
+  }
+  return e.content||'';
+}
 function doSetup() {
   var ta = document.getElementById('key-area');
   var k = ta ? ta.value.trim() : '';
@@ -992,10 +1024,10 @@ window.DL_PDF=function(id){
 window.VIEW_BRIEF=function(id){
   var e=KB.concat(BR).find(function(x){return x.id===id;});
   if(!e)return;
-  OPN_BW(e.content,e.title,e.briefType||'paper');
+  OPN_BW(e.briefJson||e.content,e.briefType||'paper');
 };
 window.KB_EXP=function(id){var b=document.getElementById('kbcb-'+id);if(!b)return;var ex=b.classList.toggle('exp');b.classList.toggle('tr',!ex);};
-window.GET_T=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?e.content:'';};
+window.GET_T=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?GET_BRIEF_TEXT_OR_RAW(e):'';};
 window.GET_N=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?e.title:'Entry';};
 
 window.X_PDF=function(gt,gti){
@@ -1107,13 +1139,22 @@ async function AUTO_CONVERT(manual){
     try{
       var bc=await CALL(sysP,prompts[type]+e.content,false,null);
       if(bc&&bc.length>50){
-        var cleanT=(function(t){
+        var parsedBrief=null;
+        try{parsedBrief=PARSE_BRIEF(bc);}catch(perr){console.error('Brief JSON parse failed for',e.title,perr);}
+        var entryTitle;
+        if(parsedBrief&&parsedBrief.title){
+          entryTitle=parsedBrief.title;
+        }else{
+          entryTitle=(function(t){
   var r=t.replace(/^(need a|can you|please|give me|what is|tell me about|create a?|make a?|write a?|generate a?|do a?n?|provide a?|summarize|summary on|comprehensive|full|brief on|research on|what can you tell me about|i need|find out about)/gi,'').replace(/^[^a-zA-Z0-9(]*/,'').trim();
   var s=r.split(/\b(is|are|was|were|has|have|and the|,)/i)[0].trim();
   if(s.length>=3)r=s;
   return(r.slice(0,60).replace(/\s+\S*$/,'')||t.slice(0,60));
 })(e.title);
-var entry={id:Date.now()+i,title:cleanT,briefType:type,content:bc,date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
+        }
+        var entry=parsedBrief?
+          {id:Date.now()+i,title:entryTitle,briefType:type,content:JSON.stringify(parsedBrief),briefJson:JSON.stringify(parsedBrief),date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'}:
+          {id:Date.now()+i,title:entryTitle,briefType:type,content:bc,date:e.date||new Date().toLocaleDateString('en-CA'),type:'brief'};
         var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
         BR.unshift(entry);window._KB=KB.concat(BR);U_CNT();
       }
@@ -1130,7 +1171,7 @@ var entry={id:Date.now()+i,title:cleanT,briefType:type,content:bc,date:e.date||n
 function OPN_BW(briefData, type) {
   // briefData can be JSON object or string
   var data;
-  try { data = typeof briefData === 'string' ? JSON.parse(briefData) : briefData; }
+  try { data = PARSE_BRIEF(briefData); }
   catch(e) { data = {title: String(briefData).slice(0,60), sections: [], type: type}; }
   
   var ACCENTS = {marketing:'#c9a84c', financial:'#2ecc71', scientific:'#f39c12', paper:'#e74c3c'};
