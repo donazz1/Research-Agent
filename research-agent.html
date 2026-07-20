@@ -1119,10 +1119,9 @@ function KBC(e,delFn){
     '<div class="kbca">'+
       '<button class="kbab" id="kbrd-'+id+'" onclick="KB_SPK('+id+')">&#9654; Read</button>'+
       (e.briefType?'<button class="kbab" style="border-color:var(--accent);color:var(--accent)" onclick="VIEW_BRIEF('+id+')">&#128196; View</button>':'')+
-      (e.briefJson?'<button class="kbab" style="border-color:var(--success);color:var(--success)" onclick="DL_PDF('+id+')">&#11015; PDF</button>':'')+
+      '<button class="kbab" style="border-color:var(--success);color:var(--success)" onclick="EXPORT_PDF('+id+')">&#11015; PDF</button>'+
       '<div class="awrap"><button class="kbab" onclick="AM(\'kbex-'+id+'\')">Export &#9660;</button>'+
         '<div class="amenu" id="kbex-'+id+'">'+
-          '<button class="aitem" onclick="EXPORT_PDF('+id+');CM()">&#128196; PDF</button>'+
           '<button class="aitem" onclick="X_HTML(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#127760; HTML</button>'+
           '<button class="aitem" onclick="X_COPY(function(){return GET_T('+id+');});CM()">&#128203; Copy</button>'+
           '<button class="aitem" onclick="X_SHARE(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128228; Share</button>'+
