@@ -233,7 +233,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <div class="awrap">
             <button class="abtn" onclick="AM('rex')">&#128228; Export &#9660;</button>
             <div class="amenu" id="rex">
-              <button class="aitem" onclick="X_PDF(function(){return LR;},function(){return R_TTL();});CM()">&#128196; Save as PDF</button>
+              <button class="aitem" onclick="EXPORT_TEXT_PDF(function(){return LR;},function(){return R_TTL();});CM()">&#128196; Save as PDF</button>
               <button class="aitem" onclick="X_HTML(function(){return LR;},function(){return R_TTL();});CM()">&#127760; Save as HTML</button>
               <button class="aitem" onclick="X_COPY(function(){return LR;});CM()">&#128203; Copy text</button>
               <button class="aitem" onclick="X_SHARE(function(){return LR;},function(){return R_TTL();});CM()">&#128228; Copy and Share</button>
@@ -321,7 +321,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <div class="awrap">
             <button class="abtn" onclick="AM('sex')">&#128228; Export &#9660;</button>
             <div class="amenu" id="sex">
-              <button class="aitem" onclick="X_PDF(function(){return LS;},function(){return S_TTL();});CM()">&#128196; Save as PDF</button>
+              <button class="aitem" onclick="EXPORT_TEXT_PDF(function(){return LS;},function(){return S_TTL();});CM()">&#128196; Save as PDF</button>
               <button class="aitem" onclick="X_HTML(function(){return LS;},function(){return S_TTL();});CM()">&#127760; Save as HTML</button>
               <button class="aitem" onclick="X_COPY(function(){return LS;});CM()">&#128203; Copy text</button>
               <button class="aitem" onclick="X_SHARE(function(){return LS;},function(){return S_TTL();});CM()">&#128228; Copy and Share</button>
@@ -664,6 +664,126 @@ window.MAKE_PDF = function(briefJson, fallbackTitle, type) {
 
   pdfMake.createPdf(docDef).download(docTitle.replace(/[^a-z0-9]/gi,'_')+'_Brief.pdf');
 };
+
+window.MAKE_TEXT_PDF = function(title, subtitle, contentText) {
+  var accent='#c9a84c', BG='#0d0d0d', NAVY='#0e1520', GRAY='#aaaaaa', DIM='#555555', BDR='#2a2a2a';
+  var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var docTitle = title || 'Document';
+
+  var content = [];
+  content.push({text:'■', style:'eyebrow', color:accent, margin:[0,6,0,4]});
+  content.push({text: docTitle, style:'coverTitle', margin:[0,0,0,5]});
+  if(subtitle) content.push({text:subtitle, style:'coverSub', margin:[0,0,0,3]});
+  content.push({canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:3,lineColor:accent}], margin:[0,14,0,14]});
+
+  var raw = String(contentText||'').replace(/\r\n/g,'\n');
+  raw = raw.replace(/\s*(#{1,6}\s+)/g, '\n$1');
+  raw = raw.replace(/\s*(-{3,}|\*{3,})\s*/g, '\n$1\n');
+  raw = raw.replace(/\n{2,}/g,'\n');
+  var lines = raw.split('\n');
+  var firstHeaderIdx = lines.findIndex(function(l){return /^#{1,6}\s+/.test(l.trim());});
+  if(firstHeaderIdx>0) lines = lines.slice(firstHeaderIdx);
+
+  var para = [];
+  function flushPara(){
+    if(para.length){
+      content.push({text:para.join(' '), style:'bodyText', margin:[0,0,0,8]});
+      para=[];
+    }
+  }
+  var HEADER_WORD_CAP = 12;
+  lines.forEach(function(lineRaw){
+    var line = lineRaw.trim();
+    if(!line){flushPara();return;}
+    var h = line.match(/^(#{1,6})\s+(.*)$/);
+    if(h){
+      flushPara();
+      var lvl = h[1].length, rest = h[2].replace(/[#*_`]/g,'').trim();
+      // Safety cap: a header line should never swallow a whole paragraph if
+      // the source has no real line breaks between the header and its body.
+      var sentenceEnd = rest.search(/[.!?]\s+[A-Z]/);
+      var words = rest.split(/\s+/);
+      var txt, remainder = '';
+      if(sentenceEnd > 0 && sentenceEnd < 90){
+        txt = rest.slice(0, sentenceEnd+1);
+        remainder = rest.slice(sentenceEnd+1).trim();
+      } else if(words.length > HEADER_WORD_CAP){
+        txt = words.slice(0,HEADER_WORD_CAP).join(' ');
+        remainder = words.slice(HEADER_WORD_CAP).join(' ');
+      } else {
+        txt = rest;
+      }
+      if(lvl<=2){
+        content.push({
+          table:{widths:['*'],body:[[{text:txt.toUpperCase(),style:'secHdr'}]]},
+          layout:{
+            fillColor:function(){return NAVY;},
+            hLineColor:function(){return accent;}, vLineColor:function(){return accent;},
+            hLineWidth:function(){return 1;}, vLineWidth:function(){return 1;},
+            paddingLeft:function(){return 14;}, paddingRight:function(){return 14;},
+            paddingTop:function(){return 9;}, paddingBottom:function(){return 9;}
+          },
+          margin:[0,10,0,8]
+        });
+      } else {
+        content.push({text:txt, style:'subHdr', margin:[0,8,0,4]});
+      }
+      if(remainder) para.push(remainder);
+      return;
+    }
+    if(/^(-{3,}|\*{3,})$/.test(line)){
+      flushPara();
+      content.push({canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:0.4,lineColor:BDR}],margin:[0,8,0,8]});
+      return;
+    }
+    var b = line.match(/^[-*•]\s+(.*)$/);
+    if(b){
+      flushPara();
+      content.push({text:'• '+b[1].replace(/[*_`]/g,''), style:'bodyText', margin:[12,0,0,3]});
+      return;
+    }
+    para.push(line.replace(/[*_`#]/g,''));
+  });
+  flushPara();
+
+  content.push({canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:0.4,lineColor:BDR}],margin:[0,6,0,5]});
+  content.push({text:'Prepared by Research Agent AI Platform  ·  '+today+'  ·  For informational purposes only.', style:'disclaimer'});
+
+  var docDef = {
+    pageSize:'LETTER',
+    pageMargins:[54,54,54,72],
+    background:function(currentPage,pageSize){
+      return {canvas:[{type:'rect',x:0,y:0,w:pageSize.width,h:pageSize.height,color:BG}]};
+    },
+    footer:function(currentPage,pageCount){
+      return {margin:[54,0,54,0],stack:[
+        {canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:0.4,lineColor:'#222'}]},
+        {text:'Research Agent  ·  AI Intelligence Platform  ·  '+today+'  ·  For Informational Purposes Only',
+         style:'footer',margin:[0,4,0,0]}
+      ]};
+    },
+    content:content,
+    styles:{
+      eyebrow:{fontSize:7.5,bold:true,characterSpacing:1.5,alignment:'center'},
+      coverTitle:{fontSize:26,color:'white',bold:true,alignment:'center',lineHeight:1.1},
+      coverSub:{fontSize:12,color:GRAY,alignment:'center',lineHeight:1.3},
+      secHdr:{fontSize:10,bold:true,color:'white'},
+      subHdr:{fontSize:10,bold:true,color:accent},
+      bodyText:{fontSize:9.5,color:GRAY,lineHeight:1.5},
+      disclaimer:{fontSize:7,color:DIM,alignment:'center',lineHeight:1.3},
+      footer:{fontSize:7,color:DIM,alignment:'center'}
+    },
+    defaultStyle:{font:'Roboto'}
+  };
+
+  pdfMake.createPdf(docDef).download(docTitle.replace(/[^a-z0-9]/gi,'_')+'.pdf');
+};
+
+window.EXPORT_TEXT_PDF = function(getText, getTitle){
+  var t = getText();
+  if(!t){alert('Nothing to export yet.');return;}
+  window.MAKE_TEXT_PDF(getTitle?getTitle():'Document', '', t);
+};
 </script>
 
 <script type="module">
@@ -1002,7 +1122,7 @@ function KBC(e,delFn){
       (e.briefJson?'<button class="kbab" style="border-color:var(--success);color:var(--success)" onclick="DL_PDF('+id+')">&#11015; PDF</button>':'')+
       '<div class="awrap"><button class="kbab" onclick="AM(\'kbex-'+id+'\')">Export &#9660;</button>'+
         '<div class="amenu" id="kbex-'+id+'">'+
-          '<button class="aitem" onclick="X_PDF(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128196; PDF</button>'+
+          '<button class="aitem" onclick="EXPORT_PDF('+id+');CM()">&#128196; PDF</button>'+
           '<button class="aitem" onclick="X_HTML(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#127760; HTML</button>'+
           '<button class="aitem" onclick="X_COPY(function(){return GET_T('+id+');});CM()">&#128203; Copy</button>'+
           '<button class="aitem" onclick="X_SHARE(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128228; Share</button>'+
@@ -1016,10 +1136,22 @@ window.DL_PDF=function(id){
   if(!e||!e.briefJson){alert('No PDF data for this brief. Please regenerate it.');return;}
   if(window.MAKE_PDF){
     try{
-      var data=JSON.parse(e.briefJson);
+      var data=PARSE_BRIEF(e.briefJson);
       window.MAKE_PDF(data,e.title,e.briefType||'paper');
     }catch(err){alert('PDF error: '+err.message);}
   }else{alert('PDF library not loaded. Please refresh the page.');}
+};
+window.EXPORT_PDF=function(id){
+  var e=KB.concat(BR).find(function(x){return x.id===id;});
+  if(!e)return;
+  if(e.briefJson||e.briefType){
+    try{
+      var data=PARSE_BRIEF(e.briefJson||e.content);
+      window.MAKE_PDF(data,e.title,e.briefType||'paper');
+      return;
+    }catch(err){console.error('EXPORT_PDF brief parse failed, falling back to text PDF:',err);}
+  }
+  window.MAKE_TEXT_PDF(e.title||'Document', e.tag||e.type||'', e.content||'');
 };
 window.VIEW_BRIEF=function(id){
   var e=KB.concat(BR).find(function(x){return x.id===id;});
