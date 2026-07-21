@@ -434,6 +434,61 @@ function GET_BRIEF_TEXT_OR_RAW(e){
   }
   return e.content||'';
 }
+function MD_TO_SECTIONS(text){
+  var raw = String(text||'').replace(/\r\n/g,'\n');
+  raw = raw.replace(/\s*(#{1,6}\s+)/g, '\n$1');
+  raw = raw.replace(/\s*(-{3,}|\*{3,})\s*/g, '\n$1\n');
+  raw = raw.replace(/\n{2,}/g,'\n');
+  var lines = raw.split('\n');
+  var firstHeaderIdx = lines.findIndex(function(l){return /^#{1,6}\s+/.test(l.trim());});
+  if(firstHeaderIdx>0) lines = lines.slice(firstHeaderIdx);
+
+  var raw_sections=[], contentBuf=[], para=[], pendingTitle=null;
+  var HEADER_WORD_CAP=12;
+  function flushPara(){ if(para.length){contentBuf.push({type:'text',text:para.join(' ')});para=[];} }
+  function flushSection(){
+    flushPara();
+    if(pendingTitle!==null) raw_sections.push({title:pendingTitle, content:contentBuf});
+    contentBuf=[];
+  }
+  lines.forEach(function(lineRaw){
+    var line=lineRaw.trim();
+    if(!line){flushPara();return;}
+    var h=line.match(/^(#{1,6})\s+(.*)$/);
+    if(h){
+      var rest=h[2].replace(/[#*_`]/g,'').trim();
+      var sentenceEnd=rest.search(/[.!?]\s+[A-Z]/);
+      var words=rest.split(/\s+/);
+      var txt,remainder='';
+      if(sentenceEnd>0&&sentenceEnd<90){txt=rest.slice(0,sentenceEnd+1);remainder=rest.slice(sentenceEnd+1).trim();}
+      else if(words.length>HEADER_WORD_CAP){txt=words.slice(0,HEADER_WORD_CAP).join(' ');remainder=words.slice(HEADER_WORD_CAP).join(' ');}
+      else{txt=rest;}
+      flushSection();
+      pendingTitle=txt;
+      if(remainder)para.push(remainder);
+      return;
+    }
+    if(/^(-{3,}|\*{3,})$/.test(line)){flushPara();return;}
+    var b=line.match(/^[-*•]\s+(.*)$/);
+    if(b){flushPara();contentBuf.push({type:'bullets',items:[b[1].replace(/[*_`]/g,'')]});return;}
+    para.push(line.replace(/[*_`#]/g,''));
+  });
+  flushSection();
+
+  var merged=[], carry=[];
+  raw_sections.forEach(function(s){
+    if(s.content.length===0){ carry.push(s.title); return; }
+    var title = carry.length ? carry.concat([s.title]).join(' \u00b7 ') : s.title;
+    merged.push({title:title, content:s.content});
+    carry=[];
+  });
+  if(carry.length) merged.push({title:carry.join(' \u00b7 '), content:[]});
+
+  if(merged.length===0){
+    merged.push({title:'Overview', content:[{type:'text',text:lines.join(' ').replace(/[*_`#]/g,'')}]});
+  }
+  return merged.map(function(s,i){return {num:i+1, title:s.title, content:s.content};});
+}
 function doSetup() {
   var ta = document.getElementById('key-area');
   var k = ta ? ta.value.trim() : '';
@@ -782,7 +837,9 @@ window.MAKE_TEXT_PDF = function(title, subtitle, contentText) {
 window.EXPORT_TEXT_PDF = function(getText, getTitle){
   var t = getText();
   if(!t){alert('Nothing to export yet.');return;}
-  window.MAKE_TEXT_PDF(getTitle?getTitle():'Document', '', t);
+  var title = getTitle?getTitle():'Document';
+  var data = {title:title, sections:MD_TO_SECTIONS(t)};
+  window.MAKE_PDF(data, title, 'note');
 };
 </script>
 
@@ -989,16 +1046,40 @@ window.R_TTL=function(){var el=document.getElementById('rti');return(el?el.value
 window.S_TTL=function(){var el=document.getElementById('sti');return(el?el.value.trim():'')||'Summary';};
 window.SHOW_SV=function(t){var sv=document.getElementById(t==='r'?'rsv':'ssv');if(sv){sv.style.display='flex';sv.scrollIntoView({behavior:'smooth',block:'nearest'});}};
 
+window.RESTRUCTURE = async function(text, titleHint){
+  var schema = '{"title":"Concise title","subtitle":"One-line description of what this document covers","sections":[{"num":1,"title":"Section title","content":[{"type":"text","text":"paragraph prose..."},{"type":"bullets","items":["point 1","point 2"]},{"type":"table","headers":["Col1","Col2"],"widths":[0.5,0.5],"rows":[["a","b"]]}]}]}';
+  var sysPrompt = 'You are an expert technical editor. You will be given a COMPLETE piece of research or summary writing. Your only job is to reorganize it into structured JSON matching the exact schema provided. This is a REORGANIZATION task, not a summarization task: you must preserve every fact, figure, name, number, and argument from the original text \u2014 do not omit, condense, shorten, or add anything. Do not use web search. Do not add any information not already present in the source text. Use "text" blocks for prose, "bullets" for lists, and "table" only where the source has genuinely tabular or comparison data. Output ONLY valid JSON \u2014 no markdown code fences, no commentary. Escape quotes and special characters properly for valid JSON.';
+  var userPrompt = 'Reorganize this complete text into structured JSON matching this schema:\n\n'+schema+'\n\nIMPORTANT: The output must contain 100% of the facts and content below \u2014 do not summarize, shorten, or omit anything, only reorganize it into clean sections. Do not search the web or add new information. Output ONLY valid JSON.\n\nText to reorganize:\n\n'+text;
+  var raw = await CALL(sysPrompt, userPrompt, false, null);
+  var data = PARSE_BRIEF(raw);
+  if(!data || !data.sections || !data.sections.length) throw new Error('Restructure returned no sections');
+  if(!data.title) data.title = titleHint || 'Untitled';
+  var renderedLen = BR_TEXT(data).length;
+  if(renderedLen < text.length * 0.6){
+    throw new Error('Restructured content is significantly shorter than the original ('+renderedLen+' vs '+text.length+' chars) \u2014 refusing to use it.');
+  }
+  return data;
+};
+
 window.SAVE_KB=async function(t){
   var ir=t==='r';
   var title=(document.getElementById(ir?'rti':'sti').value.trim()||'Untitled');
   var tag=document.getElementById(ir?'rtg':'stg').value;
   var content=ir?window.LR:window.LS;if(!content)return;
+  var btnEl=document.getElementById(ir?'rsb':'ssb'),orig=btnEl.textContent;
+  btnEl.textContent='Formatting...';btnEl.disabled=true;
   var entry={id:Date.now(),title:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary'};
+  try{
+    var structured=await window.RESTRUCTURE(content,title);
+    entry.content=JSON.stringify(structured);
+    entry.briefJson=JSON.stringify(structured);
+    if(!document.getElementById(ir?'rti':'sti').value.trim()&&structured.title) entry.title=structured.title;
+  }catch(err){
+    console.error('Restructure failed, saving as plain text instead:',err);
+  }
   var did=await SV_FB(entry,'knowledge_base');if(did)entry._did=did;
   KB.unshift(entry);window._KB=KB.concat(BR);U_CNT();
-  var btnEl=document.getElementById(ir?'rsb':'ssb'),orig=btnEl.textContent;
-  btnEl.textContent='Saved!';setTimeout(function(){btnEl.textContent=orig;},2000);
+  btnEl.disabled=false;btnEl.textContent='Saved!';setTimeout(function(){btnEl.textContent=orig;},2000);
 };
 
 window.BRIEF=async function(tab,type){
@@ -1118,7 +1199,7 @@ function KBC(e,delFn){
     '</div>'+
     '<div class="kbca">'+
       '<button class="kbab" id="kbrd-'+id+'" onclick="KB_SPK('+id+')">&#9654; Read</button>'+
-      (e.briefType?'<button class="kbab" style="border-color:var(--accent);color:var(--accent)" onclick="VIEW_BRIEF('+id+')">&#128196; View</button>':'')+
+      '<button class="kbab" style="border-color:var(--accent);color:var(--accent)" onclick="VIEW_ENTRY('+id+')">&#128196; View</button>'+
       '<button class="kbab" style="border-color:var(--success);color:var(--success)" onclick="EXPORT_PDF('+id+')">&#11015; PDF</button>'+
       '<div class="awrap"><button class="kbab" onclick="AM(\'kbex-'+id+'\')">Export &#9660;</button>'+
         '<div class="amenu" id="kbex-'+id+'">'+
@@ -1150,12 +1231,23 @@ window.EXPORT_PDF=function(id){
       return;
     }catch(err){console.error('EXPORT_PDF brief parse failed, falling back to text PDF:',err);}
   }
-  window.MAKE_TEXT_PDF(e.title||'Document', e.tag||e.type||'', e.content||'');
+  var textData={title:e.title||'Document', sections:MD_TO_SECTIONS(e.content||'')};
+  window.MAKE_PDF(textData, e.title||'Document', e.tag||'note');
 };
 window.VIEW_BRIEF=function(id){
   var e=KB.concat(BR).find(function(x){return x.id===id;});
   if(!e)return;
   OPN_BW(e.briefJson||e.content,e.briefType||'paper');
+};
+window.VIEW_ENTRY=function(id){
+  var e=KB.concat(BR).find(function(x){return x.id===id;});
+  if(!e)return;
+  if(e.briefType||e.briefJson){
+    OPN_BW(e.briefJson||e.content,e.briefType||'paper');
+    return;
+  }
+  var data={title:e.title||'Untitled', subtitle:e.tag||e.type||'', sections:MD_TO_SECTIONS(e.content||'')};
+  OPN_BW(data, e.tag||'note');
 };
 window.KB_EXP=function(id){var b=document.getElementById('kbcb-'+id);if(!b)return;var ex=b.classList.toggle('exp');b.classList.toggle('tr',!ex);};
 window.GET_T=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?GET_BRIEF_TEXT_OR_RAW(e):'';};
