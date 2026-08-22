@@ -141,6 +141,8 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 #cos-sheet h2{font-size:17px;font-weight:600;margin:0 0 8px}
 #cos-sheet p{font-size:14px;color:var(--text2);line-height:1.5;margin:0 0 12px}
 #cos-sheet .hint{font-size:13px;color:var(--text3);margin-bottom:16px}
+#cos-sheet .btn{margin-top:0}
+#cos-sheet .btn + .btn{margin-top:8px}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
@@ -164,10 +166,11 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 </div>
 <div id="cos-sheet">
   <div class="card">
-    <h2>Chief of Staff</h2>
-    <p>Grok Bot is open. This app stays here.</p>
-    <p class="hint">On iPhone, tap ‹ at the top-left when you&rsquo;re done, or swipe up and tap Research Agent.</p>
-    <button type="button" class="btn primary" onclick="CLOSE_COS()">Back to Research Agent</button>
+    <h2 id="cos-sheet-title">Chief of Staff</h2>
+    <p id="cos-sheet-body">Opening Grok Bot.</p>
+    <p class="hint" id="cos-sheet-hint">When you are done, tap ‹ at the top-left, or swipe up and tap Research Agent.</p>
+    <button type="button" class="btn primary" id="cos-sheet-open" onclick="OPEN_GROK_APP()">Open Grok Bot</button>
+    <button type="button" class="btn" onclick="CLOSE_COS()">Back to Research Agent</button>
   </div>
 </div>
 
@@ -182,7 +185,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <span id="stxt">Connecting...</span>
       </div>
     </div>
-    <a id="cos-btn" href="grokbot://open" title="Chief of Staff — opens Grok Bot" onclick="return OPEN_COS(event)">CoS</a>
+    <a id="cos-btn" href="https://apps.apple.com/us/app/grok-bot/id6794501026" title="Chief of Staff — opens Grok Bot" onclick="return OPEN_COS(event)">CoS</a>
     <button type="button" id="theme-btn" title="Light / Dark / Auto" onclick="CYCLE_THEME()">◐</button>
   </div>
   <div id="tabs">
@@ -627,20 +630,47 @@ window.CYCLE_THEME=function(){
   if(i<0) i=2;
   window.SET_THEME(order[(i+1)%3]);
 };
-window.OPEN_COS=function(ev){
-  var home=location.href.split('#')[0];
-  var scheme='grokbot://open?x-source=Research%20Agent&x-success='+encodeURIComponent(home);
-  var a=ev&&ev.currentTarget;
-  if(a&&a.tagName==='A') a.href=scheme;
+function COS_IS_IOS(){
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent||'') || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+}
+function COS_APP_URL(){
+  if(COS_IS_IOS()) return 'https://apps.apple.com/us/app/grok-bot/id6794501026';
+  return 'grokbot://open';
+}
+function COS_FALLBACK_URL(){
+  return COS_IS_IOS()?'https://apps.apple.com/us/app/grok-bot/id6794501026':'https://x.ai/bot';
+}
+function SHOW_COS_SHEET(){
+  var ios=COS_IS_IOS();
+  var title=document.getElementById('cos-sheet-title');
+  var body=document.getElementById('cos-sheet-body');
+  var hint=document.getElementById('cos-sheet-hint');
+  if(title) title.textContent='Chief of Staff';
+  if(ios){
+    if(body) body.textContent='Opening the Grok Bot App Store page. If the app is installed, tap Open.';
+    if(hint) hint.textContent='When you are done, tap ‹ at the top-left, or swipe up and tap Research Agent.';
+  } else {
+    if(body) body.textContent='Grok Bot should come forward. This app stays here.';
+    if(hint) hint.textContent='When you are done, come back to this window.';
+  }
   var sheet=document.getElementById('cos-sheet');
   if(sheet) sheet.classList.add('on');
-  var isiOS=/iPhone|iPad|iPod/i.test(navigator.userAgent||'');
-  var dest=isiOS?'https://apps.apple.com/us/app/grok-bot/id6794501026':'https://x.ai/bot';
-  setTimeout(function(){
-    if(document.hidden) return;
-    try{ window.open(dest,'_blank'); }catch(e){}
-  }, 1000);
-  return true;
+}
+window.OPEN_GROK_APP=function(){
+  var url=COS_APP_URL();
+  try{ window.open(url,'_blank'); }catch(e){ location.href=url; }
+};
+window.OPEN_COS=function(ev){
+  if(ev) ev.preventDefault();
+  SHOW_COS_SHEET();
+  window.OPEN_GROK_APP();
+  if(!COS_IS_IOS()){
+    setTimeout(function(){
+      if(document.hidden) return;
+      try{ window.open(COS_FALLBACK_URL(),'_blank'); }catch(e){}
+    }, 1000);
+  }
+  return false;
 };
 window.CLOSE_COS=function(){
   var sheet=document.getElementById('cos-sheet');
