@@ -23,10 +23,11 @@ button{cursor:pointer}
 #setup-err{color:var(--danger);font-size:13px;margin-bottom:8px;min-height:18px;text-align:center;width:100%;max-width:460px}
 #setup-btn{width:100%;max-width:460px;height:52px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:17px;font-weight:600;cursor:pointer}
 #app{display:none;flex-direction:column;height:100vh;height:100dvh}
-#hdr{padding:calc(var(--st) + 12px) 16px 12px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
-#theme-ctl{display:flex;gap:2px;flex-shrink:0;background:var(--bg3);border:0.5px solid var(--border);border-radius:99px;padding:2px;align-self:flex-start;margin-top:2px}
-#theme-ctl button{height:26px;padding:0 9px;border:none;background:transparent;color:var(--text3);font-size:11px;font-weight:600;border-radius:99px;cursor:pointer}
-#theme-ctl button.on{background:var(--accent);color:#fff}
+#hdr{padding:calc(var(--st) + 12px) 16px 12px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:nowrap}
+#theme-btn{height:30px;width:30px;padding:0;flex-shrink:0;align-self:flex-start;margin-top:2px;border:0.5px solid var(--border);border-radius:99px;background:var(--bg3);color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+#theme-btn:active{opacity:0.7}
+#cos-btn{height:30px;padding:0 9px;flex-shrink:0;align-self:flex-start;margin-top:2px;border:0.5px solid var(--border);border-radius:99px;background:var(--bg3);color:var(--text2);font-size:11px;font-weight:700;letter-spacing:0.3px;cursor:pointer;white-space:nowrap}
+#cos-btn:active{opacity:0.7}
 #hdr-t{font-size:17px;font-weight:600}
 #hdr-s{font-size:12px;color:var(--text2);margin-top:1px}
 #hdr-y{font-size:11px;color:var(--text3);margin-top:1px}
@@ -165,11 +166,8 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <span id="stxt">Connecting...</span>
       </div>
     </div>
-    <div id="theme-ctl" title="Theme">
-      <button type="button" id="th-light" onclick="SET_THEME('light')">Light</button>
-      <button type="button" id="th-dark" onclick="SET_THEME('dark')">Dark</button>
-      <button type="button" id="th-auto" onclick="SET_THEME('auto')">Auto</button>
-    </div>
+    <button type="button" id="cos-btn" title="Chief of Staff — opens Grok Bot" onclick="OPEN_COS()">CoS</button>
+    <button type="button" id="theme-btn" title="Light / Dark / Auto" onclick="CYCLE_THEME()">◐</button>
   </div>
   <div id="tabs">
     <button class="tab on" onclick="TAB('r')" id="tab-r">Research</button>
@@ -445,8 +443,8 @@ function NORMALIZE_BRIEF(parsed, type, fallbackTitle){
   var out = {type: type || data.type || 'paper'};
   if(data.subtitle) out.subtitle = String(data.subtitle);
   if(data.tagline) out.tagline = String(data.tagline);
-  var modelTitle = (data.title!=null) ? String(data.title).trim() : '';
-  out.title = modelTitle.length>=2 ? modelTitle : (fallbackTitle || '');
+  var modelTitle = (typeof data.title==='string') ? data.title.trim() : '';
+  out.title = IS_GOOD_TITLE(modelTitle) ? modelTitle : (fallbackTitle || '');
   if(!out.title) out.title = 'Untitled';
   var kpi = Array.isArray(data.kpi) ? data.kpi : [];
   out.kpi = kpi.filter(function(k){
@@ -528,7 +526,7 @@ function GET_BRIEF_TEXT_OR_RAW(e){
   return e.content||'';
 }
 function IS_PROMPT_TITLE(t){
-  var s=String(t||'').trim();
+  var s=String(t==null?'':t).trim();
   if(!s) return true;
   if(/^https?:\/\//i.test(s)) return true;
   if(/\b(i need you to|need you to research|can you research|please research)\b/i.test(s)) return true;
@@ -536,22 +534,45 @@ function IS_PROMPT_TITLE(t){
   if(s.length>72) return true;
   return false;
 }
+function IS_GOOD_TITLE(t){
+  if(typeof t!=='string') return false;
+  var s=t.trim();
+  if(s.length<2 || s.length>72) return false;
+  if(/^(true|false|undefined|null)$/i.test(s)) return false;
+  if(IS_PROMPT_TITLE(s)) return false;
+  return true;
+}
 function JSON_TITLE(e){
   try{
     var raw=e.briefJson||e.content||'';
     if(typeof raw==='string' && raw.trim().charAt(0)!=='{' && raw.trim().slice(0,3)!=='```' && !e.briefJson) return '';
     var d=PARSE_BRIEF(e.briefJson||e.content);
-    if(d&&d.title&&!IS_PROMPT_TITLE(d.title)) return String(d.title).trim();
+    if(d && typeof d.title==='string' && IS_GOOD_TITLE(d.title)) return d.title.trim();
   }catch(err){}
+  return '';
+}
+function HEADING_TITLE(text){
+  var t=String(text||'').replace(/\r\n/g,'\n');
+  var lines=t.split('\n');
+  var m=t.match(/^#{1,3}\s+(.+)$/m);
+  if(m) lines=[m[1]].concat(lines);
+  for(var i=0;i<lines.length;i++){
+    var L=String(lines[i]||'').replace(/[*_`#]/g,'').trim();
+    if(!L) continue;
+    var words=L.split(/\s+/).filter(Boolean).slice(0,6).join(' ');
+    if(IS_GOOD_TITLE(words)) return words;
+  }
   return '';
 }
 function DISPLAY_TITLE(e){
   if(!e) return 'Untitled';
-  if(e.titleClean && !IS_PROMPT_TITLE(e.titleClean)) return e.titleClean;
   var jt=JSON_TITLE(e);
-  if(jt) return jt;
-  if(e.title && !IS_PROMPT_TITLE(e.title)) return e.title;
-  return e.title||'Untitled';
+  if(IS_GOOD_TITLE(jt)) return jt;
+  if(IS_GOOD_TITLE(e.titleClean)) return e.titleClean.trim();
+  if(IS_GOOD_TITLE(e.title)) return e.title.trim();
+  var ht=HEADING_TITLE(GET_BRIEF_TEXT_OR_RAW(e));
+  if(IS_GOOD_TITLE(ht)) return ht;
+  return 'Untitled';
 }
 function TAG_LABEL(t){
   if(t==='ai-ml') return 'AI/ML';
@@ -574,15 +595,35 @@ function THEME_IS_LIGHT(mode){
 function APPLY_THEME(){
   var mode=THEME_MODE();
   document.body.classList.toggle('light', THEME_IS_LIGHT(mode));
-  var map={light:'th-light',dark:'th-dark',auto:'th-auto'};
-  Object.keys(map).forEach(function(k){
-    var b=document.getElementById(map[k]);
-    if(b) b.classList.toggle('on', mode===k);
-  });
+  var b=document.getElementById('theme-btn');
+  if(b){
+    b.textContent=mode==='light'?'\u2600':mode==='dark'?'\u263D':'\u25D0';
+    b.title='Theme: '+(mode==='light'?'Light':mode==='dark'?'Dark':'Auto')+' — tap to change';
+  }
 }
 window.SET_THEME=function(mode){
   localStorage.setItem('ra-theme', mode);
   APPLY_THEME();
+};
+window.CYCLE_THEME=function(){
+  var order=['light','dark','auto'];
+  var i=order.indexOf(THEME_MODE());
+  if(i<0) i=2;
+  window.SET_THEME(order[(i+1)%3]);
+};
+window.OPEN_COS=function(){
+  var fallback='https://x.ai/bot';
+  var left=false;
+  var t=setTimeout(function(){
+    if(!left && !document.hidden) window.open(fallback,'_blank');
+  }, 900);
+  function gone(){
+    if(document.hidden){ left=true; clearTimeout(t); }
+    document.removeEventListener('visibilitychange', gone);
+  }
+  document.addEventListener('visibilitychange', gone);
+  try{ window.location.href='grokbot://'; }
+  catch(e){ clearTimeout(t); window.open(fallback,'_blank'); }
 };
 APPLY_THEME();
 setInterval(function(){ if(THEME_MODE()==='auto') APPLY_THEME(); }, 60000);
@@ -1303,7 +1344,7 @@ window.DO_R=async function(){
     var full=await CALL('You are a rigorous research assistant. '+modes[mode]+' Use web_search and x_search for current info. Be thorough. No filler.',BLD_C(pt,rAt),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
     if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
     window.LR=full;document.getElementById('rres').className='res';
-    try{document.getElementById('rti').value=await GEN_CLEAN_TITLE(full);}catch(te){document.getElementById('rti').value='Research';}
+    try{var gt=await GEN_CLEAN_TITLE(full);document.getElementById('rti').value=gt||'Research';}catch(te){document.getElementById('rti').value='Research';}
   }catch(e){document.getElementById('rw').style.display='none';document.getElementById('rerr').style.display='block';document.getElementById('rerr').textContent='Error: '+e.message;}
   document.getElementById('rst').style.display='none';btn.disabled=false;
 };
@@ -1324,7 +1365,7 @@ window.DO_S=async function(){
     var full=await CALL('You are an expert summarizer. '+types[type]+' Use web_search when given a URL. Complete fully. No filler.',BLD_C(pt,sAt),true,function(c){document.getElementById('sres').textContent=c;},{tools: url ? [{type:'web_search'}] : []});
     if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
     window.LS=full;document.getElementById('sres').className='res';
-    try{document.getElementById('sti').value=await GEN_CLEAN_TITLE(full);}catch(te){document.getElementById('sti').value='Summary';}
+    try{var gt=await GEN_CLEAN_TITLE(full);document.getElementById('sti').value=gt||'Summary';}catch(te){document.getElementById('sti').value='Summary';}
   }catch(e){document.getElementById('sw').style.display='none';document.getElementById('serr').style.display='block';document.getElementById('serr').textContent='Error: '+e.message;}
   document.getElementById('sst').style.display='none';btn.disabled=false;
 };
@@ -1360,6 +1401,7 @@ window.SAVE_KB=async function(t){
   var looksLikePrompt=!title || (promptish && title===promptish.slice(0,60)) || /^https?:\/\//i.test(title);
   if(looksLikePrompt){
     try{title=await GEN_CLEAN_TITLE(content);}catch(te){title=typed||'Untitled';}
+    if(!IS_GOOD_TITLE(title)) title=typed||'Untitled';
     document.getElementById(ir?'rti':'sti').value=title;
   }
   var entry={id:Date.now(),title:title,titleClean:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary'};
@@ -1367,7 +1409,7 @@ window.SAVE_KB=async function(t){
     var structured=await window.RESTRUCTURE(content,title);
     entry.content=JSON.stringify(structured);
     entry.briefJson=JSON.stringify(structured);
-    if(structured.title && looksLikePrompt) {entry.title=structured.title; entry.titleClean=structured.title;}
+    if(IS_GOOD_TITLE(structured.title) && looksLikePrompt) {entry.title=structured.title; entry.titleClean=structured.title;}
   }catch(err){
     console.error('Restructure failed, saving as plain text instead:',err);
   }
@@ -1386,14 +1428,14 @@ var BRIEF_SCHEMAS={
 
 async function GEN_CLEAN_TITLE(content){
   var raw=await CALL(
-    'You write short document titles. Output ONLY the title. Maximum 6 words. Name the subject. No quotes, no trailing punctuation, no restating the user prompt or URL.',
+    'You write short document titles. Output ONLY the title. Maximum 6 words. Name the subject. No quotes, no trailing punctuation, no restating the user prompt or URL. Never output true, false, undefined, or null.',
     'Write a max-6-word title for this content:\n\n'+String(content||'').slice(0,6000),
     false, null, {tools:[], maxTokens:512, reasoning:'low'}
   );
   var t=String(raw||'').trim().replace(/^["'`]+|["'`]+$/g,'').replace(/\s+/g,' ');
   t=t.split('\n')[0].trim();
   var words=t.split(/\s+/).filter(Boolean).slice(0,6).join(' ');
-  return words || 'Untitled';
+  return IS_GOOD_TITLE(words) ? words : '';
 }
 function CLASSIFY_BRIEF(text, title){
   var c=String(text||'')+' '+String(title||'');
@@ -1443,8 +1485,8 @@ async function GEN_BRIEF(type, text, fallbackTitle){
     try{parsed=PARSE_BRIEF(raw);}catch(e2){throw new Error('Brief JSON parse failed: '+(e2&&e2.message?e2.message:e2));}
   }
   var data=NORMALIZE_BRIEF(parsed, type, '');
-  var modelTitle=(parsed&&parsed.title)?String(parsed.title).trim():'';
-  if(modelTitle.length<2){
+  var modelTitle=(parsed && typeof parsed.title==='string')?parsed.title.trim():'';
+  if(!IS_GOOD_TITLE(data.title) && !IS_GOOD_TITLE(modelTitle)){
     try{data.title=await GEN_CLEAN_TITLE(text);}catch(te){data.title=fallbackTitle||data.title||'Untitled';}
   }
   data.type=type;
@@ -1510,12 +1552,14 @@ window.RND_KB=function(){
   });
   if(!entries.length){list.innerHTML='<div class="empty"><div class="ico">'+(KB.length?'&#128269;':'&#128205;')+'</div>'+(KB.length?'No results.':'Nothing saved yet.')+'</div>';return;}
   list.innerHTML=entries.map(function(e){return KBC(e,'DEL_KB');}).join('');
-  entries.forEach(function(e){
-    if(!IS_PROMPT_TITLE(e.title) && e.titleClean && !IS_PROMPT_TITLE(e.titleClean)) return;
-    var jt=JSON_TITLE(e);
-    if(!jt || jt===e.title) return;
-    e.title=jt; e.titleClean=jt;
-    if(e._did) UP_FB(e._did,'knowledge_base',{title:jt,titleClean:jt});
+  KB.forEach(function(e){
+    var good=DISPLAY_TITLE(e);
+    if(!IS_GOOD_TITLE(good) || good==='Untitled') return;
+    var storedBad=!IS_GOOD_TITLE(e.title) || !IS_GOOD_TITLE(e.titleClean);
+    if(!storedBad && e.title===good && e.titleClean===good) return;
+    if(!storedBad) return;
+    e.title=good; e.titleClean=good;
+    if(e._did) UP_FB(e._did,'knowledge_base',{title:good,titleClean:good});
   });
 };
 window.SET_TAG=function(t){
@@ -1529,14 +1573,13 @@ window.CLEAN_TITLES=async function(){
   for(var i=0;i<KB.length;i++){
     var e=KB[i];
     var next=DISPLAY_TITLE(e);
-    if(IS_PROMPT_TITLE(next)||IS_PROMPT_TITLE(e.title)||!e.titleClean){
+    if(!IS_GOOD_TITLE(next) || next==='Untitled'){
       var src=GET_BRIEF_TEXT_OR_RAW(e)||e.content||'';
-      if(src && (IS_PROMPT_TITLE(next))){
-        try{next=await GEN_CLEAN_TITLE(src);}catch(err){continue;}
-      }
+      if(!src) continue;
+      try{next=await GEN_CLEAN_TITLE(src);}catch(err){continue;}
     }
-    if(!next) continue;
-    if(next===e.title && e.titleClean===next) continue;
+    if(!IS_GOOD_TITLE(next) || next==='Untitled') continue;
+    if(next===e.title && next===e.titleClean) continue;
     e.title=next; e.titleClean=next;
     if(e._did) await UP_FB(e._did,'knowledge_base',{title:next,titleClean:next});
   }
