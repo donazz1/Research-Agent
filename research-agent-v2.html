@@ -24,6 +24,9 @@ button{cursor:pointer}
 #setup-btn{width:100%;max-width:460px;height:52px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:17px;font-weight:600;cursor:pointer}
 #app{display:none;flex-direction:column;height:100vh;height:100dvh}
 #hdr{padding:calc(var(--st) + 12px) 16px 12px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#theme-ctl{display:flex;gap:2px;flex-shrink:0;background:var(--bg3);border:0.5px solid var(--border);border-radius:99px;padding:2px;align-self:flex-start;margin-top:2px}
+#theme-ctl button{height:26px;padding:0 9px;border:none;background:transparent;color:var(--text3);font-size:11px;font-weight:600;border-radius:99px;cursor:pointer}
+#theme-ctl button.on{background:var(--accent);color:#fff}
 #hdr-t{font-size:17px;font-weight:600}
 #hdr-s{font-size:12px;color:var(--text2);margin-top:1px}
 #hdr-y{font-size:11px;color:var(--text3);margin-top:1px}
@@ -162,6 +165,11 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <span id="stxt">Connecting...</span>
       </div>
     </div>
+    <div id="theme-ctl" title="Theme">
+      <button type="button" id="th-light" onclick="SET_THEME('light')">Light</button>
+      <button type="button" id="th-dark" onclick="SET_THEME('dark')">Dark</button>
+      <button type="button" id="th-auto" onclick="SET_THEME('auto')">Auto</button>
+    </div>
   </div>
   <div id="tabs">
     <button class="tab on" onclick="TAB('r')" id="tab-r">Research</button>
@@ -248,7 +256,8 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <select class="inp" id="rtg" style="height:44px">
           <option value="research">Research Note</option><option value="business">Business</option>
           <option value="tech">Tech</option><option value="science">Science</option>
-          <option value="ai-ml">AI/ML</option><option value="health">Health</option><option value="general">General</option>
+          <option value="ai">AI</option><option value="ai-ml">AI/ML</option>
+          <option value="health">Health</option><option value="general">General</option>
         </select>
         <button class="btn" onclick="SAVE_KB('r')" id="rsb">&#128204; Save to KB</button>
       </div>
@@ -336,7 +345,8 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <select class="inp" id="stg" style="height:44px">
           <option value="summary">Summary</option><option value="business">Business</option>
           <option value="tech">Tech</option><option value="science">Science</option>
-          <option value="ai-ml">AI/ML</option><option value="health">Health</option><option value="general">General</option>
+          <option value="ai">AI</option><option value="ai-ml">AI/ML</option>
+          <option value="health">Health</option><option value="general">General</option>
         </select>
         <button class="btn" onclick="SAVE_KB('s')" id="ssb">&#128204; Save to KB</button>
       </div>
@@ -345,6 +355,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
     <div class="pane" id="pane-k">
       <input class="inp" id="ksrch" placeholder="Search knowledge base..." oninput="RND_KB()" style="height:44px;margin-bottom:12px"/>
       <div class="fr" id="kbtags"></div>
+      <button class="btn small" id="clean-titles-btn" onclick="CLEAN_TITLES()" style="margin-bottom:12px">Clean titles</button>
       <div id="kblist"></div>
     </div>
 
@@ -363,13 +374,6 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
     </div>
 
     <div class="pane" id="pane-x">
-      <div class="lbl">Appearance</div>
-      <div class="sbox">
-        <div class="srow" style="padding-top:0;padding-bottom:0">
-          <div><div class="slbl">Light mode</div><div class="ssub">Toggle dark/light</div></div>
-          <label class="tog"><input type="checkbox" id="ltog" onchange="SET_LIGHT(this.checked)"/><span class="togl"></span></label>
-        </div>
-      </div>
       <div class="lbl">API Keys</div>
       <div class="sbox">
         <div class="srow" style="padding-top:0">
@@ -513,11 +517,75 @@ function BR_TEXT(data){
   return out.join('\n');
 }
 function GET_BRIEF_TEXT_OR_RAW(e){
+  if(!e) return '';
   if(e.briefType||e.briefJson){
     try{return BR_TEXT(PARSE_BRIEF(e.briefJson||e.content));}catch(err){}
   }
+  var c=String(e.content||'').trim();
+  if(c.charAt(0)==='{' || c.slice(0,3)==='```'){
+    try{return BR_TEXT(PARSE_BRIEF(c));}catch(err){}
+  }
   return e.content||'';
 }
+function IS_PROMPT_TITLE(t){
+  var s=String(t||'').trim();
+  if(!s) return true;
+  if(/^https?:\/\//i.test(s)) return true;
+  if(/\b(i need you to|need you to research|can you research|please research)\b/i.test(s)) return true;
+  if(/^(i need|need a|can you|please |what is|tell me about|research a |research the |look up|find out|give me)\b/i.test(s)) return true;
+  if(s.length>72) return true;
+  return false;
+}
+function JSON_TITLE(e){
+  try{
+    var raw=e.briefJson||e.content||'';
+    if(typeof raw==='string' && raw.trim().charAt(0)!=='{' && raw.trim().slice(0,3)!=='```' && !e.briefJson) return '';
+    var d=PARSE_BRIEF(e.briefJson||e.content);
+    if(d&&d.title&&!IS_PROMPT_TITLE(d.title)) return String(d.title).trim();
+  }catch(err){}
+  return '';
+}
+function DISPLAY_TITLE(e){
+  if(!e) return 'Untitled';
+  if(e.titleClean && !IS_PROMPT_TITLE(e.titleClean)) return e.titleClean;
+  var jt=JSON_TITLE(e);
+  if(jt) return jt;
+  if(e.title && !IS_PROMPT_TITLE(e.title)) return e.title;
+  return e.title||'Untitled';
+}
+function TAG_LABEL(t){
+  if(t==='ai-ml') return 'AI/ML';
+  if(t==='ai') return 'AI';
+  if(t==='science') return 'Science';
+  return t||'note';
+}
+function THEME_MODE(){
+  var m=localStorage.getItem('ra-theme');
+  if(m==='light'||m==='dark'||m==='auto') return m;
+  if(localStorage.getItem('ra-light')==='1') return 'light';
+  return 'auto';
+}
+function THEME_IS_LIGHT(mode){
+  if(mode==='light') return true;
+  if(mode==='dark') return false;
+  var h=new Date().getHours();
+  return h>=7 && h<19;
+}
+function APPLY_THEME(){
+  var mode=THEME_MODE();
+  document.body.classList.toggle('light', THEME_IS_LIGHT(mode));
+  var map={light:'th-light',dark:'th-dark',auto:'th-auto'};
+  Object.keys(map).forEach(function(k){
+    var b=document.getElementById(map[k]);
+    if(b) b.classList.toggle('on', mode===k);
+  });
+}
+window.SET_THEME=function(mode){
+  localStorage.setItem('ra-theme', mode);
+  APPLY_THEME();
+};
+APPLY_THEME();
+setInterval(function(){ if(THEME_MODE()==='auto') APPLY_THEME(); }, 60000);
 function MD_TO_SECTIONS(text){
   var raw = String(text||'').replace(/\r\n/g,'\n');
   raw = raw.replace(/\s*(#{1,6}\s+)/g, '\n$1');
@@ -650,7 +718,7 @@ function CH_SPD(t){
 function KB_SPK(id){
   var e=(window._KB||[]).find(function(x){return x.id===id;});if(!e)return;
   var t='kb'+id;if(_SC&&_SC.tab===t){STOP_SPK();return;}
-  _DO_SPK(e.content,1,{tab:t,pid:'kbpl-'+id,ppid:'kbpp-'+id,pfid:'kbpf-'+id,plid:'kbpbl-'+id,rid:'kbrd-'+id});
+  _DO_SPK(GET_BRIEF_TEXT_OR_RAW(e),1,{tab:t,pid:'kbpl-'+id,ppid:'kbpp-'+id,pfid:'kbpf-'+id,plid:'kbpbl-'+id,rid:'kbrd-'+id});
 }
 </script>
 
@@ -930,7 +998,7 @@ window.EXPORT_TEXT_PDF = function(getText, getTitle){
 
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 var DB=null,KB=[],BR=[],ATag=null;
 window.LR='';window.LS='';
@@ -970,6 +1038,7 @@ async function LD_KB(){
   }catch(e){console.error('LD_KB error:',e);SS('err','Load error: '+(e&&e.message?e.message:String(e)));}
 }
 async function SV_FB(entry,col){if(!DB)return null;try{var r=await addDoc(collection(DB,col),entry);return r.id;}catch(e){return null;}}
+async function UP_FB(did,col,patch){if(!DB||!did)return;try{await updateDoc(doc(DB,col,did),patch);}catch(e){console.error('UP_FB',e);}}
 async function DL_FB(did,col){if(!DB||!did)return;try{await deleteDoc(doc(DB,col,did));}catch(e){}}
 
 function U_CNT(){
@@ -986,7 +1055,6 @@ window.TAB=function(t){
   });
   if(t==='k')RND_KB();if(t==='b')RND_BR();
 };
-window.SET_LIGHT=function(on){document.body.classList.toggle('light',on);localStorage.setItem('ra-light',on?'1':'');};
 window.CHG_KEY=function(){var k=prompt('New xAI API key (console.x.ai):');if(k&&k.trim()){localStorage.setItem('ra-k',k.trim());UKS();}};
 window.SET_AUTO_CVT=function(on){localStorage.setItem('ra-auto-cvt',on?'1':'');};
 window.CHG_FB=function(){var p=prompt('Firebase Project ID:','research-agent-83fe8');if(p){localStorage.setItem('ra-fp',p.trim());location.reload();}};
@@ -1423,17 +1491,58 @@ window.DEL_BR=async function(id){
 
 window.RND_KB=function(){
   var tags=Array.from(new Set(KB.map(function(e){return e.tag;}))).filter(Boolean);
+  var extra=['science','ai','ai-ml'];
+  extra.forEach(function(t){ if(tags.indexOf(t)<0) tags.push(t); });
   var tc=document.getElementById('kbtags');
-  if(tc)tc.innerHTML=tags.map(function(t){return'<button class="chip'+(ATag===t?' on':'')+'" onclick="SET_TAG(\''+t+'\')">'+ESC(t)+'</button>';}).join('')+'<span style="font-size:12px;color:var(--text3);margin-left:auto">'+KB.length+' entries</span>';
+  if(tc){
+    var chips='<button class="chip'+(ATag==null?' on':'')+'" onclick="SET_TAG(null)">All</button>';
+    chips+=tags.map(function(t){return'<button class="chip'+(ATag===t?' on':'')+'" onclick="SET_TAG(\''+t+'\')">'+ESC(TAG_LABEL(t))+'</button>';}).join('');
+    chips+='<span style="font-size:12px;color:var(--text3);margin-left:auto">'+KB.length+' entries</span>';
+    tc.innerHTML=chips;
+  }
   var list=document.getElementById('kblist');if(!list)return;
   var q=(document.getElementById('ksrch')?document.getElementById('ksrch').value:'').toLowerCase();
   var entries=KB;
   if(ATag)entries=entries.filter(function(e){return e.tag===ATag;});
-  if(q)entries=entries.filter(function(e){return e.title.toLowerCase().includes(q)||e.content.toLowerCase().includes(q);});
+  if(q)entries=entries.filter(function(e){
+    var hay=(DISPLAY_TITLE(e)+' '+GET_BRIEF_TEXT_OR_RAW(e)+' '+(e.title||'')+' '+(e.content||'')).toLowerCase();
+    return hay.indexOf(q)>=0;
+  });
   if(!entries.length){list.innerHTML='<div class="empty"><div class="ico">'+(KB.length?'&#128269;':'&#128205;')+'</div>'+(KB.length?'No results.':'Nothing saved yet.')+'</div>';return;}
   list.innerHTML=entries.map(function(e){return KBC(e,'DEL_KB');}).join('');
+  entries.forEach(function(e){
+    if(!IS_PROMPT_TITLE(e.title) && e.titleClean && !IS_PROMPT_TITLE(e.titleClean)) return;
+    var jt=JSON_TITLE(e);
+    if(!jt || jt===e.title) return;
+    e.title=jt; e.titleClean=jt;
+    if(e._did) UP_FB(e._did,'knowledge_base',{title:jt,titleClean:jt});
+  });
 };
-window.SET_TAG=function(t){ATag=ATag===t?null:t;RND_KB();};
+window.SET_TAG=function(t){
+  if(t==null||t==='all'){ATag=null;}
+  else {ATag=ATag===t?null:t;}
+  RND_KB();
+};
+window.CLEAN_TITLES=async function(){
+  var btn=document.getElementById('clean-titles-btn');
+  if(btn){btn.disabled=true;btn.textContent='Cleaning...';}
+  for(var i=0;i<KB.length;i++){
+    var e=KB[i];
+    var next=DISPLAY_TITLE(e);
+    if(IS_PROMPT_TITLE(next)||IS_PROMPT_TITLE(e.title)||!e.titleClean){
+      var src=GET_BRIEF_TEXT_OR_RAW(e)||e.content||'';
+      if(src && (IS_PROMPT_TITLE(next))){
+        try{next=await GEN_CLEAN_TITLE(src);}catch(err){continue;}
+      }
+    }
+    if(!next) continue;
+    if(next===e.title && e.titleClean===next) continue;
+    e.title=next; e.titleClean=next;
+    if(e._did) await UP_FB(e._did,'knowledge_base',{title:next,titleClean:next});
+  }
+  window._KB=KB.concat(BR); RND_KB();
+  if(btn){btn.disabled=false;btn.textContent='Clean titles';}
+};
 
 window.RND_BR=function(){
   var list=document.getElementById('brlist');if(!list)return;
@@ -1453,12 +1562,15 @@ window.RND_BR=function(){
 };
 
 function KBC(e,delFn){
-  var id=e.id,tr=e.content&&e.content.length>200;
+  var id=e.id;
+  var title=DISPLAY_TITLE(e);
+  var preview=GET_BRIEF_TEXT_OR_RAW(e)||'';
+  var tr=preview.length>200;
   var bc=tr?'kbcb tr':'kbcb';
   return '<div class="kbc">'+
-    '<div class="kbch"><div class="kbct" onclick="KB_EXP('+id+')">'+ESC(e.title)+'</div></div>'+
-    '<div class="kbcm"><span class="badge">'+ESC(e.tag||e.briefType||e.type||'note')+'</span><span>'+ESC(e.date||'')+'</span></div>'+
-    '<div class="'+bc+'" id="kbcb-'+id+'">'+ESC(e.content||'')+'</div>'+
+    '<div class="kbch"><div class="kbct" onclick="KB_EXP('+id+')">'+ESC(title)+'</div></div>'+
+    '<div class="kbcm"><span class="badge">'+ESC(TAG_LABEL(e.tag||e.briefType||e.type||'note'))+'</span><span>'+ESC(e.date||'')+'</span></div>'+
+    '<div class="'+bc+'" id="kbcb-'+id+'">'+ESC(preview)+'</div>'+
     '<div class="kbpl" id="kbpl-'+id+'">'+
       '<button class="kbpb" id="kbpp-'+id+'" onclick="PP()">&#9208;</button>'+
       '<div class="pnfo" style="flex:1;min-width:0"><div class="plbl" id="kbpbl-'+id+'">...</div>'+
@@ -1520,7 +1632,7 @@ window.VIEW_ENTRY=function(id){
 };
 window.KB_EXP=function(id){var b=document.getElementById('kbcb-'+id);if(!b)return;var ex=b.classList.toggle('exp');b.classList.toggle('tr',!ex);};
 window.GET_T=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?GET_BRIEF_TEXT_OR_RAW(e):'';};
-window.GET_N=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?e.title:'Entry';};
+window.GET_N=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?DISPLAY_TITLE(e):'Entry';};
 
 window.X_PDF=function(gt,gti){
   var t=gt();if(!t)return;var ti=gti?gti():'Document';
@@ -1558,10 +1670,7 @@ document.getElementById('cvt-btn').addEventListener('click', function(){
 });
 
 window.START_APP = async function(){
-  if(localStorage.getItem('ra-light')==='1'){
-    document.body.classList.add('light');
-    var lt=document.getElementById('ltog');if(lt)lt.checked=true;
-  }
+  APPLY_THEME();
   var ac=document.getElementById('acvt');
   if(ac) ac.checked=localStorage.getItem('ra-auto-cvt')==='1';
   await IFB();await LD_KB();UKS();
