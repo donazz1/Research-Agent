@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Research v2"/>
 <meta name="theme-color" content="#0f0f0f"/>
 <title>Research Agent v2</title>
 <link rel="apple-touch-icon" href="icon.png"/>
+<link rel="icon" href="icon.png"/>
+<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;Research Agent v2&quot;,&quot;short_name&quot;:&quot;Research v2&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;start_url&quot;:&quot;./research-agent-v2.html&quot;,&quot;background_color&quot;:&quot;#0f0f0f&quot;,&quot;theme_color&quot;:&quot;#0f0f0f&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;icon.png&quot;,&quot;sizes&quot;:&quot;180x180&quot;,&quot;type&quot;:&quot;image/png&quot;}]}"/>
 <style>
 :root{--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--bg4:#2e2e2e;--text:#f0f0f0;--text2:#a0a0a0;--text3:#666;--border:#333;--border2:#444;--accent:#6c63ff;--success:#2ecc71;--danger:#e74c3c;--warn:#f39c12;--radius:12px;--rsm:8px;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
 body.light{--bg:#f5f5f5;--bg2:#fff;--bg3:#efefef;--bg4:#e8e8e8;--text:#111;--text2:#555;--text3:#999;--border:#d0d0d0;--border2:#bbb}
@@ -118,6 +121,16 @@ select.inp{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;ba
 .fr{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
 .chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.tseg{display:flex;gap:6px;flex-wrap:nowrap;margin-bottom:4px}
+.tseg button{flex:1;min-width:0;min-height:40px;height:auto;padding:8px 10px;border-radius:99px;border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;line-height:1.2}
+.tseg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.vbadge{display:none;margin:0 0 12px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;letter-spacing:0.4px;line-height:1.4}
+.vbadge.on{display:block}
+.vbadge.KILL{background:rgba(231,76,60,0.18);color:#ff8a80;border:0.5px solid var(--danger)}
+.vbadge.PERSONAL_ONLY,.vbadge.PERSONAL_ONLY{background:rgba(108,99,255,0.18);color:#c4bfff;border:0.5px solid var(--accent)}
+.vbadge.COMMERCIAL{background:rgba(46,204,113,0.18);color:#7dffa6;border:0.5px solid var(--success)}
+.vbadge.BOTH{background:rgba(243,156,18,0.18);color:#ffd28a;border:0.5px solid var(--warn)}
+.vbadge.INSUFFICIENT_EVIDENCE,.vbadge.INSUFFICIENT_EVIDENCE{background:var(--bg3);color:var(--text2);border:0.5px solid var(--border)}
 .empty{text-align:center;padding:48px 16px;color:var(--text3);font-size:15px}
 .empty .ico{font-size:40px;margin-bottom:12px}
 .srow{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:0.5px solid var(--border)}
@@ -157,6 +170,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
   <div id="key-count" style="font-size:12px;color:var(--accent);min-height:18px;text-align:right;width:100%;max-width:460px;margin-bottom:4px"></div>
   <div id="setup-err"></div>
   <button id="setup-btn" onclick="doSetup()">Save &amp; Start &#8594;</button>
+  <button type="button" class="btn" onclick="LOOK_AROUND()" style="width:100%;max-width:460px;margin-top:8px;background:transparent;color:var(--text2)">Look around first</button>
   <p style="font-size:12px;color:var(--text3);margin-top:16px;text-align:center">Firebase sync is pre-configured. Key saved only on this device.</p>
 </div>
 
@@ -198,9 +212,15 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
   <div id="bdy">
 
     <div class="pane on" id="pane-r">
-      <div class="lbl">Research question</div>
+      <div class="lbl">Track</div>
+      <div class="tseg" id="tseg">
+        <button type="button" class="on" id="trk-c" onclick="SET_TRACK('company')">Research a company</button>
+        <button type="button" id="trk-i" onclick="SET_TRACK('idea')">Diligence an idea</button>
+      </div>
+      <div class="gap"></div>
+      <div class="lbl" id="rlbl">Company to research</div>
       <div class="row">
-        <textarea class="inp" id="rq" placeholder="What do you want to research?..." rows="3" style="flex:1"></textarea>
+        <textarea class="inp" id="rq" placeholder="Company name, ticker, or what you need to know about an existing firm..." rows="3" style="flex:1"></textarea>
         <button class="ibtn" onclick="MIC('rq','rqm')" id="rqm" style="color:var(--accent);align-self:flex-start">&#127908;</button>
         <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="CLR_R()">&#10005;</button>
       </div>
@@ -210,6 +230,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <button class="arm" onclick="RM_AT('r')">&#215;</button>
       </div>
       <div class="gap"></div>
+      <div id="rmode-wrap">
       <div class="lbl">Mode</div>
       <select class="inp" id="rmode">
         <option value="overview">Overview - clear comprehensive summary</option>
@@ -218,6 +239,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <option value="compare">Compare - contrast approaches or options</option>
       </select>
       <div class="gap"></div>
+      </div>
       <div style="display:flex;gap:8px">
         <button class="btn primary" onclick="DO_R()" id="rbtn" style="flex:1">&#128269; Research</button>
         <div class="awrap2">
@@ -236,6 +258,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
       <div id="rerr" class="errb"></div>
       <div class="rwrap" id="rw">
         <div class="rtbar"><button class="rbtn2" id="rrd" onclick="SPK('r')">&#9654; Read</button></div>
+        <div id="vbadge" class="vbadge"></div>
         <div class="res" id="rres"></div>
         <div class="player" id="rpl">
           <button class="ppbtn" id="rpp" onclick="PP()">&#9208;</button>
@@ -246,7 +269,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           </select>
         </div>
         <div class="acts">
-          <div class="awrap">
+          <div class="awrap" id="rbr-wrap">
             <button class="abtn brief" onclick="AM('rbr')">&#10024; Brief &#9660;</button>
             <div class="amenu" id="rbr">
               <button class="aitem" onclick="BRIEF('r','marketing');CM()">&#128202; Marketing Brief</button>
@@ -259,6 +282,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
             <button class="abtn" onclick="AM('rex')">&#128228; Export &#9660;</button>
             <div class="amenu" id="rex">
               <button class="aitem" onclick="EXPORT_TEXT_PDF(function(){return LR;},function(){return R_TTL();});CM()">&#128196; Save as PDF</button>
+              <button class="aitem" onclick="X_MD(function(){return LR;},function(){return R_TTL();});CM()">&#128196; Save as Markdown</button>
               <button class="aitem" onclick="X_HTML(function(){return LR;},function(){return R_TTL();});CM()">&#127760; Save as HTML</button>
               <button class="aitem" onclick="X_COPY(function(){return LR;});CM()">&#128203; Copy text</button>
               <button class="aitem" onclick="X_SHARE(function(){return LR;},function(){return R_TTL();});CM()">&#128228; Copy and Share</button>
@@ -371,6 +395,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 
     <div class="pane" id="pane-k">
       <input class="inp" id="ksrch" placeholder="Search knowledge base..." oninput="RND_KB()" style="height:44px;margin-bottom:12px"/>
+      <div class="fr" id="kbtracks"></div>
       <div class="fr" id="kbtags"></div>
       <button class="btn small" id="clean-titles-btn" onclick="CLEAN_TITLES()" style="margin-bottom:12px">Clean titles</button>
       <div id="kblist"></div>
@@ -630,6 +655,86 @@ window.CYCLE_THEME=function(){
   if(i<0) i=2;
   window.SET_THEME(order[(i+1)%3]);
 };
+window.TRACK='company';
+window.LAST_VERDICT='';
+window.SET_TRACK=function(t){
+  window.TRACK=(t==='idea')?'idea':'company';
+  var c=document.getElementById('trk-c'), i=document.getElementById('trk-i');
+  if(c) c.classList.toggle('on', window.TRACK==='company');
+  if(i) i.classList.toggle('on', window.TRACK==='idea');
+  var lbl=document.getElementById('rlbl'), ta=document.getElementById('rq'), btn=document.getElementById('rbtn');
+  var mw=document.getElementById('rmode-wrap'), bw=document.getElementById('rbr-wrap');
+  if(window.TRACK==='idea'){
+    if(lbl) lbl.textContent='Idea to diligence';
+    if(ta) ta.placeholder='One paragraph: what you would build, for whom, and why you might spend 20–80 hours on it...';
+    if(btn) btn.innerHTML='&#128269; Diligence';
+    if(mw) mw.style.display='none';
+    if(bw) bw.style.display='none';
+  } else {
+    if(lbl) lbl.textContent='Company to research';
+    if(ta) ta.placeholder='Company name, ticker, or what you need to know about an existing firm...';
+    if(btn) btn.innerHTML='&#128269; Research';
+    if(mw) mw.style.display='block';
+    if(bw) bw.style.display='';
+    SHOW_VBADGE('');
+  }
+};
+function SHOW_VBADGE(code, extra){
+  var el=document.getElementById('vbadge');
+  if(!el) return;
+  var ok={KILL:1,PERSONAL_ONLY:1,COMMERCIAL:1,BOTH:1,INSUFFICIENT_EVIDENCE:1};
+  if(!ok[code]){ el.className='vbadge'; el.textContent=''; return; }
+  el.className='vbadge on '+code;
+  el.textContent=code.replace(/_/g,' ')+(extra?(' · '+extra):'');
+}
+window.SHOW_VBADGE=SHOW_VBADGE;
+function SLUGIFY(s){
+  return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,48)||'memo';
+}
+function FILE_NAME(title, track){
+  var d=new Date().toLocaleDateString('en-CA');
+  var pre=(track||window.TRACK)==='idea'?'idea':'company';
+  return pre+'-'+SLUGIFY(title)+'-'+d;
+}
+function YAML_ESC(s){
+  return String(s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"').slice(0,400);
+}
+function MEMO_MARKDOWN(title, body, track, extra){
+  extra=extra||{};
+  var d=new Date().toLocaleDateString('en-CA');
+  var t=(track||window.TRACK)==='idea'?'idea':'company';
+  if(t==='idea'){
+    var v=extra.verdict||window.LAST_VERDICT||'';
+    var c=extra.confidence||window.LAST_CONF||'';
+    var f=extra.falsifier||window.LAST_FALSIFIER||'';
+    return '---\ntype: idea-memo\nproject: research-agent-v2\nverdict: "'+YAML_ESC(v)+'"\nconfidence: "'+YAML_ESC(c)+'"\nstatus: complete\ndate: '+d+'\ntags: [research, idea]\nfalsifier: "'+YAML_ESC(f)+'"\n---\n\n# '+(v||'IDEA')+'\n\n'+String(body||'');
+  }
+  return '---\ntype: company-memo\nproject: research-agent-v2\nstatus: complete\ndate: '+d+'\ntags: [research, company]\n---\n\n# '+String(title||'Company')+'\n\n'+String(body||'');
+}
+function STRIP_IDEA_VERDICT_TRAILER(text){
+  return String(text||'').replace(/^\s*VERDICT\s*[:\-].*$/gmi,'').replace(/^\s*CONFIDENCE\s*[:\-].*$/gmi,'').replace(/^\s*FALSIFIER\s*[:\-].*$/gmi,'');
+}
+function PARSE_VERDICT(text){
+  var t=String(text||'');
+  var m=t.match(/\bVERDICT\s*[:\-]\s*(KILL|PERSONAL_ONLY|COMMERCIAL|BOTH|INSUFFICIENT_EVIDENCE)\b/i);
+  if(m) return m[1].toUpperCase();
+  var codes=['INSUFFICIENT_EVIDENCE','PERSONAL_ONLY','COMMERCIAL','BOTH','KILL'];
+  for(var i=0;i<codes.length;i++){
+    var re=new RegExp('\\b'+codes[i]+'\\b','i');
+    if(re.test(t.slice(0,1200))) return codes[i];
+  }
+  return '';
+}
+function PARSE_CONF(text){
+  var m=String(text||'').match(/\bCONFIDENCE\s*[:\-]\s*(low|med|medium|high)\b/i);
+  if(!m) return '';
+  var c=m[1].toLowerCase();
+  return c==='medium'?'med':c;
+}
+function PARSE_FALSIFIER(text){
+  var m=String(text||'').match(/\bFALSIFIER\s*[:\-]\s*(.+)/i);
+  return m?m[1].trim().split('\n')[0].slice(0,240):'';
+}
 function COS_IS_IOS(){
   return /iPhone|iPad|iPod/i.test(navigator.userAgent||'') || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
 }
@@ -1092,7 +1197,7 @@ window.EXPORT_TEXT_PDF = function(getText, getTitle){
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-var DB=null,KB=[],BR=[],ATag=null;
+var DB=null,KB=[],BR=[],ATag=null,ATrack=null;
 window.LR='';window.LS='';
 var rAt=null,sAt=null,mRec=null,mFld=null;
 window._KB=[];
@@ -1379,28 +1484,69 @@ async function CALL(sys,uc,stream,onChunk,opts){
   return APPEND_CITES(full, cites);
 }
 
+window.LOOK_AROUND=function(){
+  try{sessionStorage.setItem('ra-preview','1');}catch(e){}
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='flex';
+  if(window.START_APP) window.START_APP();
+};
+function NEED_KEY(){
+  if(GK()) return false;
+  alert('Add your xAI key in Settings to run research. You can still look around the desk.');
+  TAB('x');
+  return true;
+}
 window.DO_R=async function(){
+  if(NEED_KEY()) return;
   var q=document.getElementById('rq').value.trim();
-  if(!q&&!rAt){alert('Add a question or attach a file.');return;}
-  M_STOP();var mode=document.getElementById('rmode').value;
+  if(!q&&!rAt){alert(window.TRACK==='idea'?'Describe the idea.':'Add a company question or attach a file.');return;}
+  M_STOP();
+  var mode=document.getElementById('rmode').value;
   var btn=document.getElementById('rbtn');btn.disabled=true;
   STOP_SPK();
-  document.getElementById('rst').style.display='flex';document.getElementById('rstx').textContent='Searching...';
+  window.LAST_VERDICT='';
+  SHOW_VBADGE('');
+  document.getElementById('rst').style.display='flex';document.getElementById('rstx').textContent=window.TRACK==='idea'?'Idea diligence...':'Searching...';
   document.getElementById('rw').style.display='block';document.getElementById('rres').className='res stream';document.getElementById('rres').textContent='';
   document.getElementById('rsv').style.display='none';document.getElementById('rerr').style.display='none';
   var modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis.',papers:'Focus on academic research and key papers.',compare:'Compare the main approaches and viewpoints.'};
   var pt=rAt&&!q?'Analyze this '+(rAt.img?'image':'document')+' and provide research insights.':rAt?q+'\n\nAttached for context.':q;
   try{
-    document.getElementById('rstx').textContent='Generating...';
-    var full=await CALL('You are a rigorous research assistant. '+modes[mode]+' Use web_search and x_search for current info. Be thorough. No filler.',BLD_C(pt,rAt),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
-    if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
+    var full;
+    if(window.TRACK==='idea'){
+      var ideaSys='You are the Idea Diligence analyst for Don\'s private Research Agent V2. Track B only. Diligence HIS product idea before he spends 20-80 hours. Do not treat this as an established-company memo. Never write a valuation block, ticker, entry/exit, or watch/pass/engage/value recommendation. Pipeline in this exact order: (1) Problem check with live evidence (2) Competitive landscape with real operators + real pricing-page URLs + real user complaints (3) Differentiation — a concrete gap or say there is none (4) Technical feasibility + third-party APIs + SPOFs (5) Cost-to-serve with actual vendor math (6) Draft verdict paragraph. Rules: every factual claim sourced or marked unverified; no invented TAM/SAM/SOM; no "we\'ll just execute better"; no 100-point score; "build an MVP" is not an acceptable ending. Use web_search and x_search. End the memo with exactly these three lines:\nVERDICT: KILL|PERSONAL_ONLY|COMMERCIAL|BOTH|INSUFFICIENT_EVIDENCE\nCONFIDENCE: low|med|high\nFALSIFIER: one sentence that would flip the call.';
+      document.getElementById('rstx').textContent='Idea diligence (steps 1–5)...';
+      full=await CALL(ideaSys,BLD_C('Product idea to diligence:\n\n'+pt,rAt),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
+      if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
+      var v=PARSE_VERDICT(full)||'INSUFFICIENT_EVIDENCE';
+      if(v!=='INSUFFICIENT_EVIDENCE'){
+        document.getElementById('rstx').textContent='Skeptic pass...';
+        var skSys='You are the Skeptic on Don\'s Research Agent V2 Track B. Mandatory second memo. Try to issue KILL or downgrade to PERSONAL_ONLY. Name clones. Reject unsourced claims. Challenge willingness-to-pay. Do not write a company valuation. Use web_search and x_search. Then output a revised full idea memo in the same six-step structure, ending with:\nVERDICT: KILL|PERSONAL_ONLY|COMMERCIAL|BOTH|INSUFFICIENT_EVIDENCE\nCONFIDENCE: low|med|high\nFALSIFIER: one sentence.';
+        var sk=await CALL(skSys,BLD_C('Draft idea memo to attack:\n\n'+full,null),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
+        if(sk&&sk.trim().length>40) full=sk;
+        v=PARSE_VERDICT(full)||v;
+      }
+      window.LAST_VERDICT=v;
+      window.LAST_CONF=PARSE_CONF(full);
+      window.LAST_FALSIFIER=PARSE_FALSIFIER(full);
+      SHOW_VBADGE(v,(window.LAST_CONF?('confidence '+window.LAST_CONF):''));
+    } else {
+      document.getElementById('rstx').textContent='Generating...';
+      var coSys='You are a rigorous research assistant on Track A (established companies). '+modes[mode]+' Use web_search and x_search for current info. Be thorough. No filler. Answer: what is this company and what should I do with that knowledge? Output a sourced company memo: snapshot, findings, risks, sourced numbers, open questions, and watch/pass/engage/value. NEVER use idea verdicts KILL, PERSONAL_ONLY, COMMERCIAL, BOTH, or INSUFFICIENT_EVIDENCE.';
+      full=await CALL(coSys,BLD_C(pt,rAt),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
+      if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
+      if(PARSE_VERDICT(full)) full=STRIP_IDEA_VERDICT_TRAILER(full);
+      window.LAST_VERDICT='';window.LAST_CONF='';window.LAST_FALSIFIER='';
+      SHOW_VBADGE('');
+    }
     window.LR=full;document.getElementById('rres').className='res';
-    try{var gt=await GEN_CLEAN_TITLE(full);document.getElementById('rti').value=gt||'Research';}catch(te){document.getElementById('rti').value='Research';}
+    try{var gt=await GEN_CLEAN_TITLE(full);document.getElementById('rti').value=gt||(window.TRACK==='idea'?'Idea memo':'Research');}catch(te){document.getElementById('rti').value=window.TRACK==='idea'?'Idea memo':'Research';}
   }catch(e){document.getElementById('rw').style.display='none';document.getElementById('rerr').style.display='block';document.getElementById('rerr').textContent='Error: '+e.message;}
   document.getElementById('rst').style.display='none';btn.disabled=false;
 };
 
 window.DO_S=async function(){
+  if(NEED_KEY()) return;
   var url=document.getElementById('surl').value.trim(),txt=document.getElementById('stxt').value.trim();
   if(!url&&!txt&&!sAt){alert('Add a URL, paste text, or attach a file.');return;}
   M_STOP();var type=document.getElementById('stype').value;
@@ -1455,7 +1601,7 @@ window.SAVE_KB=async function(t){
     if(!IS_GOOD_TITLE(title)) title=typed||'Untitled';
     document.getElementById(ir?'rti':'sti').value=title;
   }
-  var entry={id:Date.now(),title:title,titleClean:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary'};
+  var entry={id:Date.now(),title:title,titleClean:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary',track:ir?(window.TRACK||'company'):'summary',verdict:ir?(window.LAST_VERDICT||''):'',confidence:ir?(window.LAST_CONF||''):'',falsifier:ir?(window.LAST_FALSIFIER||''):'',fileName:ir?FILE_NAME(title):('summary-'+SLUGIFY(title)+'-'+new Date().toLocaleDateString('en-CA'))};
   try{
     var structured=await window.RESTRUCTURE(content,title);
     entry.content=JSON.stringify(structured);
@@ -1550,6 +1696,15 @@ window.CLASSIFY_BRIEF=CLASSIFY_BRIEF;
 window.BRIEF_SCHEMAS=BRIEF_SCHEMAS;
 
 window.BRIEF=async function(tab,type){
+  if(NEED_KEY()) return;
+  if(tab==='r' && window.TRACK==='idea'){
+    alert('Idea diligence does not use company briefs. Save the idea memo instead.');
+    return;
+  }
+  if(tab==='r' && type==='financial' && window.TRACK==='idea'){
+    alert('A company valuation block cannot come from an idea run.');
+    return;
+  }
   var text=tab==='r'?window.LR:window.LS;
   if(!text){alert('Generate a research result first.');return;}
   var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
@@ -1586,16 +1741,24 @@ window.RND_KB=function(){
   var tags=Array.from(new Set(KB.map(function(e){return e.tag;}))).filter(Boolean);
   var extra=['science','ai','ai-ml'];
   extra.forEach(function(t){ if(tags.indexOf(t)<0) tags.push(t); });
+  var tr=document.getElementById('kbtracks');
+  if(tr){
+    tr.innerHTML='<button class="chip'+(ATrack==null?' on':'')+'" onclick="SET_TRACK_FILTER(null)">All</button>'+
+      '<button class="chip'+(ATrack==='company'?' on':'')+'" onclick="SET_TRACK_FILTER(\'company\')">Companies</button>'+
+      '<button class="chip'+(ATrack==='idea'?' on':'')+'" onclick="SET_TRACK_FILTER(\'idea\')">Ideas</button>';
+  }
   var tc=document.getElementById('kbtags');
   if(tc){
-    var chips='<button class="chip'+(ATag==null?' on':'')+'" onclick="SET_TAG(null)">All</button>';
+    var chips='<button class="chip'+(ATag==null?' on':'')+'" onclick="SET_TAG(null)">All tags</button>';
     chips+=tags.map(function(t){return'<button class="chip'+(ATag===t?' on':'')+'" onclick="SET_TAG(\''+t+'\')">'+ESC(TAG_LABEL(t))+'</button>';}).join('');
     chips+='<span style="font-size:12px;color:var(--text3);margin-left:auto">'+KB.length+' entries</span>';
     tc.innerHTML=chips;
   }
   var list=document.getElementById('kblist');if(!list)return;
-  var q=(document.getElementById('ksrch')?document.getElementById('ksrch').value:'').toLowerCase();
+  var qEl=document.getElementById('ksrch')||document.getElementById('ksrch');
+  var q=qEl?qEl.value.toLowerCase():'';
   var entries=KB;
+  if(ATrack)entries=entries.filter(function(e){return (e.track||'company')===ATrack;});
   if(ATag)entries=entries.filter(function(e){return e.tag===ATag;});
   if(q)entries=entries.filter(function(e){
     var hay=(DISPLAY_TITLE(e)+' '+GET_BRIEF_TEXT_OR_RAW(e)+' '+(e.title||'')+' '+(e.content||'')).toLowerCase();
@@ -1616,6 +1779,10 @@ window.RND_KB=function(){
 window.SET_TAG=function(t){
   if(t==null||t==='all'){ATag=null;}
   else {ATag=ATag===t?null:t;}
+  RND_KB();
+};
+window.SET_TRACK_FILTER=function(t){
+  ATrack=(t==='company'||t==='idea')?t:null;
   RND_KB();
 };
 window.CLEAN_TITLES=async function(){
@@ -1663,7 +1830,7 @@ function KBC(e,delFn){
   var bc=tr?'kbcb tr':'kbcb';
   return '<div class="kbc">'+
     '<div class="kbch"><div class="kbct" onclick="KB_EXP('+id+')">'+ESC(title)+'</div></div>'+
-    '<div class="kbcm"><span class="badge">'+ESC(TAG_LABEL(e.tag||e.briefType||e.type||'note'))+'</span><span>'+ESC(e.date||'')+'</span></div>'+
+    '<div class="kbcm"><span class="badge">'+ESC(TAG_LABEL(e.tag||e.briefType||e.type||'note'))+'</span>'+(e.track==='idea'&&e.verdict?'<span class="vbadge on '+ESC(e.verdict)+'" style="display:inline-block;margin:0;padding:2px 8px;font-size:11px">'+ESC(String(e.verdict).replace(/_/g,' '))+'</span>':'')+'<span>'+ESC(e.date||'')+'</span></div>'+
     '<div class="'+bc+'" id="kbcb-'+id+'">'+ESC(preview)+'</div>'+
     '<div class="kbpl" id="kbpl-'+id+'">'+
       '<button class="kbpb" id="kbpp-'+id+'" onclick="PP()">&#9208;</button>'+
@@ -1678,7 +1845,8 @@ function KBC(e,delFn){
       '<button class="kbab" style="border-color:var(--success);color:var(--success)" onclick="EXPORT_PDF('+id+')">&#11015; PDF</button>'+
       '<div class="awrap"><button class="kbab" onclick="AM(\'kbex-'+id+'\')">Export &#9660;</button>'+
         '<div class="amenu" id="kbex-'+id+'">'+
-          '<button class="aitem" onclick="X_HTML(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#127760; HTML</button>'+
+          '<button class="aitem" onclick="X_MD_ENTRY('+id+');CM()">&#128196; Markdown</button>'+
+          '<button class="aitem" onclick="X_HTML(function(){return GET_T('+id+');},function(){return GET_N('+id+');},{track:'+(e.track==='idea'?'\'idea\'':'\'company\'')+'});CM()">&#127760; HTML</button>'+
           '<button class="aitem" onclick="X_COPY(function(){return GET_T('+id+');});CM()">&#128203; Copy</button>'+
           '<button class="aitem" onclick="X_SHARE(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128228; Share</button>'+
         '</div></div>'+
@@ -1732,12 +1900,33 @@ window.X_PDF=function(gt,gti){
   var t=gt();if(!t)return;var ti=gti?gti():'Document';
   window.MAKE_PDF({title:ti, sections:MD_TO_SECTIONS(t)}, ti, 'note');
 };
-window.X_HTML=function(gt,gti){
+window.X_HTML=function(gt,gti,opts){
   var t=gt();if(!t)return;var ti=gti();
+  var track=(opts&&opts.track)||window.TRACK;
   var blob=new Blob(['<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+ESC(ti)+'</title><style>body{font-family:-apple-system,sans-serif;background:#0f0f0f;color:#f0f0f0;max-width:720px;margin:0 auto;padding:32px 24px}pre{white-space:pre-wrap;font-family:inherit;font-size:15px;line-height:1.85;color:#d0d0d0}</style></head><body><h1 style="font-size:22px;margin-bottom:8px">'+ESC(ti)+'</h1><p style="color:#666;font-size:13px;margin-bottom:28px">'+new Date().toLocaleDateString('en-CA')+'</p><pre>'+ESC(t)+'</pre></body></html>'],{type:'text/html'});
   var url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download=(ti.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'report')+'.html';
+  a.href=url;a.download=(typeof FILE_NAME==='function'?FILE_NAME(ti,track):(ti.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'report'))+'.html';
   document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+};
+window.X_MD=function(gt,gti,opts){
+  opts=opts||{};
+  var t=gt();if(!t)return;var ti=gti?gti():'memo';
+  var track=opts.track||window.TRACK;
+  var md=MEMO_MARKDOWN(ti,t,track,opts);
+  var blob=new Blob([md],{type:'text/markdown'});
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=FILE_NAME(ti,track)+'.md';
+  document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+};
+window.X_MD_ENTRY=function(id){
+  var e=KB.concat(BR).find(function(x){return x.id===id;});
+  if(!e)return;
+  window.X_MD(function(){return GET_T(id);},function(){return GET_N(id);},{
+    track:e.track||'company',
+    verdict:e.verdict||'',
+    confidence:e.confidence||'',
+    falsifier:e.falsifier||''
+  });
 };
 window.X_COPY=function(gt){var t=gt();if(!t)return;navigator.clipboard.writeText(t).then(function(){alert('Copied!');}).catch(function(){alert('Copy failed.');});};
 window.X_SHARE=async function(gt,gti){
@@ -1773,13 +1962,21 @@ window.START_APP = async function(){
 
 (async function(){
   var ak=GK();
-  if(!ak){
+  var preview=false;
+  try{
+    if(/[?&]preview=1(?:&|$)/.test(location.search||'')) sessionStorage.setItem('ra-preview','1');
+    preview=sessionStorage.getItem('ra-preview')==='1';
+  }catch(e){}
+  if(!ak && !preview){
     document.getElementById('setup').style.display='flex';
     document.getElementById('app').style.display='none';
     return;
   }
   document.getElementById('setup').style.display='none';
   document.getElementById('app').style.display='flex';
+  try{
+    if(/track=idea/.test(location.search||'') && window.SET_TRACK) window.SET_TRACK('idea');
+  }catch(e){}
   await window.START_APP();
 })();
 
