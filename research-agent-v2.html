@@ -54,6 +54,13 @@ select.inp{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;ba
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 18px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;width:100%;cursor:pointer}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.small{height:36px;font-size:13px;padding:0 14px;width:auto}
+.go-row{display:flex;gap:8px;align-items:center}
+.go-row .btn.primary{flex:1}
+.go-row.idea{justify-content:flex-end}
+.go-row.idea .btn.primary{flex:0 0 auto;width:auto;min-width:92px;height:38px;padding:0 22px;border-radius:99px;font-size:15px;font-weight:700;letter-spacing:0.2px}
+.go-row.idea .awrap2{display:none}
+#r-desk{overflow:hidden;max-height:0;opacity:0;transition:max-height .25s ease,opacity .2s ease}
+#r-desk.open{max-height:2400px;opacity:1}
 .btn.danger{border-color:var(--danger);color:var(--danger)}
 .btn:active{opacity:0.7}
 .btn:disabled{opacity:0.35}
@@ -222,6 +229,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <button type="button" id="trk-i" onclick="SET_TRACK('idea')">Diligence an idea</button>
       </div>
       <div class="gap"></div>
+      <div id="r-desk" class="open">
       <div class="lbl" id="rlbl">Company to research</div>
       <div id="rdrop" class="rdrop">
       <div id="rap" style="display:none" class="aprev">
@@ -249,8 +257,9 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
       </select>
       <div class="gap"></div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn primary" onclick="DO_R()" id="rbtn" style="flex:1">&#128269; Research</button>
+      </div>
+      <div id="r-go" class="go-row">
+        <button class="btn primary" onclick="DO_R()" id="rbtn">&#128269; Research</button>
         <div class="awrap2">
           <button class="atog" onclick="AM('rm')">&#65291;</button>
           <div class="amenu2" id="rm">
@@ -674,12 +683,15 @@ window.SET_TRACK=function(t){
   var lbl=document.getElementById('rlbl'), ta=document.getElementById('rq'), btn=document.getElementById('rbtn');
   var mw=document.getElementById('rmode-wrap'), bw=document.getElementById('rbr-wrap');
   var hint=document.getElementById('r-att-hint'), prd=document.getElementById('r-prd-btn');
+  var desk=document.getElementById('r-desk'), grow=document.getElementById('r-go');
   if(window.TRACK==='idea'){
-    if(btn) btn.innerHTML='&#128269; Diligence';
+    if(btn) btn.textContent='Dig';
     if(mw) mw.style.display='none';
     if(bw) bw.style.display='none';
     if(hint) hint.style.display='block';
     if(prd) prd.style.display='inline-flex';
+    if(desk) desk.classList.add('open');
+    if(grow) grow.classList.add('idea');
     SYNC_RQ_UI();
   } else {
     if(lbl) lbl.textContent='Company to research';
@@ -689,6 +701,8 @@ window.SET_TRACK=function(t){
     if(bw) bw.style.display='';
     if(hint) hint.style.display='none';
     if(prd) prd.style.display='none';
+    if(desk) desk.classList.add('open');
+    if(grow) grow.classList.remove('idea');
     var nl=document.getElementById('r-notes-lbl');
     if(nl) nl.style.display='none';
     SHOW_VBADGE('');
@@ -1238,7 +1252,13 @@ window._KB=[];
 var BLAB={marketing:'Marketing Brief',financial:'Financial Brief',scientific:'Scientific Brief',paper:'Research Paper'};
 var BCATS=['marketing','financial','scientific','paper'];
 
-function GK(){return localStorage.getItem('ra-k')||'';}
+function GK(){return (localStorage.getItem('ra-k')||'').trim();}
+function NICE_ERR(msg){
+  msg=String(msg||'');
+  if(/incorrect api key|invalid api key|invalid_api_key|unauthorized|401/i.test(msg))
+    return 'xAI rejected the key stored on this device. Open Settings and tap Change. I never need to see the key.';
+  return msg;
+}
 function GFP(){return localStorage.getItem('ra-fp')||'research-agent-83fe8';}
 function GFK(){return localStorage.getItem('ra-fk')||'AIzaSyAqSPcmR5mQws-Zu7TMTMYWI6Kzs_T8YH8';}
 
@@ -1681,7 +1701,7 @@ window.DO_R=async function(){
     }
     window.LR=full;document.getElementById('rres').className='res';
     try{var gt=await GEN_CLEAN_TITLE(full);document.getElementById('rti').value=gt||(window.TRACK==='idea'?'Idea memo':'Research');}catch(te){document.getElementById('rti').value=window.TRACK==='idea'?'Idea memo':'Research';}
-  }catch(e){document.getElementById('rw').style.display='none';document.getElementById('rerr').style.display='block';document.getElementById('rerr').textContent='Error: '+e.message;}
+  }catch(e){document.getElementById('rw').style.display='none';document.getElementById('rerr').style.display='block';document.getElementById('rerr').textContent=NICE_ERR(e.message);}
   document.getElementById('rst').style.display='none';btn.disabled=false;
 };
 
