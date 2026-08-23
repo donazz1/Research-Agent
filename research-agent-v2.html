@@ -93,6 +93,10 @@ select.inp{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;ba
 .amenu2.on{display:block}
 .aitem2{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:15px;color:var(--text);background:none;border:none;width:100%;text-align:left;border-bottom:0.5px solid var(--border);cursor:pointer}
 .aitem2:last-child{border-bottom:none}
+.rdrop{border:1px dashed transparent;border-radius:var(--rsm);padding:2px;transition:border-color .15s,background .15s}
+.rdrop.on{border-color:var(--accent);background:rgba(108,99,255,0.08)}
+.att-hint{font-size:12px;color:var(--text3);line-height:1.45;margin-top:8px}
+.att-btn{display:none;margin-top:8px;height:36px;padding:0 14px;width:auto;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer}
 .aprev{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:var(--rsm);padding:10px 12px;margin-top:8px;border:0.5px solid var(--border)}
 .ainfo{flex:1;min-width:0}
 .aname{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -219,15 +223,20 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
       </div>
       <div class="gap"></div>
       <div class="lbl" id="rlbl">Company to research</div>
+      <div id="rdrop" class="rdrop">
+      <div id="rap" style="display:none" class="aprev">
+        <img id="rat" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
+        <div class="ainfo"><div class="aname" id="ran"></div><div class="atype2" id="rat2"></div></div>
+        <button class="arm" onclick="RM_AT('r')">&#215;</button>
+      </div>
+      <div class="lbl" id="r-notes-lbl" style="display:none;margin-top:10px">Your comments (type or mic)</div>
       <div class="row">
         <textarea class="inp" id="rq" placeholder="Company name, ticker, or what you need to know about an existing firm..." rows="3" style="flex:1"></textarea>
         <button class="ibtn" onclick="MIC('rq','rqm')" id="rqm" style="color:var(--accent);align-self:flex-start">&#127908;</button>
         <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="CLR_R()">&#10005;</button>
       </div>
-      <div id="rap" style="display:none" class="aprev">
-        <img id="rat" src="" alt="" style="display:none;width:44px;height:44px;border-radius:6px;object-fit:cover"/>
-        <div class="ainfo"><div class="aname" id="ran"></div><div class="atype2" id="rat2"></div></div>
-        <button class="arm" onclick="RM_AT('r')">&#215;</button>
+      <div id="r-att-hint" class="att-hint" style="display:none">Drop a PRD, Word (.docx), Markdown, or PDF — then type or speak comments in the box. Diligence uses both.</div>
+      <button type="button" id="r-prd-btn" class="att-btn" onclick="AT('r','f')">Attach PRD, Word, or Markdown</button>
       </div>
       <div class="gap"></div>
       <div id="rmode-wrap">
@@ -247,13 +256,13 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <div class="amenu2" id="rm">
             <button class="aitem2" onclick="AT('r','c')">&#128247; Camera</button>
             <button class="aitem2" onclick="AT('r','p')">&#128444; Photos</button>
-            <button class="aitem2" onclick="AT('r','f')">&#128196; File</button>
+            <button class="aitem2" onclick="AT('r','f')">&#128196; File / PRD</button>
           </div>
         </div>
       </div>
       <input type="file" id="r-c" accept="image/*" capture="environment" style="display:none" onchange="ON_AT(event,'r')"/>
       <input type="file" id="r-p" accept="image/*" style="display:none" onchange="ON_AT(event,'r')"/>
-      <input type="file" id="r-f" accept="image/*,application/pdf" style="display:none" onchange="ON_AT(event,'r')"/>
+      <input type="file" id="r-f" accept=".md,.markdown,.txt,.html,.htm,.pdf,.docx,text/plain,text/markdown,text/html,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" style="display:none" onchange="ON_AT(event,'r')"/>
       <div id="rst" class="stat" style="display:none"><span class="dot"></span><span id="rstx">Searching...</span></div>
       <div id="rerr" class="errb"></div>
       <div class="rwrap" id="rw">
@@ -664,21 +673,45 @@ window.SET_TRACK=function(t){
   if(i) i.classList.toggle('on', window.TRACK==='idea');
   var lbl=document.getElementById('rlbl'), ta=document.getElementById('rq'), btn=document.getElementById('rbtn');
   var mw=document.getElementById('rmode-wrap'), bw=document.getElementById('rbr-wrap');
+  var hint=document.getElementById('r-att-hint'), prd=document.getElementById('r-prd-btn');
   if(window.TRACK==='idea'){
-    if(lbl) lbl.textContent='Idea to diligence';
-    if(ta) ta.placeholder='One paragraph: what you would build, for whom, and why you might spend 20–80 hours on it...';
     if(btn) btn.innerHTML='&#128269; Diligence';
     if(mw) mw.style.display='none';
     if(bw) bw.style.display='none';
+    if(hint) hint.style.display='block';
+    if(prd) prd.style.display='inline-flex';
+    SYNC_RQ_UI();
   } else {
     if(lbl) lbl.textContent='Company to research';
     if(ta) ta.placeholder='Company name, ticker, or what you need to know about an existing firm...';
     if(btn) btn.innerHTML='&#128269; Research';
     if(mw) mw.style.display='block';
     if(bw) bw.style.display='';
+    if(hint) hint.style.display='none';
+    if(prd) prd.style.display='none';
+    var nl=document.getElementById('r-notes-lbl');
+    if(nl) nl.style.display='none';
     SHOW_VBADGE('');
   }
 };
+function SYNC_RQ_UI(){
+  if(window.TRACK!=='idea') return;
+  var ta=document.getElementById('rq');
+  var lbl=document.getElementById('rlbl');
+  var nl=document.getElementById('r-notes-lbl');
+  var hint=document.getElementById('r-att-hint');
+  if(window.rAt){
+    if(lbl) lbl.textContent='PRD attached';
+    if(nl) nl.style.display='block';
+    if(ta) ta.placeholder='Type or tap the mic — comments, constraints, what to weigh, what you would kill…';
+    if(hint) hint.textContent='Comments in the box (or the mic) ride along with the attached PRD. Diligence uses both.';
+  } else {
+    if(lbl) lbl.textContent='Idea to diligence';
+    if(nl) nl.style.display='none';
+    if(ta) ta.placeholder='One paragraph, or attach a PRD first — then type or speak comments here.';
+    if(hint) hint.textContent='Drop a PRD, Word (.docx), Markdown, or PDF — then type or speak comments in the box. Diligence uses both.';
+  }
+}
 function SHOW_VBADGE(code, extra){
   var el=document.getElementById('vbadge');
   if(!el) return;
@@ -1200,6 +1233,7 @@ import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,query,orde
 var DB=null,KB=[],BR=[],ATag=null,ATrack=null;
 window.LR='';window.LS='';
 var rAt=null,sAt=null,mRec=null,mFld=null;
+window.rAt=null;
 window._KB=[];
 var BLAB={marketing:'Marketing Brief',financial:'Financial Brief',scientific:'Scientific Brief',paper:'Research Paper'};
 var BCATS=['marketing','financial','scientific','paper'];
@@ -1275,29 +1309,121 @@ window.AM=function(id){var m=document.getElementById(id),was=m.classList.contain
 window.CM=function(){document.querySelectorAll('.amenu,.amenu2').forEach(function(m){m.classList.remove('on');});};
 window.AT=function(t,tp){CM();document.getElementById(t+'-'+tp).click();};
 window.RM_AT=function(t){
-  if(t==='r')rAt=null;else sAt=null;
+  if(t==='r'){rAt=null;window.rAt=null;}else sAt=null;
   document.getElementById(t+'ap').style.display='none';
   ['c','p','f'].forEach(function(x){var el=document.getElementById(t+'-'+x);if(el)el.value='';});
+  if(t==='r') SYNC_RQ_UI();
 };
 window.ON_AT=function(ev,t){
   var f=ev.target.files[0];if(!f)return;
-  var img=f.type.startsWith('image/'),pdf=f.type==='application/pdf';
-  if(!img&&!pdf){alert('Please attach an image or PDF.');return;}
+  APPLY_AT(f,t);
+};
+function IS_TEXT_FILE(f){
+  var n=String(f&&f.name||'').toLowerCase();
+  var tp=String(f&&f.type||'').toLowerCase();
+  if(tp==='text/plain'||tp==='text/markdown'||tp==='text/x-markdown'||tp==='text/html'||tp==='application/xhtml+xml') return true;
+  return /\.(md|markdown|txt|html|htm)$/.test(n);
+}
+function IS_DOCX(f){
+  var n=String(f&&f.name||'').toLowerCase();
+  var tp=String(f&&f.type||'');
+  if(tp==='application/vnd.openxmlformats-officedocument.wordprocessingml.document') return true;
+  return /\.docx$/.test(n);
+}
+function IS_OLD_DOC(f){
+  var n=String(f&&f.name||'').toLowerCase();
+  return /\.doc$/.test(n) && !/\.docx$/.test(n);
+}
+function AT_KIND(f){
+  var n=String(f&&f.name||'').toLowerCase();
+  if(f&&f.type&&f.type.indexOf('image/')===0) return 'Image';
+  if((f&&f.type)==='application/pdf'||/\.pdf$/.test(n)) return 'PDF';
+  if(IS_DOCX(f)) return 'Word';
+  if(/\.(md|markdown)$/.test(n)||/markdown/.test(String(f&&f.type||''))) return 'Markdown';
+  if(/\.(html|htm)$/.test(n)) return 'HTML';
+  if(IS_TEXT_FILE(f)) return 'Text';
+  return 'File';
+}
+function SHOW_AT(t,at,kind,thumbSrc){
+  if(t==='r'){rAt=at;window.rAt=at;}else sAt=at;
+  var prev=document.getElementById(t+'ap'),th=document.getElementById(t+'at');
+  if(thumbSrc){th.src=thumbSrc;th.style.display='block';}else{th.removeAttribute('src');th.style.display='none';}
+  document.getElementById(t+'an').textContent=at.name||'';
+  document.getElementById(t+'at2').textContent=kind;
+  prev.style.display='flex';
+  if(t==='r') SYNC_RQ_UI();
+}
+function CLIP_TXT(raw){
+  raw=String(raw||'');
+  if(raw.length>120000) raw=raw.slice(0,120000)+'\n\n[truncated; original was longer]';
+  return raw;
+}
+function LOAD_MAMMOTH(){
+  if(window.mammoth) return Promise.resolve(window.mammoth);
+  return new Promise(function(res,rej){
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js';
+    s.onload=function(){ window.mammoth?res(window.mammoth):rej(new Error('Word reader loaded empty')); };
+    s.onerror=function(){rej(new Error('Could not load the Word reader'));};
+    document.head.appendChild(s);
+  });
+}
+function READ_DOCX(f,t){
+  LOAD_MAMMOTH().then(function(mm){
+    return f.arrayBuffer().then(function(buf){ return mm.extractRawText({arrayBuffer:buf}); });
+  }).then(function(r){
+    var raw=CLIP_TXT(String(r&&r.value||'').trim());
+    if(!raw) throw new Error('That Word file had no readable text.');
+    SHOW_AT(t,{txt:raw,name:f.name,mt:'text/plain',img:false},'Word');
+  }).catch(function(e){
+    alert('Could not read that Word file. '+(e&&e.message?e.message:e));
+  });
+}
+function APPLY_AT(f,t){
+  if(!f) return;
+  if(IS_OLD_DOC(f)){
+    alert('Old Word .doc files are a different format. In Word, Save As .docx, then attach that.');
+    return;
+  }
+  if(IS_DOCX(f)){ READ_DOCX(f,t); return; }
+  var img=!!(f.type&&f.type.indexOf('image/')===0);
+  var pdf=f.type==='application/pdf'||/\.pdf$/i.test(f.name||'');
+  var txt=IS_TEXT_FILE(f);
+  if(!img&&!pdf&&!txt){
+    alert('Attach a PRD as Word (.docx), Markdown, text, HTML, PDF, or an image.');
+    return;
+  }
   var rd=new FileReader();
   rd.onload=function(e){
-    var b64=e.target.result.split(',')[1];
-    var at={b64:b64,mt:f.type,name:f.name,img:img};
-    if(t==='r')rAt=at;else sAt=at;
-    var prev=document.getElementById(t+'ap'),th=document.getElementById(t+'at');
-    if(img){th.src=e.target.result;th.style.display='block';}else{th.style.display='none';}
-    document.getElementById(t+'an').textContent=f.name;
-    document.getElementById(t+'at2').textContent=img?'Image':'PDF';
-    prev.style.display='flex';
+    var kind=AT_KIND(f);
+    if(txt){
+      SHOW_AT(t,{txt:CLIP_TXT(e.target.result),name:f.name,mt:f.type||'text/plain',img:false},kind);
+    } else {
+      var b64=String(e.target.result||'').split(',')[1]||'';
+      SHOW_AT(t,{b64:b64,mt:f.type||(pdf?'application/pdf':'application/octet-stream'),name:f.name,img:img},kind,img?e.target.result:null);
+    }
   };
-  rd.readAsDataURL(f);
-};
+  if(txt) rd.readAsText(f); else rd.readAsDataURL(f);
+}
+function WIRE_DROP(){
+  var z=document.getElementById('rdrop');
+  if(!z||z.getAttribute('data-drop')==='1') return;
+  z.setAttribute('data-drop','1');
+  function over(e){e.preventDefault();e.stopPropagation();z.classList.add('on');}
+  z.addEventListener('dragenter',over);
+  z.addEventListener('dragover',over);
+  z.addEventListener('dragleave',function(e){e.preventDefault();if(!z.contains(e.relatedTarget)) z.classList.remove('on');});
+  z.addEventListener('drop',function(e){
+    e.preventDefault();e.stopPropagation();z.classList.remove('on');
+    var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+    if(f) APPLY_AT(f,'r');
+  });
+}
 function BLD_C(text,at){
   if(!at)return text;
+  if(at.txt){
+    return String(text||'')+'\n\n--- attached file: '+(at.name||'document')+' ---\n'+at.txt;
+  }
   var p=[];
   if(at.img)p.push({type:'input_image',image_url:'data:'+at.mt+';base64,'+at.b64,detail:'high'});
   else p.push({type:'input_file',filename:at.name||'document.pdf',file_data:'data:'+at.mt+';base64,'+at.b64});
@@ -1499,7 +1625,7 @@ function NEED_KEY(){
 window.DO_R=async function(){
   if(NEED_KEY()) return;
   var q=document.getElementById('rq').value.trim();
-  if(!q&&!rAt){alert(window.TRACK==='idea'?'Describe the idea.':'Add a company question or attach a file.');return;}
+  if(!q&&!rAt){alert(window.TRACK==='idea'?'Describe the idea or attach a PRD / Markdown.':'Add a company question or attach a file.');return;}
   M_STOP();
   var mode=document.getElementById('rmode').value;
   var btn=document.getElementById('rbtn');btn.disabled=true;
@@ -1510,11 +1636,23 @@ window.DO_R=async function(){
   document.getElementById('rw').style.display='block';document.getElementById('rres').className='res stream';document.getElementById('rres').textContent='';
   document.getElementById('rsv').style.display='none';document.getElementById('rerr').style.display='none';
   var modes={overview:'Provide a clear comprehensive overview.',deep:'Provide an in-depth analysis.',papers:'Focus on academic research and key papers.',compare:'Compare the main approaches and viewpoints.'};
-  var pt=rAt&&!q?'Analyze this '+(rAt.img?'image':'document')+' and provide research insights.':rAt?q+'\n\nAttached for context.':q;
+  var pt;
+  if(rAt&&window.TRACK==='idea'){
+    pt='The attached document is the idea to diligence (source of truth for what Don would build). Do not invent a different product.';
+    if(q) pt+='\n\nDON\'S ADJUNCT COMMENTS (editorial overlay typed or spoken — constraints, what to weigh, what he would kill, audience, timing. Honor these. Do not treat them as a replacement product):\n'+q;
+  }else if(rAt&&rAt.txt){
+    pt=(q?q+'\n\n':'')+'Document attached below. Use it as source material.';
+  }else if(rAt&&!q){
+    pt='Analyze this '+(rAt.img?'image':'document')+' and provide research insights.';
+  }else if(rAt){
+    pt=q+'\n\nAttached for context.';
+  }else{
+    pt=q;
+  }
   try{
     var full;
     if(window.TRACK==='idea'){
-      var ideaSys='You are the Idea Diligence analyst for Don\'s private Research Agent V2. Track B only. Diligence HIS product idea before he spends 20-80 hours. Do not treat this as an established-company memo. Never write a valuation block, ticker, entry/exit, or watch/pass/engage/value recommendation. Pipeline in this exact order: (1) Problem check with live evidence (2) Competitive landscape with real operators + real pricing-page URLs + real user complaints (3) Differentiation — a concrete gap or say there is none (4) Technical feasibility + third-party APIs + SPOFs (5) Cost-to-serve with actual vendor math (6) Draft verdict paragraph. Rules: every factual claim sourced or marked unverified; no invented TAM/SAM/SOM; no "we\'ll just execute better"; no 100-point score; "build an MVP" is not an acceptable ending. Use web_search and x_search. End the memo with exactly these three lines:\nVERDICT: KILL|PERSONAL_ONLY|COMMERCIAL|BOTH|INSUFFICIENT_EVIDENCE\nCONFIDENCE: low|med|high\nFALSIFIER: one sentence that would flip the call.';
+      var ideaSys='You are the Idea Diligence analyst for Don\'s private Research Agent V2. Track B only. Diligence HIS product idea before he spends 20-80 hours. If a PRD, Markdown, Word, or prior memo is attached, diligence that document — do not discard it for a one-line rewrite. If Don adds adjunct comments (typed or spoken), treat them as editorial constraints on that document: what to weigh, what he would kill, audience, timing. Do not treat comments as a replacement product. Do not treat this as an established-company memo. Never write a valuation block, ticker, entry/exit, or watch/pass/engage/value recommendation. Pipeline in this exact order: (1) Problem check with live evidence (2) Competitive landscape with real operators + real pricing-page URLs + real user complaints (3) Differentiation — a concrete gap or say there is none (4) Technical feasibility + third-party APIs + SPOFs (5) Cost-to-serve with actual vendor math (6) Draft verdict paragraph. Rules: every factual claim sourced or marked unverified; no invented TAM/SAM/SOM; no "we\'ll just execute better"; no 100-point score; "build an MVP" is not an acceptable ending. Use web_search and x_search. End the memo with exactly these three lines:\nVERDICT: KILL|PERSONAL_ONLY|COMMERCIAL|BOTH|INSUFFICIENT_EVIDENCE\nCONFIDENCE: low|med|high\nFALSIFIER: one sentence that would flip the call.';
       document.getElementById('rstx').textContent='Idea diligence (steps 1–5)...';
       full=await CALL(ideaSys,BLD_C('Product idea to diligence:\n\n'+pt,rAt),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
       if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
@@ -1522,7 +1660,9 @@ window.DO_R=async function(){
       if(v!=='INSUFFICIENT_EVIDENCE'){
         document.getElementById('rstx').textContent='Skeptic pass...';
         var skSys='You are the Skeptic on Don\'s Research Agent V2 Track B. Mandatory second memo. Try to issue KILL or downgrade to PERSONAL_ONLY. Name clones. Reject unsourced claims. Challenge willingness-to-pay. Do not write a company valuation. Use web_search and x_search. Then output a revised full idea memo in the same six-step structure, ending with:\nVERDICT: KILL|PERSONAL_ONLY|COMMERCIAL|BOTH|INSUFFICIENT_EVIDENCE\nCONFIDENCE: low|med|high\nFALSIFIER: one sentence.';
-        var sk=await CALL(skSys,BLD_C('Draft idea memo to attack:\n\n'+full,null),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
+        var skMsg='Draft idea memo to attack:\n\n'+full;
+        if(q) skMsg+='\n\nDon\'s adjunct comments (honor as constraints, not as a new product):\n'+q;
+        var sk=await CALL(skSys,BLD_C(skMsg,null),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
         if(sk&&sk.trim().length>40) full=sk;
         v=PARSE_VERDICT(full)||v;
       }
@@ -1954,6 +2094,7 @@ document.getElementById('cvt-btn').addEventListener('click', function(){
 
 window.START_APP = async function(){
   APPLY_THEME();
+  WIRE_DROP();
   var ac=document.getElementById('acvt');
   if(ac) ac.checked=localStorage.getItem('ra-auto-cvt')==='1';
   await IFB();await LD_KB();UKS();
