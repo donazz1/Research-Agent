@@ -132,6 +132,12 @@ select.inp{height:44px;padding:0 14px;appearance:none;-webkit-appearance:none;ba
 .fr{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
 .chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.shelf{display:none;margin:0 0 14px}
+.shelf.on{display:block}
+.shrow{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rsm);margin-bottom:8px}
+.shrow .ttl{flex:1;min-width:0;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stsel{height:32px;font-size:12px;border-radius:8px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text);padding:0 8px;max-width:168px;flex-shrink:0}
+.shkind{font-size:10px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:var(--text3);border:0.5px solid var(--border);border-radius:99px;padding:3px 8px;flex-shrink:0}
 .tseg{display:flex;gap:6px;flex-wrap:nowrap;margin-bottom:4px}
 .tseg button{flex:1;min-width:0;min-height:40px;height:auto;padding:8px 10px;border-radius:99px;border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;line-height:1.2}
 .tseg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -223,6 +229,13 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
   <div id="bdy">
 
     <div class="pane on" id="pane-r">
+      <div id="idea-shelf" class="shelf">
+        <div class="lbl">Idea library</div>
+        <div class="fr" id="idea-st-chips"></div>
+        <div class="fr" id="idea-kind-chips"></div>
+        <div style="font-size:12px;color:var(--text3);margin:-4px 0 10px;line-height:1.45">Tap a title to open it. Brief, Export, and Send are on that screen — same as company research.</div>
+        <div id="idea-shelf-list"></div>
+      </div>
       <div class="lbl">Track</div>
       <div class="tseg" id="tseg">
         <button type="button" class="on" id="trk-c" onclick="SET_TRACK('company')">Research a company</button>
@@ -290,10 +303,18 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <div class="awrap" id="rbr-wrap">
             <button class="abtn brief" onclick="AM('rbr')">&#10024; Brief &#9660;</button>
             <div class="amenu" id="rbr">
+              <div id="rbr-co">
               <button class="aitem" onclick="BRIEF('r','marketing');CM()">&#128202; Marketing Brief</button>
               <button class="aitem" onclick="BRIEF('r','financial');CM()">&#128176; Financial Brief</button>
               <button class="aitem" onclick="BRIEF('r','scientific');CM()">&#128300; Scientific Brief</button>
               <button class="aitem" onclick="BRIEF('r','paper');CM()">&#128196; Research Paper</button>
+              </div>
+              <div id="rbr-idea" style="display:none">
+              <button class="aitem" onclick="BRIEF('r','marketing');CM()">&#128202; Marketing Brief</button>
+              <button class="aitem" onclick="BRIEF('r','technical');CM()">&#128736; Technical Brief</button>
+              <button class="aitem" onclick="BRIEF('r','full');CM()">&#128196; Full Research Brief</button>
+              <button class="aitem" onclick="BRIEF('r','summary');CM()">&#128196; Summary</button>
+              </div>
             </div>
           </div>
           <div class="awrap">
@@ -304,6 +325,14 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
               <button class="aitem" onclick="X_HTML(function(){return LR;},function(){return R_TTL();});CM()">&#127760; Save as HTML</button>
               <button class="aitem" onclick="X_COPY(function(){return LR;});CM()">&#128203; Copy text</button>
               <button class="aitem" onclick="X_SHARE(function(){return LR;},function(){return R_TTL();});CM()">&#128228; Copy and Share</button>
+            </div>
+          </div>
+          <div class="awrap">
+            <button class="abtn" onclick="AM('rsn')">&#128232; Send &#9660;</button>
+            <div class="amenu" id="rsn">
+              <button class="aitem" onclick="X_EMAIL(function(){return LR;},function(){return R_TTL();});CM()">&#9993; Email</button>
+              <button class="aitem" onclick="X_SMS(function(){return LR;},function(){return R_TTL();});CM()">&#128241; Text</button>
+              <button class="aitem" onclick="X_SHARE(function(){return LR;},function(){return R_TTL();});CM()">&#128228; Share sheet</button>
             </div>
           </div>
           <button class="savbtn" onclick="SHOW_SV('r')">&#128204; Save</button>
@@ -395,6 +424,14 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
               <button class="aitem" onclick="X_SHARE(function(){return LS;},function(){return S_TTL();});CM()">&#128228; Copy and Share</button>
             </div>
           </div>
+          <div class="awrap">
+            <button class="abtn" onclick="AM('ssn')">&#128232; Send &#9660;</button>
+            <div class="amenu" id="ssn">
+              <button class="aitem" onclick="X_EMAIL(function(){return LS;},function(){return S_TTL();});CM()">&#9993; Email</button>
+              <button class="aitem" onclick="X_SMS(function(){return LS;},function(){return S_TTL();});CM()">&#128241; Text</button>
+              <button class="aitem" onclick="X_SHARE(function(){return LS;},function(){return S_TTL();});CM()">&#128228; Share sheet</button>
+            </div>
+          </div>
           <button class="savbtn" onclick="SHOW_SV('s')">&#128204; Save</button>
         </div>
       </div>
@@ -414,6 +451,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
     <div class="pane" id="pane-k">
       <input class="inp" id="ksrch" placeholder="Search knowledge base..." oninput="RND_KB()" style="height:44px;margin-bottom:12px"/>
       <div class="fr" id="kbtracks"></div>
+      <div class="fr" id="kbstati"></div>
       <div class="fr" id="kbtags"></div>
       <button class="btn small" id="clean-titles-btn" onclick="CLEAN_TITLES()" style="margin-bottom:12px">Clean titles</button>
       <div id="kblist"></div>
@@ -421,12 +459,16 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 
     <div class="pane" id="pane-b">
       <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Generated briefs organized by type. Use the &#10024; Brief button on any research result.</p>
+      <div class="fr" id="brtracks"></div>
       <select class="inp" id="brief-filter" onchange="RND_BR()" style="height:44px;margin-bottom:12px">
         <option value="all">All types</option>
         <option value="marketing">Marketing</option>
-        <option value="financial">Financial</option>
+        <option value="financial">Financial (companies)</option>
         <option value="scientific">Scientific</option>
+        <option value="technical">Technical (ideas)</option>
         <option value="paper">Research Paper</option>
+        <option value="full">Full research (ideas)</option>
+        <option value="summary">Summary</option>
       </select>
       <div style="display:flex;gap:8px;margin-bottom:16px"><button id="cvt-btn" style="flex:1;height:44px;background:var(--accent);color:#fff;border:none;border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer">&#9889; Convert KB to Briefs</button><button id="regen-btn" style="flex:1;height:44px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer">&#128260; Regenerate All</button></div>
       <div id="cvt-status" style="font-size:13px;color:var(--text2);margin-bottom:12px;display:none"></div>
@@ -687,12 +729,17 @@ window.SET_TRACK=function(t){
   if(window.TRACK==='idea'){
     if(btn) btn.textContent='Dig';
     if(mw) mw.style.display='none';
-    if(bw) bw.style.display='none';
+    if(bw) bw.style.display='';
     if(hint) hint.style.display='block';
     if(prd) prd.style.display='inline-flex';
     if(desk) desk.classList.add('open');
     if(grow) grow.classList.add('idea');
+    var co=document.getElementById('rbr-co'), idm=document.getElementById('rbr-idea'), sh=document.getElementById('idea-shelf');
+    if(co) co.style.display='none';
+    if(idm) idm.style.display='block';
+    if(sh) sh.classList.add('on');
     SYNC_RQ_UI();
+    if(window.RND_IDEA_SHELF) window.RND_IDEA_SHELF();
   } else {
     if(lbl) lbl.textContent='Company to research';
     if(ta) ta.placeholder='Company name, ticker, or what you need to know about an existing firm...';
@@ -703,6 +750,10 @@ window.SET_TRACK=function(t){
     if(prd) prd.style.display='none';
     if(desk) desk.classList.add('open');
     if(grow) grow.classList.remove('idea');
+    var co2=document.getElementById('rbr-co'), idm2=document.getElementById('rbr-idea'), sh2=document.getElementById('idea-shelf');
+    if(co2) co2.style.display='block';
+    if(idm2) idm2.style.display='none';
+    if(sh2) sh2.classList.remove('on');
     var nl=document.getElementById('r-notes-lbl');
     if(nl) nl.style.display='none';
     SHOW_VBADGE('');
@@ -743,6 +794,16 @@ function FILE_NAME(title, track){
   var pre=(track||window.TRACK)==='idea'?'idea':'company';
   return pre+'-'+SLUGIFY(title)+'-'+d;
 }
+function FILE_DEST(title, track, verdict){
+  var fn=FILE_NAME(title, track)+'.md';
+  var t=(track||window.TRACK)==='idea'?'idea':'company';
+  if(t==='company') return 'Research-Memos/Companies/'+fn;
+  var v=String(verdict||window.LAST_VERDICT||'').toUpperCase();
+  var slug=SLUGIFY(title);
+  if(v==='PERSONAL_ONLY') return 'Areas/Personal/Projects/'+slug+'/'+fn;
+  if(v==='COMMERCIAL'||v==='BOTH') return 'Areas/Business/Projects/'+slug+'/'+fn;
+  return 'Research-Memos/Ideas/'+fn;
+}
 function YAML_ESC(s){
   return String(s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"').slice(0,400);
 }
@@ -754,9 +815,11 @@ function MEMO_MARKDOWN(title, body, track, extra){
     var v=extra.verdict||window.LAST_VERDICT||'';
     var c=extra.confidence||window.LAST_CONF||'';
     var f=extra.falsifier||window.LAST_FALSIFIER||'';
-    return '---\ntype: idea-memo\nproject: research-agent-v2\nverdict: "'+YAML_ESC(v)+'"\nconfidence: "'+YAML_ESC(c)+'"\nstatus: complete\ndate: '+d+'\ntags: [research, idea]\nfalsifier: "'+YAML_ESC(f)+'"\n---\n\n# '+(v||'IDEA')+'\n\n'+String(body||'');
+    var dest=FILE_DEST(title,'idea',v);
+    return '---\ntype: idea-memo\nproject: research-agent-v2\nverdict: "'+YAML_ESC(v)+'"\nconfidence: "'+YAML_ESC(c)+'"\nstatus: complete\ndate: '+d+'\nfile: "'+YAML_ESC(dest)+'"\ntags: [research, idea]\nfalsifier: "'+YAML_ESC(f)+'"\n---\n\n# '+(v||'IDEA')+'\n\n'+String(body||'');
   }
-  return '---\ntype: company-memo\nproject: research-agent-v2\nstatus: complete\ndate: '+d+'\ntags: [research, company]\n---\n\n# '+String(title||'Company')+'\n\n'+String(body||'');
+  var cdest=FILE_DEST(title,'company','');
+  return '---\ntype: company-memo\nproject: research-agent-v2\nstatus: complete\ndate: '+d+'\nfile: "'+YAML_ESC(cdest)+'"\ntags: [research, company]\n---\n\n# '+String(title||'Company')+'\n\n'+String(body||'');
 }
 function STRIP_IDEA_VERDICT_TRAILER(text){
   return String(text||'').replace(/^\s*VERDICT\s*[:\-].*$/gmi,'').replace(/^\s*CONFIDENCE\s*[:\-].*$/gmi,'').replace(/^\s*FALSIFIER\s*[:\-].*$/gmi,'');
@@ -975,7 +1038,7 @@ window.MAKE_PDF = function(briefJson, fallbackTitle, type) {
   catch(e) { alert('Could not parse brief data for PDF.'); return; }
   if(typeof NORMALIZE_BRIEF==='function') data = NORMALIZE_BRIEF(data, type || data.type, fallbackTitle);
   
-  var ACCENTS = {marketing:'#c9a84c', financial:'#2ecc71', scientific:'#f39c12', paper:'#e74c3c'};
+  var ACCENTS = {marketing:'#c9a84c', financial:'#2ecc71', scientific:'#f39c12', paper:'#e74c3c', technical:'#6c63ff', full:'#e74c3c', summary:'#888888'};
   var accent = ACCENTS[data.type || type] || '#c9a84c';
   var BG='#0d0d0d', NAVY='#0e1520', ROW1='#141414', ROW2='#1c1c1c';
   var SOFT='#e8e8e8', GRAY='#aaaaaa', DIM='#555555', BDR='#2a2a2a', KBKG='#0a0a0a';
@@ -1244,13 +1307,14 @@ window.EXPORT_TEXT_PDF = function(getText, getTitle){
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-var DB=null,KB=[],BR=[],ATag=null,ATrack=null;
+var DB=null,KB=[],BR=[],ATag=null,ATrack=null,AStatus=null,AKind=null,ABrTrack=null;
+window.LAST_IDEA_ID=null;window.LAST_IDEA_CONTENT='';
 window.LR='';window.LS='';
 var rAt=null,sAt=null,mRec=null,mFld=null;
 window.rAt=null;
 window._KB=[];
-var BLAB={marketing:'Marketing Brief',financial:'Financial Brief',scientific:'Scientific Brief',paper:'Research Paper'};
-var BCATS=['marketing','financial','scientific','paper'];
+var BLAB={marketing:'Marketing Brief',financial:'Financial Brief',scientific:'Scientific Brief',paper:'Research Paper',technical:'Technical Brief',full:'Full Research Brief',summary:'Summary'};
+var BCATS=['marketing','financial','scientific','paper','technical','full','summary'];
 
 function GK(){return (localStorage.getItem('ra-k')||'').trim();}
 function NICE_ERR(msg){
@@ -1285,7 +1349,7 @@ async function LD_KB(){
     var s1=await getDocs(q1);KB=s1.docs.map(function(d){return Object.assign({},d.data(),{_did:d.id});});
     var q2=query(collection(DB,'briefs'),orderBy('id','desc'));
     var s2=await getDocs(q2);BR=s2.docs.map(function(d){return Object.assign({},d.data(),{_did:d.id});});
-    window._KB=KB.concat(BR);SS('ok','Synced');U_CNT();RND_KB();RND_BR();
+    window._KB=KB.concat(BR);SS('ok','Synced');U_CNT();RND_KB();RND_BR();if(window.RND_IDEA_SHELF) window.RND_IDEA_SHELF();
   }catch(e){console.error('LD_KB error:',e);SS('err','Load error: '+(e&&e.message?e.message:String(e)));}
 }
 async function SV_FB(entry,col){if(!DB)return null;try{var r=await addDoc(collection(DB,col),entry);return r.id;}catch(e){return null;}}
@@ -1301,10 +1365,13 @@ function U_CNT(){
 window.TAB=function(t){
   STOP_SPK();M_STOP();CM();
   ['r','s','k','b','x'].forEach(function(id){
-    document.getElementById('pane-'+id).classList.toggle('on',id===t);
-    document.getElementById('tab-'+id).classList.toggle('on',id===t);
+    var p=document.getElementById('pane-'+id);
+    var tb=document.getElementById('tab-'+id);
+    if(p) p.classList.toggle('on',id===t);
+    if(tb) tb.classList.toggle('on',id===t);
   });
   if(t==='k')RND_KB();if(t==='b')RND_BR();
+  if(t==='r' && window.RND_IDEA_SHELF) window.RND_IDEA_SHELF();
 };
 window.CHG_KEY=function(){var k=prompt('New xAI API key (console.x.ai):');if(k&&k.trim()){localStorage.setItem('ra-k',k.trim());UKS();}};
 window.SET_AUTO_CVT=function(on){localStorage.setItem('ra-auto-cvt',on?'1':'');};
@@ -1701,6 +1768,9 @@ window.DO_R=async function(){
     }
     window.LR=full;document.getElementById('rres').className='res';
     try{var gt=await GEN_CLEAN_TITLE(full);document.getElementById('rti').value=gt||(window.TRACK==='idea'?'Idea memo':'Research');}catch(te){document.getElementById('rti').value=window.TRACK==='idea'?'Idea memo':'Research';}
+    if(window.TRACK==='idea' && window.AUTO_SAVE_IDEA){
+      try{await window.AUTO_SAVE_IDEA(full, document.getElementById('rti').value);}catch(se){console.error('auto-save idea',se);}
+    }
   }catch(e){document.getElementById('rw').style.display='none';document.getElementById('rerr').style.display='block';document.getElementById('rerr').textContent=NICE_ERR(e.message);}
   document.getElementById('rst').style.display='none';btn.disabled=false;
 };
@@ -1761,7 +1831,7 @@ window.SAVE_KB=async function(t){
     if(!IS_GOOD_TITLE(title)) title=typed||'Untitled';
     document.getElementById(ir?'rti':'sti').value=title;
   }
-  var entry={id:Date.now(),title:title,titleClean:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary',track:ir?(window.TRACK||'company'):'summary',verdict:ir?(window.LAST_VERDICT||''):'',confidence:ir?(window.LAST_CONF||''):'',falsifier:ir?(window.LAST_FALSIFIER||''):'',fileName:ir?FILE_NAME(title):('summary-'+SLUGIFY(title)+'-'+new Date().toLocaleDateString('en-CA'))};
+  var entry={id:Date.now(),title:title,titleClean:title,tag:tag,content:content,date:new Date().toLocaleDateString('en-CA'),type:ir?'research':'summary',track:ir?(window.TRACK||'company'):'summary',verdict:ir?(window.LAST_VERDICT||''):'',confidence:ir?(window.LAST_CONF||''):'',falsifier:ir?(window.LAST_FALSIFIER||''):'',status:ir&&window.TRACK==='idea'?(window.VERDICT_TO_STATUS?window.VERDICT_TO_STATUS(window.LAST_VERDICT):'complete'):'',fileName:ir?FILE_NAME(title):('summary-'+SLUGIFY(title)+'-'+new Date().toLocaleDateString('en-CA')),fileDest:ir?FILE_DEST(title,window.TRACK,window.LAST_VERDICT):''};
   try{
     var structured=await window.RESTRUCTURE(content,title);
     entry.content=JSON.stringify(structured);
@@ -1770,8 +1840,24 @@ window.SAVE_KB=async function(t){
   }catch(err){
     console.error('Restructure failed, saving as plain text instead:',err);
   }
+  if(ir && window.TRACK==='idea' && window.LAST_IDEA_ID){
+    var exist=KB.find(function(x){return x.id===window.LAST_IDEA_ID;});
+    if(exist){
+      exist.title=entry.title; exist.titleClean=entry.titleClean;
+      exist.content=entry.content; exist.briefJson=entry.briefJson;
+      exist.status=entry.status; exist.verdict=entry.verdict;
+      exist.confidence=entry.confidence; exist.falsifier=entry.falsifier;
+      if(exist._did) await UP_FB(exist._did,'knowledge_base',{title:exist.title,titleClean:exist.titleClean,content:exist.content,briefJson:exist.briefJson||'',status:exist.status,verdict:exist.verdict});
+      window._KB=KB.concat(BR);U_CNT();
+      if(window.RND_IDEA_SHELF) RND_IDEA_SHELF(); RND_KB();
+      btnEl.disabled=false;btnEl.textContent='Saved!';setTimeout(function(){btnEl.textContent=orig;},2000);
+      return;
+    }
+  }
   var did=await SV_FB(entry,'knowledge_base');if(did)entry._did=did;
   KB.unshift(entry);window._KB=KB.concat(BR);U_CNT();
+  if(ir && window.TRACK==='idea'){ window.LAST_IDEA_ID=entry.id; window.LAST_IDEA_CONTENT=content; }
+  if(window.RND_IDEA_SHELF) RND_IDEA_SHELF();
   btnEl.disabled=false;btnEl.textContent='Saved!';setTimeout(function(){btnEl.textContent=orig;},2000);
 };
 
@@ -1781,6 +1867,9 @@ var BRIEF_SCHEMAS={
     scientific:'{"title":"Study/Research Title","subtitle":"Scientific Brief","tagline":"Key finding in one line","type":"scientific","kpi":[{"value":"n=X","label":"sample size"},{"value":"p<0.xx","label":"significance"},{"value":"XX%","label":"key metric"},{"value":"20XX","label":"publication year"}],"sections":[{"num":1,"title":"Abstract","content":[{"type":"text","text":"150-word summary of the research, key findings, and implications..."}]},{"num":2,"title":"Background & Context","content":[{"type":"text","text":"What problem this addresses and why it matters..."}]},{"num":3,"title":"Methodology","content":[{"type":"table","headers":["Element","Detail"],"widths":[0.30,0.70],"rows":[["Study Type","..."],["Sample","..."],["Duration","..."],["Methods","..."]]}]},{"num":4,"title":"Key Findings","content":[{"type":"bullets","items":["Finding 1","Finding 2","Finding 3","Finding 4"]}]},{"num":5,"title":"Data Quality & Limitations","content":[{"type":"table","headers":["Factor","Assessment"],"widths":[0.35,0.65],"rows":[["Confidence Level","..."],["Sample Size","..."],["Key Limitations","..."]]}]},{"num":6,"title":"Implications","content":[{"type":"text","text":"What these findings mean for the field..."}]},{"num":7,"title":"Further Research","content":[{"type":"bullets","items":["Research question 1","Research question 2","Research question 3"]}]},{"num":8,"title":"Citations","content":[{"type":"text","text":"Key sources and references..."}]}]}',
     paper:'{"title":"Research Title","subtitle":"Research Paper","tagline":"Executive summary in one line","type":"paper","kpi":[{"value":"XX","label":"key stat 1"},{"value":"XX%","label":"key stat 2"},{"value":"$XB","label":"key stat 3"},{"value":"20XX","label":"year"}],"sections":[{"num":1,"title":"Executive Summary","content":[{"type":"text","text":"200-word overview for busy decision-makers..."}]},{"num":2,"title":"Introduction","content":[{"type":"text","text":"Background, problem statement, scope of analysis..."}]},{"num":3,"title":"Background","content":[{"type":"text","text":"Historical context, prior work, relevant landscape..."}]},{"num":4,"title":"Analysis","content":[{"type":"table","headers":["Element","Finding"],"widths":[0.35,0.65],"rows":[["element","finding"]]},{"type":"text","text":"Deeper analysis..."}]},{"num":5,"title":"Key Findings","content":[{"type":"bullets","items":["Finding 1","Finding 2","Finding 3","Finding 4","Finding 5"]}]},{"num":6,"title":"Discussion","content":[{"type":"text","text":"Interpretation, competing perspectives, implications..."}]},{"num":7,"title":"Conclusions","content":[{"type":"text","text":"What we can conclude with confidence..."}]},{"num":8,"title":"Further Reading","content":[{"type":"text","text":"Recommended resources and next steps..."}]}]}'
   };
+BRIEF_SCHEMAS.technical=BRIEF_SCHEMAS.scientific;
+BRIEF_SCHEMAS.full=BRIEF_SCHEMAS.paper;
+BRIEF_SCHEMAS.summary=BRIEF_SCHEMAS.paper;
 
 
 async function GEN_CLEAN_TITLE(content){
@@ -1857,27 +1946,33 @@ window.BRIEF_SCHEMAS=BRIEF_SCHEMAS;
 
 window.BRIEF=async function(tab,type){
   if(NEED_KEY()) return;
-  if(tab==='r' && window.TRACK==='idea'){
-    alert('Idea diligence does not use company briefs. Save the idea memo instead.');
-    return;
-  }
   if(tab==='r' && type==='financial' && window.TRACK==='idea'){
     alert('A company valuation block cannot come from an idea run.');
     return;
   }
+  var ideaOk={marketing:1,technical:1,full:1,summary:1,paper:1,scientific:1};
+  if(tab==='r' && window.TRACK==='idea' && !ideaOk[type]){
+    alert('Idea diligence uses marketing, technical, full research, or summary — not company financial briefs.');
+    return;
+  }
   var text=tab==='r'?window.LR:window.LS;
   if(!text){alert('Generate a research result first.');return;}
+  var names={marketing:'Marketing Brief',financial:'Financial Brief',scientific:'Scientific Brief',paper:'Research Paper',technical:'Technical Brief',full:'Full Research Brief',summary:'Summary'};
   var ov=document.getElementById('ov'),ot=document.getElementById('ovtxt');
-  ov.classList.add('on');ot.textContent='Generating '+{marketing:'Marketing Brief',financial:'Financial Brief',scientific:'Scientific Brief',paper:'Research Paper'}[type]+'...';
+  ov.classList.add('on');ot.textContent='Generating '+(names[type]||'Brief')+'...';
   try{
     var briefData=await GEN_BRIEF(type, text, '');
     ov.classList.remove('on');
     window.OPN_BW(briefData, type);
     var entry={id:Date.now(),title:briefData.title,briefType:type,
       content:JSON.stringify(briefData),briefJson:JSON.stringify(briefData),
-      date:new Date().toLocaleDateString('en-CA'),type:'brief'};
+      date:new Date().toLocaleDateString('en-CA'),type:'brief',track:window.TRACK||'company',
+      parentId:window.TRACK==='idea'?window.LAST_IDEA_ID:null,
+      status:window.TRACK==='idea'?VERDICT_TO_STATUS(window.LAST_VERDICT):''};
     var did=await SV_FB(entry,'briefs');if(did)entry._did=did;
     BR.unshift(entry);window._KB=KB.concat(BR);U_CNT();
+    if(window.RND_BR) window.RND_BR();
+    if(window.RND_IDEA_SHELF) window.RND_IDEA_SHELF();
   }catch(e){
     ov.classList.remove('on');
     console.error('Brief error:',e);
@@ -1890,11 +1985,13 @@ window.DEL_KB=async function(id){
   if(!confirm('Delete this entry?'))return;
   var e=KB.find(function(x){return x.id===id;});if(e&&e._did)await DL_FB(e._did,'knowledge_base');
   KB=KB.filter(function(x){return x.id!==id;});window._KB=KB.concat(BR);U_CNT();RND_KB();
+  if(window.RND_IDEA_SHELF) RND_IDEA_SHELF();
 };
 window.DEL_BR=async function(id){
   if(!confirm('Delete this brief?'))return;
   var e=BR.find(function(x){return x.id===id;});if(e&&e._did)await DL_FB(e._did,'briefs');
   BR=BR.filter(function(x){return x.id!==id;});window._KB=KB.concat(BR);U_CNT();RND_BR();
+  if(window.RND_IDEA_SHELF) RND_IDEA_SHELF();
 };
 
 window.RND_KB=function(){
@@ -1907,6 +2004,15 @@ window.RND_KB=function(){
       '<button class="chip'+(ATrack==='company'?' on':'')+'" onclick="SET_TRACK_FILTER(\'company\')">Companies</button>'+
       '<button class="chip'+(ATrack==='idea'?' on':'')+'" onclick="SET_TRACK_FILTER(\'idea\')">Ideas</button>';
   }
+  var stc=document.getElementById('kbstati');
+  if(stc){
+    if(ATrack==='idea'){
+      var labs={complete:'Completed',park:'Parked',personal:'Personal',commercial:'Commercial',both:'Both',pending:'Pending'};
+      var html='<button class="chip'+(!AStatus?' on':'')+'" onclick="SET_STATUS_FILTER(null)">All</button>';
+      Object.keys(labs).forEach(function(k){ html+='<button class="chip'+(AStatus===k?' on':'')+'" onclick="SET_STATUS_FILTER(\''+k+'\')">'+labs[k]+'</button>'; });
+      stc.innerHTML=html; stc.style.display='flex';
+    } else { stc.innerHTML=''; stc.style.display='none'; }
+  }
   var tc=document.getElementById('kbtags');
   if(tc){
     var chips='<button class="chip'+(ATag==null?' on':'')+'" onclick="SET_TAG(null)">All tags</button>';
@@ -1915,11 +2021,13 @@ window.RND_KB=function(){
     tc.innerHTML=chips;
   }
   var list=document.getElementById('kblist');if(!list)return;
-  var qEl=document.getElementById('ksrch')||document.getElementById('ksrch');
+  var qEl=document.getElementById('ksrch');
   var q=qEl?qEl.value.toLowerCase():'';
   var entries=KB;
-  if(ATrack)entries=entries.filter(function(e){return (e.track||'company')===ATrack;});
+  if(ATrack==='idea')entries=entries.filter(IS_IDEA_KB);
+  else if(ATrack==='company')entries=entries.filter(function(e){return !IS_IDEA_KB(e);});
   if(ATag)entries=entries.filter(function(e){return e.tag===ATag;});
+  if(ATrack==='idea' && AStatus) entries=entries.filter(function(e){return (e.status||VERDICT_TO_STATUS(e.verdict))===AStatus;});
   if(q)entries=entries.filter(function(e){
     var hay=(DISPLAY_TITLE(e)+' '+GET_BRIEF_TEXT_OR_RAW(e)+' '+(e.title||'')+' '+(e.content||'')).toLowerCase();
     return hay.indexOf(q)>=0;
@@ -1943,7 +2051,150 @@ window.SET_TAG=function(t){
 };
 window.SET_TRACK_FILTER=function(t){
   ATrack=(t==='company'||t==='idea')?t:null;
+  if(ATrack!=='idea') AStatus=null;
   RND_KB();
+};
+window.SET_STATUS_FILTER=function(s){
+  AStatus=s||null;
+  RND_KB();
+  if(window.RND_IDEA_SHELF) window.RND_IDEA_SHELF();
+};
+window.SET_KIND_FILTER=function(k){
+  AKind=k||null;
+  if(window.RND_IDEA_SHELF) window.RND_IDEA_SHELF();
+};
+window.SET_BR_TRACK_FILTER=function(t){
+  ABrTrack=(t==='company'||t==='idea')?t:null;
+  RND_BR();
+};
+function VERDICT_TO_STATUS(v){
+  v=String(v||'').toUpperCase();
+  if(v==='PERSONAL_ONLY') return 'personal';
+  if(v==='COMMERCIAL') return 'commercial';
+  if(v==='BOTH') return 'both';
+  if(v==='KILL') return 'park';
+  if(v==='INSUFFICIENT_EVIDENCE') return 'pending';
+  return 'complete';
+}
+window.VERDICT_TO_STATUS=VERDICT_TO_STATUS;
+function IS_IDEA_KB(e){
+  if(!e) return false;
+  if(e.track==='idea') return true;
+  var v=String(e.verdict||'').toUpperCase();
+  return v==='KILL'||v==='PERSONAL_ONLY'||v==='COMMERCIAL'||v==='BOTH'||v==='INSUFFICIENT_EVIDENCE';
+}
+function IS_IDEA_BR(e){
+  if(!e) return false;
+  if(e.track==='idea') return true;
+  var t=e.briefType||'';
+  return t==='technical'||t==='full';
+}
+function ITEM_KIND(e){
+  var t=e.briefType||'';
+  if(t==='paper') return 'full';
+  if(t==='scientific') return 'technical';
+  if(t) return t;
+  if(e.type==='summary') return 'summary';
+  return 'diligence';
+}
+function ITEM_STATUS(e){
+  if(e.status) return e.status;
+  if(e.parentId){
+    var p=KB.find(function(x){return x.id===e.parentId;});
+    if(p) return p.status||VERDICT_TO_STATUS(p.verdict);
+  }
+  return VERDICT_TO_STATUS(e.verdict);
+}
+var ST_LAB={pending:'Pending',complete:'Completed research',park:'Parked (kept)',personal:'Personal product',commercial:'Commercial product',both:'Personal + commercial'};
+var KIND_LAB={diligence:'Diligence',marketing:'Marketing',technical:'Technical',full:'Full brief',summary:'Summary'};
+function ST_SEL(id, cur){
+  var h='<select class="stsel" onchange="SET_IDEA_STATUS('+id+',this.value)">';
+  Object.keys(ST_LAB).forEach(function(k){
+    h+='<option value="'+k+'"'+(cur===k?' selected':'')+'>'+ST_LAB[k]+'</option>';
+  });
+  return h+'</select>';
+}
+window.SET_IDEA_STATUS=async function(id, st){
+  var e=KB.find(function(x){return x.id===id;});
+  if(!e) return;
+  e.status=st;
+  BR.forEach(function(b){ if(b.parentId===id) b.status=st; });
+  if(e._did) await UP_FB(e._did,'knowledge_base',{status:st});
+  RND_IDEA_SHELF(); RND_KB(); if(window.RND_BR) RND_BR();
+};
+window.OPEN_IDEA=function(id){
+  var e=KB.find(function(x){return x.id===id;});
+  if(!e) return;
+  window.LR=GET_BRIEF_TEXT_OR_RAW(e)||e.content||'';
+  window.LAST_IDEA_ID=e.id;
+  var res=document.getElementById('rres');
+  if(res){ res.textContent=window.LR; res.className='res'; }
+  var rw=document.getElementById('rw'); if(rw) rw.style.display='block';
+  var rti=document.getElementById('rti'); if(rti) rti.value=DISPLAY_TITLE(e);
+  window.LAST_VERDICT=e.verdict||'';
+  if(window.SHOW_VBADGE) window.SHOW_VBADGE(e.verdict||'');
+  if(window.TAB) window.TAB('r');
+  if(window.SET_TRACK) window.SET_TRACK('idea');
+  if(rw) setTimeout(function(){rw.scrollIntoView({behavior:'smooth',block:'start'});},50);
+};
+window.OPEN_SHELF_ITEM=function(id, src){
+  if(src==='br'){
+    if(window.VIEW_ENTRY) window.VIEW_ENTRY(id);
+    return;
+  }
+  OPEN_IDEA(id);
+};
+window.RND_IDEA_SHELF=function(){
+  var sh=document.getElementById('idea-shelf');
+  if(!sh) return;
+  if(window.TRACK!=='idea'){ sh.classList.remove('on'); return; }
+  sh.classList.add('on');
+  var kchips=document.getElementById('idea-kind-chips');
+  var kinds=['','diligence','marketing','technical','full','summary'];
+  var klabs={'':'All',diligence:'Diligence',marketing:'Marketing',technical:'Technical',full:'Full brief',summary:'Summary'};
+  if(kchips){
+    kchips.innerHTML=kinds.map(function(k){
+      var on=(!k&&!AKind)||(k&&AKind===k);
+      return '<button class="chip'+(on?' on':'')+'" onclick="SET_KIND_FILTER(\''+k+'\')">'+klabs[k]+'</button>';
+    }).join('');
+  }
+  var chips=document.getElementById('idea-st-chips');
+  var keys=['','complete','park','personal','commercial','both','pending'];
+  var labs={'':'All',complete:'Completed',park:'Parked',personal:'Personal',commercial:'Commercial',both:'Both',pending:'Pending'};
+  if(chips){
+    chips.innerHTML=keys.map(function(k){
+      var on=(!k&&!AStatus)||(k&&AStatus===k);
+      return '<button class="chip'+(on?' on':'')+'" onclick="SET_STATUS_FILTER(\''+k+'\')">'+labs[k]+'</button>';
+    }).join('');
+  }
+  var memos=KB.filter(IS_IDEA_KB).map(function(e){return {e:e,src:'kb',kind:ITEM_KIND(e),status:ITEM_STATUS(e)};});
+  var briefs=BR.filter(IS_IDEA_BR).map(function(e){return {e:e,src:'br',kind:ITEM_KIND(e),status:ITEM_STATUS(e)};});
+  var items=memos.concat(briefs);
+  items.sort(function(a,b){return (b.e.id||0)-(a.e.id||0);});
+  if(AKind) items=items.filter(function(it){return it.kind===AKind;});
+  if(AStatus) items=items.filter(function(it){return it.status===AStatus;});
+  var list=document.getElementById('idea-shelf-list');
+  if(!list) return;
+  if(!items.length){ list.innerHTML='<div style="font-size:13px;color:var(--text3);padding:8px 0">Nothing in this filter yet. Run Dig — the memo files here. Brief (marketing / technical / full / summary) files here too.</div>'; return; }
+  list.innerHTML=items.slice(0,40).map(function(it){
+    var st=it.status;
+    var right=it.src==='kb'?ST_SEL(it.e.id,st):('<span class="shkind">'+ESC(ST_LAB[st]||st||'')+'</span>');
+    return '<div class="shrow"><span class="shkind">'+ESC(KIND_LAB[it.kind]||it.kind)+'</span><div class="ttl" onclick="OPEN_SHELF_ITEM('+it.e.id+',\''+it.src+'\')">'+ESC(DISPLAY_TITLE(it.e))+'</div>'+right+'</div>';
+  }).join('');
+};
+window.AUTO_SAVE_IDEA=async function(full, title){
+  title=title||'Idea memo';
+  if(window.LAST_IDEA_CONTENT===full && window.LAST_IDEA_ID){
+    RND_IDEA_SHELF();
+    return;
+  }
+  var st=VERDICT_TO_STATUS(window.LAST_VERDICT);
+  var entry={id:Date.now(),title:title,titleClean:title,tag:'research',content:full,date:new Date().toLocaleDateString('en-CA'),type:'research',track:'idea',verdict:window.LAST_VERDICT||'',confidence:window.LAST_CONF||'',falsifier:window.LAST_FALSIFIER||'',status:st,fileName:typeof FILE_NAME==='function'?FILE_NAME(title,'idea'):('idea-'+Date.now()),fileDest:typeof FILE_DEST==='function'?FILE_DEST(title,'idea',window.LAST_VERDICT):''};
+  var did=await SV_FB(entry,'knowledge_base'); if(did) entry._did=did;
+  KB.unshift(entry); window._KB=KB.concat(BR); U_CNT();
+  window.LAST_IDEA_ID=entry.id;
+  window.LAST_IDEA_CONTENT=full;
+  RND_IDEA_SHELF(); RND_KB();
 };
 window.CLEAN_TITLES=async function(){
   var btn=document.getElementById('clean-titles-btn');
@@ -1967,13 +2218,22 @@ window.CLEAN_TITLES=async function(){
 
 window.RND_BR=function(){
   var list=document.getElementById('brlist');if(!list)return;
+  var trc=document.getElementById('brtracks');
+  if(trc){
+    trc.innerHTML='<button class="chip'+(!ABrTrack?' on':'')+'" onclick="SET_BR_TRACK_FILTER(null)">All</button>'+
+      '<button class="chip'+(ABrTrack==='company'?' on':'')+'" onclick="SET_BR_TRACK_FILTER(\'company\')">Companies</button>'+
+      '<button class="chip'+(ABrTrack==='idea'?' on':'')+'" onclick="SET_BR_TRACK_FILTER(\'idea\')">Ideas</button>';
+  }
   if(!BR.length){list.innerHTML='<div class="empty"><div class="ico">&#10024;</div>No briefs yet. Use the Brief button on any Research or Summary result.</div>';return;}
   var html='';
   var filterEl=document.getElementById('brief-filter');
   var activeFilter=filterEl?filterEl.value:'all';
   var catsToShow=activeFilter==='all'?BCATS:[activeFilter];
   catsToShow.forEach(function(cat){
-    var entries=BR.filter(function(e){return e.briefType===cat;});if(!entries.length)return;
+    var entries=BR.filter(function(e){return e.briefType===cat;});
+    if(ABrTrack==='idea') entries=entries.filter(IS_IDEA_BR);
+    else if(ABrTrack==='company') entries=entries.filter(function(e){return !IS_IDEA_BR(e);});
+    if(!entries.length)return;
     html+='<div style="margin-bottom:20px"><div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;padding:8px 0;border-bottom:0.5px solid var(--border);margin-bottom:10px">'+BLAB[cat]+' <span style="font-size:11px;background:var(--bg3);color:var(--text3);padding:2px 8px;border-radius:99px;margin-left:4px">'+entries.length+'</span></div>';
     entries.forEach(function(e){html+=KBC(e,'DEL_BR');});
     html+='</div>';
@@ -1989,8 +2249,8 @@ function KBC(e,delFn){
   var tr=preview.length>200;
   var bc=tr?'kbcb tr':'kbcb';
   return '<div class="kbc">'+
-    '<div class="kbch"><div class="kbct" onclick="KB_EXP('+id+')">'+ESC(title)+'</div></div>'+
-    '<div class="kbcm"><span class="badge">'+ESC(TAG_LABEL(e.tag||e.briefType||e.type||'note'))+'</span>'+(e.track==='idea'&&e.verdict?'<span class="vbadge on '+ESC(e.verdict)+'" style="display:inline-block;margin:0;padding:2px 8px;font-size:11px">'+ESC(String(e.verdict).replace(/_/g,' '))+'</span>':'')+'<span>'+ESC(e.date||'')+'</span></div>'+
+    '<div class="kbch"><div class="kbct" onclick="'+(e.track==='idea'&&!e.briefType?'OPEN_IDEA('+id+')':'KB_EXP('+id+')')+'">'+ESC(title)+'</div></div>'+
+    '<div class="kbcm"><span class="badge">'+ESC(TAG_LABEL(e.tag||e.briefType||e.type||'note'))+'</span>'+(e.track==='idea'&&e.verdict?'<span class="vbadge on '+ESC(e.verdict)+'" style="display:inline-block;margin:0;padding:2px 8px;font-size:11px">'+ESC(String(e.verdict).replace(/_/g,' '))+'</span>':'')+(typeof IS_IDEA_KB==='function'&&IS_IDEA_KB(e)&&!e.briefType?ST_SEL(e.id,ITEM_STATUS(e)):'')+'<span>'+ESC(e.date||'')+'</span></div>'+
     '<div class="'+bc+'" id="kbcb-'+id+'">'+ESC(preview)+'</div>'+
     '<div class="kbpl" id="kbpl-'+id+'">'+
       '<button class="kbpb" id="kbpp-'+id+'" onclick="PP()">&#9208;</button>'+
@@ -2008,6 +2268,8 @@ function KBC(e,delFn){
           '<button class="aitem" onclick="X_MD_ENTRY('+id+');CM()">&#128196; Markdown</button>'+
           '<button class="aitem" onclick="X_HTML(function(){return GET_T('+id+');},function(){return GET_N('+id+');},{track:'+(e.track==='idea'?'\'idea\'':'\'company\'')+'});CM()">&#127760; HTML</button>'+
           '<button class="aitem" onclick="X_COPY(function(){return GET_T('+id+');});CM()">&#128203; Copy</button>'+
+          '<button class="aitem" onclick="X_EMAIL(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#9993; Email</button>'+
+          '<button class="aitem" onclick="X_SMS(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128241; Text</button>'+
           '<button class="aitem" onclick="X_SHARE(function(){return GET_T('+id+');},function(){return GET_N('+id+');});CM()">&#128228; Share</button>'+
         '</div></div>'+
       '<button class="kbab danger" onclick="'+delFn+'('+id+')">&#128465; Delete</button>'+
@@ -2093,7 +2355,19 @@ window.X_SHARE=async function(gt,gti){
   var t=gt();if(!t)return;var ti=gti();
   try{await navigator.clipboard.writeText(t);}catch(e){}
   if(navigator.share){try{await navigator.share({title:ti,text:t.substring(0,500)+'...'});return;}catch(e){}}
-  alert('Text copied! Paste it anywhere.');
+  alert('Text copied. Paste it anywhere.');
+};
+window.X_EMAIL=function(gt,gti){
+  var t=gt();if(!t)return;var ti=(gti&&gti())||'Research';
+  try{navigator.clipboard.writeText(t);}catch(e){}
+  var body=t.length>1800?t.slice(0,1800)+'\n\n[Full report is on your clipboard — paste the rest here.]':t;
+  location.href='mailto:?subject='+encodeURIComponent(ti)+'&body='+encodeURIComponent(body);
+};
+window.X_SMS=function(gt,gti){
+  var t=gt();if(!t)return;var ti=(gti&&gti())||'Research';
+  try{navigator.clipboard.writeText(t);}catch(e){}
+  var body=ti+'\n\n'+(t.length>280?t.slice(0,280)+'\u2026\n\nFull report is on your clipboard. Paste it in this thread.':t);
+  location.href='sms:?&body='+encodeURIComponent(body);
 };
 
 document.addEventListener('click',function(e){if(!e.target.closest('.awrap')&&!e.target.closest('.awrap2'))CM();});
@@ -2195,8 +2469,8 @@ function OPN_BW(briefData, type) {
   catch(e) { data = {title: String(briefData).slice(0,60), sections: [], type: type}; }
   if(typeof NORMALIZE_BRIEF==='function') data = NORMALIZE_BRIEF(data, type || data.type, data.title);
   
-  var ACCENTS = {marketing:'#c9a84c', financial:'#2ecc71', scientific:'#f39c12', paper:'#e74c3c'};
-  var LABELS = {marketing:'Marketing Brief', financial:'Investment Brief', scientific:'Scientific Brief', paper:'Research Paper'};
+  var ACCENTS = {marketing:'#c9a84c', financial:'#2ecc71', scientific:'#f39c12', paper:'#e74c3c', technical:'#6c63ff', full:'#e74c3c', summary:'#888888'};
+  var LABELS = {marketing:'Marketing Brief', financial:'Investment Brief', scientific:'Scientific Brief', paper:'Research Paper', technical:'Technical Brief', full:'Full Research Brief', summary:'Summary'};
   var accent = ACCENTS[data.type||type] || '#c9a84c';
   var label = LABELS[data.type||type] || 'Brief';
   var date = new Date().toLocaleDateString('en-CA');
