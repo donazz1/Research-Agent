@@ -27,11 +27,23 @@ button{cursor:pointer}
 #setup-btn{width:100%;max-width:460px;height:52px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:17px;font-weight:600;cursor:pointer}
 #app{display:none;flex-direction:column;height:100vh;height:100dvh}
 #hdr{padding:calc(var(--st) + 12px) 16px 12px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:nowrap}
-#theme-btn{height:30px;width:30px;padding:0;flex-shrink:0;align-self:flex-start;margin-top:2px;border:0.5px solid var(--border);border-radius:99px;background:var(--bg3);color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
-#theme-btn:active{opacity:0.7}
-#cos-btn{height:30px;padding:0 9px;flex-shrink:0;align-self:flex-start;margin-top:2px;border:0.5px solid var(--border);border-radius:99px;background:var(--bg3);color:var(--text2);font-size:11px;font-weight:700;letter-spacing:0.3px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
-#cos-btn:active{opacity:0.7}
 #hdr-t{font-size:17px;font-weight:600}
+.home{padding:8px 0 12px}
+.home-kicker{font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.home-lead{font-size:22px;font-weight:650;letter-spacing:-0.3px;line-height:1.25;margin-bottom:8px}
+.home-sub{font-size:14px;color:var(--text2);line-height:1.55;margin-bottom:22px;max-width:520px}
+.hgrid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:640px){.hgrid{grid-template-columns:1fr 1fr;gap:14px}}
+.hcard{text-align:left;background:var(--bg2);border:0.5px solid var(--border);border-radius:14px;padding:20px 18px 18px;cursor:pointer;width:100%;color:inherit}
+.hcard:hover,.hcard:focus{border-color:var(--accent);outline:none}
+.hcard .hnum{font-size:11px;font-weight:600;letter-spacing:0.7px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.hcard h3{font-size:18px;font-weight:650;margin:0 0 8px;letter-spacing:-0.2px}
+.hcard p{font-size:13px;color:var(--text2);line-height:1.55;margin:0 0 16px}
+.hcard .hgo{font-size:13px;font-weight:600;color:var(--accent)}
+.deskbar{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:0.5px solid var(--border)}
+.deskbar .dname{font-size:15px;font-weight:600}
+.deskbar .dback{background:none;border:none;color:var(--text2);font-size:13px;font-weight:500;padding:0;cursor:pointer}
+.deskbar .dback:hover{color:var(--accent)}
 #hdr-t .ver{margin-left:0.38em;font-weight:500}
 #hdr-t .ver .v{font-size:13px;font-weight:500}
 #hdr-t .ver .n{font-size:17px;font-weight:600}
@@ -216,8 +228,6 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <span id="stxt">Connecting...</span>
       </div>
     </div>
-    <a id="cos-btn" href="https://apps.apple.com/us/app/grok-bot/id6794501026" title="Chief of Staff — opens Grok Bot" onclick="return OPEN_COS(event)">CoS</a>
-    <button type="button" id="theme-btn" title="Light / Dark / Auto" onclick="CYCLE_THEME()">◐</button>
   </div>
   <div id="tabs">
     <button class="tab on" onclick="TAB('r')" id="tab-r">Research</button>
@@ -229,19 +239,37 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
   <div id="bdy">
 
     <div class="pane on" id="pane-r">
+      <div id="desk-home" class="home">
+        <div class="home-kicker">Research Agent</div>
+        <div class="home-lead">Two desks. One at a time.</div>
+        <p class="home-sub">Sourced work for analysts. Open a desk, run the memo, file it. Switch whenever you like — the other desk stays out of the way.</p>
+        <div class="hgrid">
+          <button type="button" class="hcard" onclick="OPEN_DESK('company')">
+            <div class="hnum">Desk 1</div>
+            <h3>Subjects</h3>
+            <p>Companies, markets, science, and papers. Modes for overview, deep dive, academic, or compare. Watch, pass, or engage.</p>
+            <div class="hgo">Open subjects &#8594;</div>
+          </button>
+          <button type="button" class="hcard" onclick="OPEN_DESK('idea')">
+            <div class="hnum">Desk 2</div>
+            <h3>Ideas</h3>
+            <p>Product diligence before you build. Verdict, then park it, keep it personal, take it commercial, or both.</p>
+            <div class="hgo">Open ideas &#8594;</div>
+          </button>
+        </div>
+      </div>
+      <div id="desk-work" style="display:none">
+      <div class="deskbar">
+        <div class="dname" id="desk-name">Subjects</div>
+        <button type="button" class="dback" onclick="SHOW_HOME()">All desks</button>
+      </div>
       <div id="idea-shelf" class="shelf">
-        <div class="lbl">Idea library</div>
+        <div class="lbl">Library</div>
         <div class="fr" id="idea-st-chips"></div>
         <div class="fr" id="idea-kind-chips"></div>
-        <div style="font-size:12px;color:var(--text3);margin:-4px 0 10px;line-height:1.45">Tap a title to open it. Brief, Export, and Send are on that screen — same as company research.</div>
+        <div style="font-size:12px;color:var(--text3);margin:-4px 0 10px;line-height:1.45">Tap a title to open it. Brief, Export, and Send are on the memo.</div>
         <div id="idea-shelf-list"></div>
       </div>
-      <div class="lbl">Track</div>
-      <div class="tseg" id="tseg">
-        <button type="button" class="on" id="trk-c" onclick="SET_TRACK('company')">Research a company</button>
-        <button type="button" id="trk-i" onclick="SET_TRACK('idea')">Diligence an idea</button>
-      </div>
-      <div class="gap"></div>
       <div id="r-desk" class="open">
       <div class="lbl" id="rlbl">Company to research</div>
       <div id="rdrop" class="rdrop">
@@ -348,6 +376,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <option value="health">Health</option><option value="general">General</option>
         </select>
         <button class="btn" onclick="SAVE_KB('r')" id="rsb">&#128204; Save to KB</button>
+      </div>
       </div>
     </div>
 
@@ -492,6 +521,13 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <div class="srow" style="padding-bottom:0">
           <div><div class="slbl">Pricing</div><div class="ssub">Grok 4.6 · $2/M in · $6/M out</div></div>
           <button class="btn small" onclick="window.open('https://console.x.ai','_blank')">Console</button>
+        </div>
+      </div>
+      <div class="lbl">Appearance</div>
+      <div class="sbox">
+        <div class="srow" style="padding-top:0;padding-bottom:0">
+          <div><div class="slbl">Theme</div><div class="ssub" id="theme-stat">Auto</div></div>
+          <button class="btn small" onclick="CYCLE_THEME()">Change</button>
         </div>
       </div>
       <div class="lbl">Conversion</div>
@@ -704,6 +740,8 @@ function APPLY_THEME(){
     b.textContent=mode==='light'?'\u2600':mode==='dark'?'\u263D':'\u25D0';
     b.title='Theme: '+(mode==='light'?'Light':mode==='dark'?'Dark':'Auto')+' — tap to change';
   }
+  var st=document.getElementById('theme-stat');
+  if(st) st.textContent=mode==='light'?'Light':mode==='dark'?'Dark':'Auto';
 }
 window.SET_THEME=function(mode){
   localStorage.setItem('ra-theme', mode);
@@ -758,6 +796,20 @@ window.SET_TRACK=function(t){
     if(nl) nl.style.display='none';
     SHOW_VBADGE('');
   }
+};
+window.SHOW_HOME=function(){
+  var h=document.getElementById('desk-home'), w=document.getElementById('desk-work');
+  if(h) h.style.display='';
+  if(w) w.style.display='none';
+};
+window.SHOW_HOME=window.SHOW_HOME;
+window.OPEN_DESK=function(t){
+  var h=document.getElementById('desk-home'), w=document.getElementById('desk-work');
+  if(h) h.style.display='none';
+  if(w) w.style.display='block';
+  var n=document.getElementById('desk-name');
+  if(n) n.textContent=(t==='idea')?'Ideas':'Subjects';
+  if(window.SET_TRACK) window.SET_TRACK(t==='idea'?'idea':'company');
 };
 function SYNC_RQ_UI(){
   if(window.TRACK!=='idea') return;
@@ -2134,7 +2186,8 @@ window.OPEN_IDEA=function(id){
   window.LAST_VERDICT=e.verdict||'';
   if(window.SHOW_VBADGE) window.SHOW_VBADGE(e.verdict||'');
   if(window.TAB) window.TAB('r');
-  if(window.SET_TRACK) window.SET_TRACK('idea');
+  if(window.OPEN_DESK) window.OPEN_DESK('idea');
+  else if(window.SET_TRACK) window.SET_TRACK('idea');
   if(rw) setTimeout(function(){rw.scrollIntoView({behavior:'smooth',block:'start'});},50);
 };
 window.OPEN_SHELF_ITEM=function(id, src){
@@ -2410,7 +2463,7 @@ window.START_APP = async function(){
   document.getElementById('setup').style.display='none';
   document.getElementById('app').style.display='flex';
   try{
-    if(/track=idea/.test(location.search||'') && window.SET_TRACK) window.SET_TRACK('idea');
+    if(/track=idea/.test(location.search||'') && window.OPEN_DESK) window.OPEN_DESK('idea');
   }catch(e){}
   await window.START_APP();
 })();
