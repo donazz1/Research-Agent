@@ -49,8 +49,9 @@ button{cursor:pointer}
 #hdr-t .ver .n{font-size:17px;font-weight:600}
 #hdr-s{font-size:12px;color:var(--text2);margin-top:1px}
 #hdr-y{font-size:11px;color:var(--text3);margin-top:1px}
-#tabs{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0;overflow-x:auto}
-#tabs::-webkit-scrollbar{display:none}
+.tabs{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0;overflow-x:auto}
+.tabs::-webkit-scrollbar{display:none}
+#tabs-idea{display:none}
 .tab{flex-shrink:0;padding:10px 12px;font-size:12px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
 .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
 #bdy{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -229,45 +230,30 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
       </div>
     </div>
   </div>
-  <div id="tabs">
+  <div class="tabs" id="tabs">
     <button class="tab on" onclick="TAB('r')" id="tab-r">Research</button>
     <button class="tab" onclick="TAB('s')" id="tab-s">Summarize</button>
     <button class="tab" onclick="TAB('k')" id="tab-k">Knowledge Base</button>
     <button class="tab" onclick="TAB('b')" id="tab-b">Briefs</button>
     <button class="tab" onclick="TAB('x')" id="tab-x">Settings</button>
   </div>
+  <div class="tabs" id="tabs-idea">
+    <button class="tab on" onclick="TAB('r')" id="tab-id">Diligence</button>
+    <button class="tab" onclick="TAB('k')" id="tab-ii">Ideas</button>
+    <button class="tab" onclick="TAB('b')" id="tab-ib">Briefs</button>
+    <button class="tab" onclick="TAB('x')" id="tab-ix">Settings</button>
+  </div>
   <div id="bdy">
 
     <div class="pane on" id="pane-r">
-      <div id="desk-home" class="home">
-        <div class="home-kicker">Research Agent</div>
-        <div class="home-lead">Two desks. One at a time.</div>
-        <p class="home-sub">Sourced work for analysts. Open a desk, run the memo, file it. Switch whenever you like — the other desk stays out of the way.</p>
-        <div class="hgrid">
-          <button type="button" class="hcard" onclick="OPEN_DESK('company')">
-            <div class="hnum">Desk 1</div>
-            <h3>Subjects</h3>
-            <p>Companies, markets, science, and papers. Modes for overview, deep dive, academic, or compare. Watch, pass, or engage.</p>
-            <div class="hgo">Open subjects &#8594;</div>
-          </button>
-          <button type="button" class="hcard" onclick="OPEN_DESK('idea')">
-            <div class="hnum">Desk 2</div>
-            <h3>Ideas</h3>
-            <p>Product diligence before you build. Verdict, then park it, keep it personal, take it commercial, or both.</p>
-            <div class="hgo">Open ideas &#8594;</div>
-          </button>
-        </div>
+      <div class="lbl">Track</div>
+      <div class="tseg" id="tseg">
+        <button type="button" class="on" id="trk-c" onclick="SET_TRACK('company')">Research a company</button>
+        <button type="button" id="trk-i" onclick="SET_TRACK('idea')">Diligence an idea</button>
       </div>
-      <div id="desk-work" style="display:none">
-      <div class="deskbar">
-        <div class="dname" id="desk-name">Subjects</div>
-        <button type="button" class="dback" onclick="SHOW_HOME()">All desks</button>
-      </div>
-      <div id="idea-shelf" class="shelf">
-        <div class="lbl">Library</div>
+      <div id="idea-shelf" class="shelf" style="display:none" aria-hidden="true">
         <div class="fr" id="idea-st-chips"></div>
         <div class="fr" id="idea-kind-chips"></div>
-        <div style="font-size:12px;color:var(--text3);margin:-4px 0 10px;line-height:1.45">Tap a title to open it. Brief, Export, and Send are on the memo.</div>
         <div id="idea-shelf-list"></div>
       </div>
       <div id="r-desk" class="open">
@@ -376,7 +362,6 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <option value="health">Health</option><option value="general">General</option>
         </select>
         <button class="btn" onclick="SAVE_KB('r')" id="rsb">&#128204; Save to KB</button>
-      </div>
       </div>
     </div>
 
@@ -771,13 +756,12 @@ window.SET_TRACK=function(t){
     if(hint) hint.style.display='block';
     if(prd) prd.style.display='inline-flex';
     if(desk) desk.classList.add('open');
-    if(grow) grow.classList.add('idea');
+    if(grow) grow.classList.remove('idea');
     var co=document.getElementById('rbr-co'), idm=document.getElementById('rbr-idea'), sh=document.getElementById('idea-shelf');
     if(co) co.style.display='none';
     if(idm) idm.style.display='block';
-    if(sh) sh.classList.add('on');
+    if(sh){ sh.classList.remove('on'); sh.style.display='none'; }
     SYNC_RQ_UI();
-    if(window.RND_IDEA_SHELF) window.RND_IDEA_SHELF();
   } else {
     if(lbl) lbl.textContent='Company to research';
     if(ta) ta.placeholder='Company name, ticker, or what you need to know about an existing firm...';
@@ -791,24 +775,29 @@ window.SET_TRACK=function(t){
     var co2=document.getElementById('rbr-co'), idm2=document.getElementById('rbr-idea'), sh2=document.getElementById('idea-shelf');
     if(co2) co2.style.display='block';
     if(idm2) idm2.style.display='none';
-    if(sh2) sh2.classList.remove('on');
+    if(sh2){ sh2.classList.remove('on'); sh2.style.display='none'; }
     var nl=document.getElementById('r-notes-lbl');
     if(nl) nl.style.display='none';
     SHOW_VBADGE('');
   }
+  SYNC_TABS_FOR_TRACK();
 };
-window.SHOW_HOME=function(){
-  var h=document.getElementById('desk-home'), w=document.getElementById('desk-work');
-  if(h) h.style.display='';
-  if(w) w.style.display='none';
-};
-window.SHOW_HOME=window.SHOW_HOME;
+function SYNC_TABS_FOR_TRACK(){
+  var co=document.getElementById('tabs'), idea=document.getElementById('tabs-idea');
+  var onIdea=window.TRACK==='idea';
+  if(co) co.style.display=onIdea?'none':'flex';
+  if(idea) idea.style.display=onIdea?'flex':'none';
+  if(onIdea){
+    if(window.SET_TRACK_FILTER) window.SET_TRACK_FILTER('idea');
+    if(window.SET_BR_TRACK_FILTER) window.SET_BR_TRACK_FILTER('idea');
+  } else {
+    if(window.SET_TRACK_FILTER) window.SET_TRACK_FILTER(null);
+    if(window.SET_BR_TRACK_FILTER) window.SET_BR_TRACK_FILTER(null);
+  }
+  if(window.TAB) window.TAB('r');
+}
+window.SHOW_HOME=function(){};
 window.OPEN_DESK=function(t){
-  var h=document.getElementById('desk-home'), w=document.getElementById('desk-work');
-  if(h) h.style.display='none';
-  if(w) w.style.display='block';
-  var n=document.getElementById('desk-name');
-  if(n) n.textContent=(t==='idea')?'Ideas':'Subjects';
   if(window.SET_TRACK) window.SET_TRACK(t==='idea'?'idea':'company');
 };
 function SYNC_RQ_UI(){
@@ -1416,12 +1405,18 @@ function U_CNT(){
 
 window.TAB=function(t){
   STOP_SPK();M_STOP();CM();
+  if(window.TRACK==='idea' && t==='s') t='r';
   ['r','s','k','b','x'].forEach(function(id){
     var p=document.getElementById('pane-'+id);
     var tb=document.getElementById('tab-'+id);
     if(p) p.classList.toggle('on',id===t);
     if(tb) tb.classList.toggle('on',id===t);
   });
+  var tid=document.getElementById('tab-id'), tii=document.getElementById('tab-ii'), tib=document.getElementById('tab-ib'), tix=document.getElementById('tab-ix');
+  if(tid) tid.classList.toggle('on', t==='r');
+  if(tii) tii.classList.toggle('on', t==='k');
+  if(tib) tib.classList.toggle('on', t==='b');
+  if(tix) tix.classList.toggle('on', t==='x');
   if(t==='k')RND_KB();if(t==='b')RND_BR();
   if(t==='r' && window.RND_IDEA_SHELF) window.RND_IDEA_SHELF();
 };
@@ -2051,29 +2046,46 @@ window.RND_KB=function(){
   var extra=['science','ai','ai-ml'];
   extra.forEach(function(t){ if(tags.indexOf(t)<0) tags.push(t); });
   var tr=document.getElementById('kbtracks');
+  var ideaMode=window.TRACK==='idea';
   if(tr){
-    tr.innerHTML='<button class="chip'+(ATrack==null?' on':'')+'" onclick="SET_TRACK_FILTER(null)">All</button>'+
-      '<button class="chip'+(ATrack==='company'?' on':'')+'" onclick="SET_TRACK_FILTER(\'company\')">Companies</button>'+
-      '<button class="chip'+(ATrack==='idea'?' on':'')+'" onclick="SET_TRACK_FILTER(\'idea\')">Ideas</button>';
+    if(ideaMode){
+      tr.innerHTML=''; tr.style.display='none';
+    } else {
+      tr.style.display='flex';
+      tr.innerHTML='<button class="chip'+(ATrack==null?' on':'')+'" onclick="SET_TRACK_FILTER(null)">All</button>'+
+        '<button class="chip'+(ATrack==='company'?' on':'')+'" onclick="SET_TRACK_FILTER(\'company\')">Companies</button>'+
+        '<button class="chip'+(ATrack==='idea'?' on':'')+'" onclick="SET_TRACK_FILTER(\'idea\')">Ideas</button>';
+    }
   }
   var stc=document.getElementById('kbstati');
   if(stc){
-    if(ATrack==='idea'){
+    if(ideaMode){
       var labs={complete:'Completed',park:'Parked',personal:'Personal',commercial:'Commercial',both:'Both',pending:'Pending'};
+      var opts='<option value=""'+(!AStatus?' selected':'')+'>All</option>';
+      Object.keys(labs).forEach(function(k){ opts+='<option value="'+k+'"'+(AStatus===k?' selected':'')+'>'+labs[k]+'</option>'; });
+      stc.style.display='block';
+      stc.innerHTML='<div class="lbl" style="margin-top:0">Status</div><select class="inp" onchange="SET_STATUS_FILTER(this.value)">'+opts+'</select>';
+    } else if(ATrack==='idea'){
+      var labs2={complete:'Completed',park:'Parked',personal:'Personal',commercial:'Commercial',both:'Both',pending:'Pending'};
       var html='<button class="chip'+(!AStatus?' on':'')+'" onclick="SET_STATUS_FILTER(null)">All</button>';
-      Object.keys(labs).forEach(function(k){ html+='<button class="chip'+(AStatus===k?' on':'')+'" onclick="SET_STATUS_FILTER(\''+k+'\')">'+labs[k]+'</button>'; });
+      Object.keys(labs2).forEach(function(k){ html+='<button class="chip'+(AStatus===k?' on':'')+'" onclick="SET_STATUS_FILTER(\''+k+'\')">'+labs2[k]+'</button>'; });
       stc.innerHTML=html; stc.style.display='flex';
     } else { stc.innerHTML=''; stc.style.display='none'; }
   }
   var tc=document.getElementById('kbtags');
   if(tc){
-    var chips='<button class="chip'+(ATag==null?' on':'')+'" onclick="SET_TAG(null)">All tags</button>';
-    chips+=tags.map(function(t){return'<button class="chip'+(ATag===t?' on':'')+'" onclick="SET_TAG(\''+t+'\')">'+ESC(TAG_LABEL(t))+'</button>';}).join('');
-    chips+='<span style="font-size:12px;color:var(--text3);margin-left:auto">'+KB.length+' entries</span>';
-    tc.innerHTML=chips;
+    if(ideaMode){ tc.innerHTML=''; tc.style.display='none'; }
+    else {
+      tc.style.display='flex';
+      var chips='<button class="chip'+(ATag==null?' on':'')+'" onclick="SET_TAG(null)">All tags</button>';
+      chips+=tags.map(function(t){return'<button class="chip'+(ATag===t?' on':'')+'" onclick="SET_TAG(\''+t+'\')">'+ESC(TAG_LABEL(t))+'</button>';}).join('');
+      chips+='<span style="font-size:12px;color:var(--text3);margin-left:auto">'+KB.length+' entries</span>';
+      tc.innerHTML=chips;
+    }
   }
   var list=document.getElementById('kblist');if(!list)return;
   var qEl=document.getElementById('ksrch');
+  if(qEl) qEl.placeholder=ideaMode?'Search ideas...':'Search knowledge base...';
   var q=qEl?qEl.value.toLowerCase():'';
   var entries=KB;
   if(ATrack==='idea')entries=entries.filter(IS_IDEA_KB);
@@ -2186,8 +2198,7 @@ window.OPEN_IDEA=function(id){
   window.LAST_VERDICT=e.verdict||'';
   if(window.SHOW_VBADGE) window.SHOW_VBADGE(e.verdict||'');
   if(window.TAB) window.TAB('r');
-  if(window.OPEN_DESK) window.OPEN_DESK('idea');
-  else if(window.SET_TRACK) window.SET_TRACK('idea');
+  if(window.SET_TRACK) window.SET_TRACK('idea');
   if(rw) setTimeout(function(){rw.scrollIntoView({behavior:'smooth',block:'start'});},50);
 };
 window.OPEN_SHELF_ITEM=function(id, src){
@@ -2199,9 +2210,9 @@ window.OPEN_SHELF_ITEM=function(id, src){
 };
 window.RND_IDEA_SHELF=function(){
   var sh=document.getElementById('idea-shelf');
+  if(sh){ sh.classList.remove('on'); sh.style.display='none'; }
   if(!sh) return;
-  if(window.TRACK!=='idea'){ sh.classList.remove('on'); return; }
-  sh.classList.add('on');
+  if(window.TRACK!=='idea') return;
   var kchips=document.getElementById('idea-kind-chips');
   var kinds=['','diligence','marketing','technical','full','summary'];
   var klabs={'':'All',diligence:'Diligence',marketing:'Marketing',technical:'Technical',full:'Full brief',summary:'Summary'};
@@ -2273,9 +2284,13 @@ window.RND_BR=function(){
   var list=document.getElementById('brlist');if(!list)return;
   var trc=document.getElementById('brtracks');
   if(trc){
-    trc.innerHTML='<button class="chip'+(!ABrTrack?' on':'')+'" onclick="SET_BR_TRACK_FILTER(null)">All</button>'+
-      '<button class="chip'+(ABrTrack==='company'?' on':'')+'" onclick="SET_BR_TRACK_FILTER(\'company\')">Companies</button>'+
-      '<button class="chip'+(ABrTrack==='idea'?' on':'')+'" onclick="SET_BR_TRACK_FILTER(\'idea\')">Ideas</button>';
+    if(window.TRACK==='idea'){ trc.innerHTML=''; trc.style.display='none'; }
+    else {
+      trc.style.display='flex';
+      trc.innerHTML='<button class="chip'+(!ABrTrack?' on':'')+'" onclick="SET_BR_TRACK_FILTER(null)">All</button>'+
+        '<button class="chip'+(ABrTrack==='company'?' on':'')+'" onclick="SET_BR_TRACK_FILTER(\'company\')">Companies</button>'+
+        '<button class="chip'+(ABrTrack==='idea'?' on':'')+'" onclick="SET_BR_TRACK_FILTER(\'idea\')">Ideas</button>';
+    }
   }
   if(!BR.length){list.innerHTML='<div class="empty"><div class="ico">&#10024;</div>No briefs yet. Use the Brief button on any Research or Summary result.</div>';return;}
   var html='';
@@ -2463,7 +2478,7 @@ window.START_APP = async function(){
   document.getElementById('setup').style.display='none';
   document.getElementById('app').style.display='flex';
   try{
-    if(/track=idea/.test(location.search||'') && window.OPEN_DESK) window.OPEN_DESK('idea');
+    if(/track=idea/.test(location.search||'') && window.SET_TRACK) window.SET_TRACK('idea');
   }catch(e){}
   await window.START_APP();
 })();
