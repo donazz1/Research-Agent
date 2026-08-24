@@ -546,6 +546,41 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 
 <script>
 function ESC(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+/* Print / PDF / HTML export only. App UI stays dark. White paper, thin color bars. */
+function PRINT_SCHEME(track){
+  if(track==='idea'){
+    return {
+      paper:'#ffffff', ink:'#111111', bar:'#4a1c28', kicker:'#e8d5c4',
+      accent:'#6b2a1f', boxBorder:'#c4a574', boxBg:'#f7f1ea',
+      row:'#ffffff', rowAlt:'#faf7f4', line:'#e8ddd4', mute:'#5c5c5c',
+      dim:'#888888', good:'#6b2a1f', label:'IDEA DILIGENCE', chrome:'#f7f1ea'
+    };
+  }
+  return {
+    paper:'#ffffff', ink:'#111111', bar:'#0a1628', kicker:'#ffd700',
+    accent:'#c9a84c', boxBorder:'#1a6bcc', boxBg:'#f4f7fb',
+    row:'#ffffff', rowAlt:'#f7f8fa', line:'#dddddd', mute:'#5c5c5c',
+    dim:'#888888', good:'#1a6b3c', label:'COMPANY RESEARCH', chrome:'#f4f7fb'
+  };
+}
+function PRINT_TRACK(data, type, explicit){
+  if(explicit==='idea'||explicit==='company') return explicit;
+  if(data && data.track==='idea') return 'idea';
+  if(typeof IS_IDEA_KB==='function' && data && IS_IDEA_KB(data)) return 'idea';
+  if(type==='technical'||type==='full') return 'idea';
+  return (window.TRACK==='idea')?'idea':'company';
+}
+function ENTRY_TRACK(e){
+  if(!e) return PRINT_TRACK(null, null, null);
+  if(e.track==='idea') return 'idea';
+  if(e.track==='company'||e.track==='summary') return 'company';
+  if(typeof IS_IDEA_KB==='function' && IS_IDEA_KB(e)) return 'idea';
+  if(typeof IS_IDEA_BR==='function' && IS_IDEA_BR(e)) return 'idea';
+  return 'company';
+}
+window.PRINT_SCHEME=PRINT_SCHEME;
+window.PRINT_TRACK=PRINT_TRACK;
+window.ENTRY_TRACK=ENTRY_TRACK;
 function PARSE_BRIEF(raw){
   if(raw&&typeof raw==='object')return raw;
   var s=String(raw||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
@@ -614,6 +649,7 @@ function NORMALIZE_BRIEF(parsed, type, fallbackTitle){
     sections.forEach(function(sec,i){ sec.num = i+1; });
   }
   out.sections = sections;
+  if(data.track==='idea'||data.track==='company') out.track=data.track;
   return out;
 }
 window.NORMALIZE_BRIEF = NORMALIZE_BRIEF;
@@ -1073,27 +1109,46 @@ function KB_SPK(id){
 
 <script>
 // ── PDF GENERATION (pdfmake) ────────────────────────────────────────────
-window.MAKE_PDF = function(briefJson, fallbackTitle, type) {
+window.MAKE_PDF = function(briefJson, fallbackTitle, type, track) {
   var data;
   try { data = typeof briefJson === 'string' ? JSON.parse(briefJson) : briefJson; }
   catch(e) { alert('Could not parse brief data for PDF.'); return; }
   if(typeof NORMALIZE_BRIEF==='function') data = NORMALIZE_BRIEF(data, type || data.type, fallbackTitle);
-  
-  var ACCENTS = {marketing:'#c9a84c', financial:'#2ecc71', scientific:'#f39c12', paper:'#e74c3c', technical:'#6c63ff', full:'#e74c3c', summary:'#888888'};
-  var accent = ACCENTS[data.type || type] || '#c9a84c';
-  var BG='#0d0d0d', NAVY='#0e1520', ROW1='#141414', ROW2='#1c1c1c';
-  var SOFT='#e8e8e8', GRAY='#aaaaaa', DIM='#555555', BDR='#2a2a2a', KBKG='#0a0a0a';
+  var tr = PRINT_TRACK(data, type || data.type, track);
+  data.track = tr;
+  var sch = PRINT_SCHEME(tr);
+  var accent = sch.accent;
+  var NAVY = sch.bar, ROW1 = sch.row, ROW2 = sch.rowAlt;
+  var SOFT = sch.ink, GRAY = sch.ink, DIM = sch.mute, BDR = sch.line, KBKG = sch.boxBg;
   var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   var docTitle = data.title || fallbackTitle || 'Brief';
 
   var content = [];
 
-  // Cover
-  content.push({text:'■', style:'eyebrow', color:accent, margin:[0,6,0,4]});
-  content.push({text: docTitle, style:'coverTitle', margin:[0,0,0,5]});
-  if(data.subtitle) content.push({text:data.subtitle, style:'coverSub', margin:[0,0,0,3]});
-  if(data.tagline) content.push({text:data.tagline, style:'coverTag', margin:[0,0,0,0]});
-  content.push({canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:3,lineColor:accent}], margin:[0,14,0,14]});
+  content.push({
+    table:{widths:['*'], body:[[{text:sch.label, style:'kicker', color:sch.kicker}]]},
+    layout:{
+      fillColor:function(){return sch.bar;},
+      hLineWidth:function(){return 0;}, vLineWidth:function(){return 0;},
+      paddingLeft:function(){return 14;}, paddingRight:function(){return 14;},
+      paddingTop:function(){return 8;}, paddingBottom:function(){return 8;}
+    },
+    margin:[0,0,0,0]
+  });
+  var heroBody = [[{text: docTitle, style:'coverTitle'}]];
+  if(data.subtitle) heroBody.push([{text:data.subtitle, style:'coverSub'}]);
+  if(data.tagline) heroBody.push([{text:data.tagline, style:'coverSub'}]);
+  content.push({
+    table:{widths:['*'], body:heroBody},
+    layout:{
+      fillColor:function(){return sch.bar;},
+      hLineWidth:function(){return 0;}, vLineWidth:function(){return 0;},
+      paddingLeft:function(){return 18;}, paddingRight:function(){return 18;},
+      paddingTop:function(i){return i===0?16:2;},
+      paddingBottom:function(i,node){return i===node.table.body.length-1?16:2;}
+    },
+    margin:[0,0,0,14]
+  });
 
   // KPI Banner
   if(data.kpi && data.kpi.length > 0) {
@@ -1106,8 +1161,8 @@ window.MAKE_PDF = function(briefJson, fallbackTitle, type) {
       table:{body:kpiBody, widths:kpiWidths},
       layout:{
         fillColor:function(){return KBKG;},
-        hLineColor:function(i,node){return (i===0||i===node.table.body.length)?accent:'#1a1a1a';},
-        vLineColor:function(j,node){return (j===0||j===node.table.widths.length)?accent:'#1a1a1a';},
+        hLineColor:function(i,node){return (i===0||i===node.table.body.length)?sch.boxBorder:sch.line;},
+        vLineColor:function(j,node){return (j===0||j===node.table.widths.length)?sch.boxBorder:sch.line;},
         hLineWidth:function(i,node){return (i===0||i===node.table.body.length)?1.5:0.3;},
         vLineWidth:function(j,node){return (j===0||j===node.table.widths.length)?1.5:0.3;},
         paddingLeft:function(){return 6;}, paddingRight:function(){return 6;},
@@ -1124,8 +1179,8 @@ window.MAKE_PDF = function(briefJson, fallbackTitle, type) {
       table:{widths:['*'], body:[[{text:(section.num||'')+'  ·  '+(section.title||'').toUpperCase(), style:'secHdr'}]]},
       layout:{
         fillColor:function(){return NAVY;},
-        hLineColor:function(){return accent;}, vLineColor:function(){return accent;},
-        hLineWidth:function(){return 1;}, vLineWidth:function(){return 1;},
+        hLineColor:function(){return NAVY;}, vLineColor:function(){return NAVY;},
+        hLineWidth:function(){return 0;}, vLineWidth:function(){return 0;},
         paddingLeft:function(){return 14;}, paddingRight:function(){return 14;},
         paddingTop:function(){return 9;}, paddingBottom:function(){return 9;}
       },
@@ -1167,16 +1222,15 @@ window.MAKE_PDF = function(briefJson, fallbackTitle, type) {
           },
           margin:[0,0,0,6]
         };
-        if(!firstTableDone) {
-          // Keep header + first table together (prevents orphan)
+        tbl.table.dontBreakRows = true;
+        if(pendingStack.length){
           pendingStack.push(tbl);
-          content.push({stack:pendingStack, unbreakable:true});
+          content.push({stack:pendingStack});
           pendingStack = [];
-          firstTableDone = true;
         } else {
-          if(pendingStack.length>0){content.push({stack:pendingStack});pendingStack=[];}
           content.push(tbl);
         }
+        firstTableDone = true;
       }
     });
     if(pendingStack.length>0) content.push({stack:pendingStack});
@@ -1190,47 +1244,59 @@ window.MAKE_PDF = function(briefJson, fallbackTitle, type) {
   var docDef = {
     pageSize:'LETTER',
     pageMargins:[54,54,54,72],
-    background:function(currentPage,pageSize){
-      return {canvas:[{type:'rect',x:0,y:0,w:pageSize.width,h:pageSize.height,color:BG}]};
+    background:function(page, size){
+      return {canvas:[{type:'rect',x:0,y:0,w:size.width,h:size.height,color:sch.paper}]};
     },
     footer:function(currentPage,pageCount){
       return {margin:[54,0,54,0],stack:[
-        {canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:0.4,lineColor:'#222'}]},
-        {text:'Research Agent  ·  AI Intelligence Platform  ·  '+today+'  ·  For Informational Purposes Only',
+        {canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:0.4,lineColor:sch.line}]},
+        {text:'Research Agent  ·  '+sch.label+'  ·  Page '+currentPage+' of '+pageCount+'  ·  '+today,
          style:'footer',margin:[0,4,0,0]}
       ]};
     },
     content:content,
     styles:{
-      eyebrow:{fontSize:7.5,bold:true,characterSpacing:1.5,alignment:'center'},
-      coverTitle:{fontSize:30,color:'white',bold:true,alignment:'center',lineHeight:1.1},
-      coverSub:{fontSize:13,color:GRAY,alignment:'center',lineHeight:1.3},
-      coverTag:{fontSize:11,color:DIM,alignment:'center'},
-      kpiVal:{fontSize:22,bold:true,alignment:'center',lineHeight:1.1},
+      kicker:{fontSize:8,bold:true,characterSpacing:1.6},
+      coverTitle:{fontSize:22,color:'white',bold:true,lineHeight:1.15},
+      coverSub:{fontSize:10,color:'#f0f0f0',lineHeight:1.3},
+      kpiVal:{fontSize:18,bold:true,alignment:'center',lineHeight:1.1,color:sch.bar},
       kpiLbl:{fontSize:8,color:DIM,alignment:'center',lineHeight:1.3},
       secHdr:{fontSize:10,bold:true,color:'white'},
       tblHdr:{fontSize:8,bold:true,color:'white'},
       tblCell:{fontSize:8,color:SOFT,lineHeight:1.4},
-      bodyText:{fontSize:9,color:GRAY,lineHeight:1.4},
+      bodyText:{fontSize:9,color:GRAY,lineHeight:1.45},
       disclaimer:{fontSize:7,color:DIM,alignment:'center',lineHeight:1.3},
       footer:{fontSize:7,color:DIM,alignment:'center'}
     },
-    defaultStyle:{font:'Roboto'}
+    defaultStyle:{font:'Roboto',color:sch.ink}
   };
 
   pdfMake.createPdf(docDef).download(docTitle.replace(/[^a-z0-9]/gi,'_')+'_Brief.pdf');
 };
 
-window.MAKE_TEXT_PDF = function(title, subtitle, contentText) {
-  var accent='#c9a84c', BG='#0d0d0d', NAVY='#0e1520', GRAY='#aaaaaa', DIM='#555555', BDR='#2a2a2a';
+window.MAKE_TEXT_PDF = function(title, subtitle, contentText, track) {
+  var tr = PRINT_TRACK({track:track}, 'note', track);
+  var sch = PRINT_SCHEME(tr);
+  var accent = sch.accent, NAVY = sch.bar, GRAY = sch.ink, DIM = sch.mute, BDR = sch.line;
   var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   var docTitle = title || 'Document';
 
   var content = [];
-  content.push({text:'■', style:'eyebrow', color:accent, margin:[0,6,0,4]});
-  content.push({text: docTitle, style:'coverTitle', margin:[0,0,0,5]});
-  if(subtitle) content.push({text:subtitle, style:'coverSub', margin:[0,0,0,3]});
-  content.push({canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:3,lineColor:accent}], margin:[0,14,0,14]});
+  content.push({
+    table:{widths:['*'], body:[[{text:sch.label, fontSize:8, bold:true, color:sch.kicker, characterSpacing:1.6}]]},
+    layout:{fillColor:function(){return sch.bar;}, hLineWidth:function(){return 0;}, vLineWidth:function(){return 0;},
+      paddingLeft:function(){return 14;}, paddingRight:function(){return 14;}, paddingTop:function(){return 8;}, paddingBottom:function(){return 8;}},
+    margin:[0,0,0,0]
+  });
+  var heroRows = [[{text: docTitle, style:'coverTitle'}]];
+  if(subtitle) heroRows.push([{text:subtitle, style:'coverSub'}]);
+  content.push({
+    table:{widths:['*'], body:heroRows},
+    layout:{fillColor:function(){return sch.bar;}, hLineWidth:function(){return 0;}, vLineWidth:function(){return 0;},
+      paddingLeft:function(){return 18;}, paddingRight:function(){return 18;},
+      paddingTop:function(i){return i===0?16:2;}, paddingBottom:function(i,node){return i===node.table.body.length-1?16:2;}},
+    margin:[0,0,0,14]
+  });
 
   var raw = String(contentText||'').replace(/\r\n/g,'\n');
   raw = raw.replace(/\s*(#{1,6}\s+)/g, '\n$1');
@@ -1274,8 +1340,7 @@ window.MAKE_TEXT_PDF = function(title, subtitle, contentText) {
           table:{widths:['*'],body:[[{text:txt.toUpperCase(),style:'secHdr'}]]},
           layout:{
             fillColor:function(){return NAVY;},
-            hLineColor:function(){return accent;}, vLineColor:function(){return accent;},
-            hLineWidth:function(){return 1;}, vLineWidth:function(){return 1;},
+            hLineWidth:function(){return 0;}, vLineWidth:function(){return 0;},
             paddingLeft:function(){return 14;}, paddingRight:function(){return 14;},
             paddingTop:function(){return 9;}, paddingBottom:function(){return 9;}
           },
@@ -1308,28 +1373,27 @@ window.MAKE_TEXT_PDF = function(title, subtitle, contentText) {
   var docDef = {
     pageSize:'LETTER',
     pageMargins:[54,54,54,72],
-    background:function(currentPage,pageSize){
-      return {canvas:[{type:'rect',x:0,y:0,w:pageSize.width,h:pageSize.height,color:BG}]};
+    background:function(page, size){
+      return {canvas:[{type:'rect',x:0,y:0,w:size.width,h:size.height,color:sch.paper}]};
     },
     footer:function(currentPage,pageCount){
       return {margin:[54,0,54,0],stack:[
-        {canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:0.4,lineColor:'#222'}]},
-        {text:'Research Agent  ·  AI Intelligence Platform  ·  '+today+'  ·  For Informational Purposes Only',
+        {canvas:[{type:'line',x1:0,y1:0,x2:504,y2:0,lineWidth:0.4,lineColor:sch.line}]},
+        {text:'Research Agent  ·  '+sch.label+'  ·  Page '+currentPage+' of '+pageCount+'  ·  '+today,
          style:'footer',margin:[0,4,0,0]}
       ]};
     },
     content:content,
     styles:{
-      eyebrow:{fontSize:7.5,bold:true,characterSpacing:1.5,alignment:'center'},
-      coverTitle:{fontSize:26,color:'white',bold:true,alignment:'center',lineHeight:1.1},
-      coverSub:{fontSize:12,color:GRAY,alignment:'center',lineHeight:1.3},
+      coverTitle:{fontSize:22,color:'white',bold:true,lineHeight:1.15},
+      coverSub:{fontSize:10,color:'#f0f0f0',lineHeight:1.3},
       secHdr:{fontSize:10,bold:true,color:'white'},
-      subHdr:{fontSize:10,bold:true,color:accent},
+      subHdr:{fontSize:10,bold:true,color:sch.bar},
       bodyText:{fontSize:9.5,color:GRAY,lineHeight:1.5},
       disclaimer:{fontSize:7,color:DIM,alignment:'center',lineHeight:1.3},
       footer:{fontSize:7,color:DIM,alignment:'center'}
     },
-    defaultStyle:{font:'Roboto'}
+    defaultStyle:{font:'Roboto',color:sch.ink}
   };
 
   pdfMake.createPdf(docDef).download(docTitle.replace(/[^a-z0-9]/gi,'_')+'.pdf');
@@ -1339,8 +1403,9 @@ window.EXPORT_TEXT_PDF = function(getText, getTitle){
   var t = getText();
   if(!t){alert('Nothing to export yet.');return;}
   var title = getTitle?getTitle():'Document';
-  var data = {title:title, sections:MD_TO_SECTIONS(t)};
-  window.MAKE_PDF(data, title, 'note');
+  var track = (window.TRACK==='idea')?'idea':'company';
+  var data = {title:title, sections:MD_TO_SECTIONS(t), track:track};
+  window.MAKE_PDF(data, title, 'note', track);
 };
 </script>
 
@@ -2350,7 +2415,7 @@ window.DL_PDF=function(id){
   if(window.MAKE_PDF){
     try{
       var data=PARSE_BRIEF(e.briefJson);
-      window.MAKE_PDF(data,e.title,e.briefType||'paper');
+      window.MAKE_PDF(data,e.title,e.briefType||'paper', ENTRY_TRACK(e));
     }catch(err){alert('PDF error: '+err.message);}
   }else{alert('PDF library not loaded. Please refresh the page.');}
 };
@@ -2360,27 +2425,27 @@ window.EXPORT_PDF=function(id){
   if(e.briefJson||e.briefType){
     try{
       var data=PARSE_BRIEF(e.briefJson||e.content);
-      window.MAKE_PDF(data,e.title,e.briefType||'paper');
+      window.MAKE_PDF(data,e.title,e.briefType||'paper', ENTRY_TRACK(e));
       return;
     }catch(err){console.error('EXPORT_PDF brief parse failed, falling back to text PDF:',err);}
   }
   var textData={title:e.title||'Document', sections:MD_TO_SECTIONS(e.content||'')};
-  window.MAKE_PDF(textData, e.title||'Document', e.tag||'note');
+  window.MAKE_PDF(textData, e.title||'Document', e.tag||'note', ENTRY_TRACK(e));
 };
 window.VIEW_BRIEF=function(id){
   var e=KB.concat(BR).find(function(x){return x.id===id;});
   if(!e)return;
-  window.OPN_BW(e.briefJson||e.content,e.briefType||'paper');
+  window.OPN_BW(e.briefJson||e.content,e.briefType||'paper',e);
 };
 window.VIEW_ENTRY=function(id){
   var e=KB.concat(BR).find(function(x){return x.id===id;});
   if(!e)return;
   if(e.briefType||e.briefJson){
-    window.OPN_BW(e.briefJson||e.content,e.briefType||'paper');
+    window.OPN_BW(e.briefJson||e.content,e.briefType||'paper',e);
     return;
   }
   var data={title:e.title||'Untitled', subtitle:e.tag||e.type||'', sections:MD_TO_SECTIONS(e.content||'')};
-  window.OPN_BW(data, e.tag||'note');
+  window.OPN_BW(data, e.tag||'note', e);
 };
 window.KB_EXP=function(id){var b=document.getElementById('kbcb-'+id);if(!b)return;var ex=b.classList.toggle('exp');b.classList.toggle('tr',!ex);};
 window.GET_T=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;});return e?GET_BRIEF_TEXT_OR_RAW(e):'';};
@@ -2388,12 +2453,12 @@ window.GET_N=function(id){var e=KB.concat(BR).find(function(x){return x.id===id;
 
 window.X_PDF=function(gt,gti){
   var t=gt();if(!t)return;var ti=gti?gti():'Document';
-  window.MAKE_PDF({title:ti, sections:MD_TO_SECTIONS(t)}, ti, 'note');
+  window.MAKE_PDF({title:ti, sections:MD_TO_SECTIONS(t)}, ti, 'note', window.TRACK);
 };
 window.X_HTML=function(gt,gti,opts){
   var t=gt();if(!t)return;var ti=gti();
   var track=(opts&&opts.track)||window.TRACK;
-  var blob=new Blob(['<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+ESC(ti)+'</title><style>body{font-family:-apple-system,sans-serif;background:#0f0f0f;color:#f0f0f0;max-width:720px;margin:0 auto;padding:32px 24px}pre{white-space:pre-wrap;font-family:inherit;font-size:15px;line-height:1.85;color:#d0d0d0}</style></head><body><h1 style="font-size:22px;margin-bottom:8px">'+ESC(ti)+'</h1><p style="color:#666;font-size:13px;margin-bottom:28px">'+new Date().toLocaleDateString('en-CA')+'</p><pre>'+ESC(t)+'</pre></body></html>'],{type:'text/html'});
+  var blob=new Blob(['<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+ESC(ti)+'</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#111;max-width:720px;margin:0 auto;padding:32px 24px}h1{color:#0a1628}pre{white-space:pre-wrap;font-family:inherit;font-size:15px;line-height:1.85;color:#111}</style></head><body><h1 style="font-size:22px;margin-bottom:8px">'+ESC(ti)+'</h1><p style="color:#666;font-size:13px;margin-bottom:28px">'+new Date().toLocaleDateString('en-CA')+'</p><pre>'+ESC(t)+'</pre></body></html>'],{type:'text/html'});
   var url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download=(typeof FILE_NAME==='function'?FILE_NAME(ti,track):(ti.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'report'))+'.html';
   document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
@@ -2530,87 +2595,81 @@ async function AUTO_CONVERT(manual){
 }
 </script>
 <script>
-function OPN_BW(briefData, type) {
-  // briefData can be JSON object or string
+function OPN_BW(briefData, type, entry) {
   var data;
   try { data = PARSE_BRIEF(briefData); }
   catch(e) { data = {title: String(briefData).slice(0,60), sections: [], type: type}; }
   if(typeof NORMALIZE_BRIEF==='function') data = NORMALIZE_BRIEF(data, type || data.type, data.title);
-  
-  var ACCENTS = {marketing:'#c9a84c', financial:'#2ecc71', scientific:'#f39c12', paper:'#e74c3c', technical:'#6c63ff', full:'#e74c3c', summary:'#888888'};
-  var LABELS = {marketing:'Marketing Brief', financial:'Investment Brief', scientific:'Scientific Brief', paper:'Research Paper', technical:'Technical Brief', full:'Full Research Brief', summary:'Summary'};
-  var accent = ACCENTS[data.type||type] || '#c9a84c';
-  var label = LABELS[data.type||type] || 'Brief';
+  var tr = PRINT_TRACK(data, type || data.type, entry);
+  data.track = tr;
+  var sch = PRINT_SCHEME(tr);
+  var LABELS = {marketing:'Marketing Brief', financial:'Investment Brief', scientific:'Scientific Brief', paper:'Research Paper', technical:'Technical Brief', full:'Full Research Brief', summary:'Summary', note:'Note'};
+  var label = sch.label || LABELS[data.type||type] || 'Brief';
   var date = new Date().toLocaleDateString('en-CA');
   var title = ESC(data.title || 'Brief');
-
-  // Build HTML from JSON
   function renderContent(items) {
     return (items||[]).map(function(item) {
-      if(item.type==='text') return '<p style="font-size:14px;color:#ccc;line-height:1.75;margin:8px 0">'+ESC(item.text)+'</p>';
-      if(item.type==='bullets') return '<ul style="margin:10px 0 10px 20px;color:#ccc">'+
-        (item.items||[]).map(function(b){return '<li style="margin:4px 0;font-size:14px">'+ESC(b)+'</li>';}).join('')+'</ul>';
+      if(item.type==='text') return '<p class="body">'+ESC(item.text)+'</p>';
+      if(item.type==='bullets') return '<ul class="bullets">'+(item.items||[]).map(function(b){return '<li>'+ESC(b)+'</li>';}).join('')+'</ul>';
       if(item.type==='table') {
         var hdrs=item.headers||[], rows=item.rows||[];
-        var nc=Math.max(hdrs.length, Math.max.apply(null,rows.map(function(r){return r.length;})||[0]));
-        var w=item.widths||[];
-        var colStyle=function(i){return w[i]?'width:'+(w[i]*100)+'%':'';};
-        var thead=hdrs.length>0?'<thead><tr>'+hdrs.map(function(h,i){return '<th style="background:#0e1520;color:#fff;font-weight:600;padding:9px 12px;text-align:left;border:0.5px solid #2a2a2a;font-size:12px;'+colStyle(i)+'">'+ESC(h)+'</th>';}).join('')+'</tr></thead>':'';
-        var tbody='<tbody>'+rows.map(function(row,ri){
-          return '<tr>'+row.map(function(c,ci){
-            var bg=ri%2===0?'#141414':'#1c1c1c';
-            return '<td style="padding:8px 12px;border:0.5px solid #222;color:#ddd;font-size:13px;vertical-align:top;background:'+bg+'">'+ESC(String(c||''))+'</td>';
-          }).join('')+'</tr>';
+        var thead=hdrs.length?'<thead><tr>'+hdrs.map(function(h){return '<th>'+ESC(h)+'</th>';}).join('')+'</tr></thead>':'';
+        var tbody='<tbody>'+rows.map(function(row){
+          return '<tr>'+row.map(function(c){return '<td>'+ESC(String(c||''))+'</td>';}).join('')+'</tr>';
         }).join('')+'</tbody>';
-        return '<table style="width:100%;border-collapse:collapse;margin:10px 0">'+thead+tbody+'</table>';
+        return '<table class="grid">'+thead+tbody+'</table>';
       }
       return '';
     }).join('');
   }
-
   var sectionsHtml = (data.sections||[]).map(function(sec) {
-    return '<div style="margin-bottom:28px">'+
-      '<div style="background:#0e1520;border:1px solid '+accent+';padding:9px 14px;margin-bottom:8px">'+
-        '<span style="font-size:12px;font-weight:700;color:'+accent+'">'+ESC(String(sec.num||''))+'</span>'+
-        '<span style="font-size:12px;font-weight:700;color:#888;margin:0 6px">·</span>'+
-        '<span style="font-size:11px;font-weight:700;color:#fff">'+ESC((sec.title||'').toUpperCase())+'</span>'+
-      '</div>'+
-      renderContent(sec.content)+
-    '</div>';
+    return '<section class="sec"><h2>'+ESC(String(sec.num||''))+' · '+ESC((sec.title||'').toUpperCase())+'</h2>'+renderContent(sec.content)+'</section>';
   }).join('');
-
-  var kpiBanner = (data.kpi&&data.kpi.length>0) ? 
-    '<div style="display:grid;grid-template-columns:repeat('+data.kpi.length+',1fr);gap:0;border:1.5px solid '+accent+';margin-bottom:24px">'+
-      data.kpi.map(function(k){
-        return '<div style="background:#0a0a0a;padding:14px 8px 12px;text-align:center;border-right:0.5px solid #1a1a1a">'+
-          '<div style="font-size:22px;font-weight:700;color:'+accent+';line-height:1.2;margin-bottom:4px">'+ESC(k.value||'')+'</div>'+
-          '<div style="font-size:8px;color:#666;line-height:1.3;white-space:pre-wrap">'+ESC(k.label||'')+'</div>'+
-        '</div>';
-      }).join('')+
-    '</div>' : '';
-
+  var kpiBanner = (data.kpi&&data.kpi.length) ?
+    '<div class="kpi">'+data.kpi.map(function(k){
+      return '<div><b>'+ESC(k.value||'')+'</b><span>'+ESC(k.label||'')+'</span></div>';
+    }).join('')+'</div>' : '';
   var win=window.open('','_blank');
   if(!win){alert('Please allow popups to view briefs.');return;}
-  
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>'+title+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f0f;color:#e0e0e0}.page{max-width:860px;margin:0 auto;padding:48px 40px 80px}.back-bar{position:sticky;top:0;background:rgba(15,15,15,0.95);backdrop-filter:blur(8px);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;z-index:100}.back-btn{background:none;border:1px solid #333;border-radius:6px;color:#aaa;padding:6px 14px;font-size:13px;cursor:pointer}.back-btn:hover{border-color:'+accent+';color:'+accent+'}.badge{font-size:11px;color:'+accent+';border:1px solid '+accent+';border-radius:99px;padding:4px 12px}.cover{padding:32px 0 24px;border-bottom:3px solid '+accent+';margin-bottom:28px}.cover h1{font-size:28px;font-weight:800;color:#fff;margin-bottom:5px}.cover .sub{font-size:13px;color:#888;margin-bottom:3px}.cover .tag{font-size:11px;color:#555}.player{background:rgba(255,255,255,0.03);border:1px solid #2a2a2a;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:28px}.pbtn{width:38px;height:38px;border-radius:50%;background:'+accent+';border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}.pinfo{flex:1}.pstat{font-size:12px;color:'+accent+';margin-bottom:4px}.pbar{height:3px;background:rgba(255,255,255,0.08);border-radius:99px}.pfill{height:100%;background:'+accent+';border-radius:99px;width:0%;transition:width 0.5s}.pctrl{display:flex;gap:8px;align-items:center}.pstop{background:none;border:none;color:#555;font-size:17px;cursor:pointer}.pspd{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#666;font-size:12px;padding:2px 8px;height:26px}.action-bar{display:flex;gap:10px;margin-top:40px;padding-top:24px;border-top:1px solid #1a1a1a;flex-wrap:wrap}.act-btn{height:42px;padding:0 20px;border-radius:8px;border:1px solid #2a2a2a;background:#1a1a1a;color:#ccc;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:7px}.act-btn:hover{border-color:'+accent+';color:'+accent+'}.disc{font-size:11px;color:#444;margin-top:24px;line-height:1.6;padding-top:16px;border-top:1px solid #1a1a1a}@media print{.back-bar,.player,.action-bar{display:none!important}}</style></head><body>'+
-  '<div class="back-bar"><button class="back-btn" onclick="window.close()">&#8592; Close</button><span class="badge">'+ESC(label)+'</span><button class="act-btn" onclick="window.print()" style="border:none;background:none;color:#666">&#128424; Print</button></div>'+
-  '<div class="page">'+
-    '<div class="cover"><h1>'+title+'</h1>'+
-      (data.subtitle?'<div class="sub">'+ESC(data.subtitle)+'</div>':'')+
-      (data.tagline?'<div class="tag">'+ESC(data.tagline)+'</div>':'')+
-    '</div>'+
-    kpiBanner+
-    '<div class="player"><button class="pbtn" id="pb" onclick="tp()">&#9654;</button><div class="pinfo"><div class="pstat" id="ps">Tap &#9654; to read aloud</div><div class="pbar"><div class="pfill" id="pf"></div></div></div><div class="pctrl"><button class="pstop" onclick="st()">&#9209;</button><select class="pspd" id="spd"><option value="0.8">0.8x</option><option value="1" selected>1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option></select></div></div>'+
-    '<div id="brief-body">'+sectionsHtml+'</div>'+
-    '<div class="action-bar">'+
-      '<button class="act-btn" onclick="dl()">&#11015; Download PDF</button>'+
-      '<button class="act-btn" onclick="sh()">&#128228; Share</button>'+
-      '<button class="act-btn" onclick="cp()">&#128203; Copy Text</button>'+
-      '<button class="act-btn" onclick="window.print()">&#128424; Print</button>'+
-    '</div>'+
-    '<div class="disc">&#9888; For informational and educational purposes only. Not financial, legal, or professional advice. Generated by Research Agent &middot; '+ESC(date)+'</div>'+
-  '</div>'+
-  '<script>var u=null,pa=false,ti2=null,pr=0,briefData='+JSON.stringify(JSON.stringify(data))+';\nfunction gt(){return document.getElementById("brief-body").innerText||"";}\nfunction tp(){var tx=gt();if(u&&!pa){speechSynthesis.pause();pa=true;document.getElementById("pb").textContent="\u25b6";document.getElementById("ps").textContent="Paused";return;}if(u&&pa){speechSynthesis.resume();pa=false;document.getElementById("pb").textContent="\u23f8";document.getElementById("ps").textContent="Reading...";return;}st2(tx);}\nfunction st2(tx){st();var sp=parseFloat(document.getElementById("spd").value||"1");u=new SpeechSynthesisUtterance(tx);u.rate=sp;u.lang="en-US";var se=(tx.split(/\\s+/).length/150)*60/sp;pr=0;ti2=setInterval(function(){pr=Math.min(99,pr+(100/se));document.getElementById("pf").style.width=pr+"%";},1000);u.onend=st;u.onerror=st;document.getElementById("pb").textContent="\u23f8";document.getElementById("ps").textContent="Reading aloud...";speechSynthesis.speak(u);}\nfunction st(){if(ti2){clearInterval(ti2);ti2=null;}if(u){speechSynthesis.cancel();u=null;}pa=false;pr=0;document.getElementById("pb").textContent="\u25b6";document.getElementById("ps").textContent="Tap to read aloud";document.getElementById("pf").style.width="0%";}\nfunction dl(){if(window.opener&&window.opener.MAKE_PDF){window.opener.MAKE_PDF(JSON.parse(briefData),"'+title.replace(/"/g,'\"')+'","'+(data.type||type)+'");}else{alert("Open from Research Agent to download PDF.");}}\nfunction sh(){if(navigator.share){navigator.share({title:"'+title.replace(/"/g,'\"')+'",text:gt().substring(0,300)+"...",url:window.location.href}).catch(function(){});}else{navigator.clipboard.writeText(window.location.href).then(function(){alert("Link copied!");});}}\nfunction cp(){navigator.clipboard.writeText(gt()).then(function(){alert("Copied!");});}<\/script></body></html>');
+  var css = [
+    '*{box-sizing:border-box;margin:0;padding:0}',
+    'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:'+sch.paper+';color:'+sch.ink+'}',
+    '.chrome{position:sticky;top:0;background:'+sch.paper+';border-bottom:1px solid '+sch.line+';padding:10px 36px;display:flex;align-items:center;justify-content:space-between;z-index:20}',
+    '.chrome button{background:none;border:1px solid '+sch.line+';border-radius:6px;color:'+sch.mute+';padding:6px 14px;font-size:13px;cursor:pointer}',
+    '.badge{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:'+sch.kicker+';background:'+sch.bar+';padding:5px 12px}',
+    '.page{max-width:860px;margin:0 auto;padding:0 40px 72px}',
+    '.hero{background:'+sch.bar+';color:#fff;padding:28px 28px 24px;margin:0 -40px 22px}',
+    '.hero .kicker{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:'+sch.kicker+';font-weight:700;margin-bottom:8px}',
+    '.hero h1{font-size:28px;line-height:1.15;font-weight:800}',
+    '.hero .sub{font-size:13px;color:#f0f0f0;margin-top:6px}',
+    '.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border:1.5px solid '+sch.boxBorder+';background:'+sch.boxBg+';margin-bottom:22px}',
+    '.kpi div{padding:14px 10px;text-align:center;border-right:1px solid '+sch.line+'}',
+    '.kpi div:last-child{border-right:0}',
+    '.kpi b{display:block;font-size:20px;color:'+sch.bar+';margin-bottom:4px}',
+    '.kpi span{font-size:10px;color:'+sch.mute+';line-height:1.3}',
+    '.sec{margin:0 0 22px;page-break-inside:avoid}',
+    '.sec h2{background:'+sch.bar+';color:#fff;font-size:11px;letter-spacing:.6px;padding:9px 14px;margin:0 0 10px}',
+    '.body{font-size:14px;line-height:1.7;margin:0 0 8px;color:'+sch.ink+'}',
+    '.bullets{margin:8px 0 10px 20px}',
+    '.bullets li{margin:4px 0;font-size:14px;line-height:1.55}',
+    'table.grid{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:12px}',
+    'table.grid th{background:'+sch.bar+';color:#fff;text-align:left;padding:8px 10px;font-size:10px}',
+    'table.grid td{padding:8px 10px;border-bottom:1px solid '+sch.line+';vertical-align:top;color:'+sch.ink+'}',
+    'table.grid tbody tr:nth-child(even) td{background:'+sch.rowAlt+'}',
+    '.player,.acts{display:flex;gap:10px;align-items:center;margin:18px 0;flex-wrap:wrap}',
+    '.disc{font-size:11px;color:'+sch.mute+';margin-top:28px;padding-top:14px;border-top:1px solid '+sch.line+'}',
+    '@page{size:letter;margin:0.7in}',
+    '@media print{.chrome,.player,.acts{display:none!important}body{background:#fff}.hero{margin:0 0 18px}.sec{break-inside:avoid}table.grid{break-inside:auto}table.grid tr{break-inside:avoid}}'
+  ].join('');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>'+title+'</title><style>'+css+'</style></head><body>');
+  win.document.write('<div class="chrome"><button onclick="window.close()">← Close</button><span class="badge">'+ESC(label)+'</span><button onclick="window.print()">Print / PDF</button></div>');
+  win.document.write('<div class="page"><div class="hero"><div class="kicker">'+ESC(label)+'</div><h1>'+title+'</h1>'+(data.subtitle?'<div class="sub">'+ESC(data.subtitle)+'</div>':'')+(data.tagline?'<div class="sub">'+ESC(data.tagline)+'</div>':'')+'</div>');
+  win.document.write(kpiBanner);
+  win.document.write('<div class="player"><button onclick="tp()" id="pb">▶</button><span id="ps">Read aloud</span></div>');
+  win.document.write('<div id="brief-body">'+sectionsHtml+'</div>');
+  win.document.write('<div class="acts"><button onclick="dl()">Download PDF</button><button onclick="cp()">Copy text</button><button onclick="window.print()">Print</button></div>');
+  win.document.write('<div class="disc">For informational purposes only. Not financial, legal, or professional advice. Research Agent · '+ESC(date)+'</div></div>');
+  win.document.write('<script>var briefData='+JSON.stringify(JSON.stringify(data))+',track='+JSON.stringify(tr)+';\nfunction gt(){return document.getElementById("brief-body").innerText||"";}\nfunction tp(){var tx=gt();speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(tx);u.lang="en-US";document.getElementById("ps").textContent="Reading...";u.onend=function(){document.getElementById("ps").textContent="Read aloud";};speechSynthesis.speak(u);}\nfunction dl(){if(window.opener&&window.opener.MAKE_PDF){window.opener.MAKE_PDF(JSON.parse(briefData),'+JSON.stringify(data.title||'Brief')+', '+(JSON.stringify(data.type||type))+', track);}else{window.print();}}\nfunction cp(){navigator.clipboard.writeText(gt()).then(function(){alert("Copied");});}<\/script></body></html>');
   win.document.close();
 }
 window.OPN_BW=OPN_BW;
