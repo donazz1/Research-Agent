@@ -2844,6 +2844,381 @@ window.OPN_BW=OPN_BW;
     <span id="demo-prog"></span>
   </div>
 </div>
-<script src="demo/tour.js?v=7"></script>
+<script>
+/* Research Agent — Rex demo tour. Plays pre-recorded files. No TTS at runtime. */
+(function () {
+  var BASE = (function () {
+    var s = document.querySelector('script[src*="tour.js"]');
+    if (s && s.src) return s.src.replace(/tour\.js(\?.*)?$/, "");
+    try {
+      var u = new URL("demo/", document.baseURI || location.href);
+      return u.href;
+    } catch (e) {
+      return "demo/";
+    }
+  })();
+  var STEPS = [
+    {"id":"01","highlight":"hdr","say":"I'm Rex. This is Research Agent. You don't need to tap around — I'll walk the desk. Two rooms: company research, and idea diligence. Same app. Different job."},
+    {"id":"02","highlight":"tseg","say":"Start on Research. Pick a track. Research a company is for firms that already exist. Diligence an idea is for something you might build. We start with companies."},
+    {"id":"03","highlight":"rq-row","say":"Name the company, ticker, or the question. Use the mic if you'd rather talk. Attach a file if you have one. Modes sit underneath: overview, deep dive, academic papers, or compare."},
+    {"id":"04","highlight":"rbtn","say":"Hit Research. It searches the live web, streams the answer, and you can have it read aloud. What you're seeing now is a canned sample, so this demo never spends API credits."},
+    {"id":"05","highlight":"rbr-wrap,rbr","say":"When the answer is good enough, Brief turns it into a packet: marketing, financial, scientific, or a research paper. Then export PDF, markdown, or HTML, or send it. Company PDFs print white paper, navy and gold — never a black screen."},
+    {"id":"06","highlight":"tab-s","say":"Summarize is the other company-side intake. Paste a URL or a block of text, pick a style, attach a photo or file. Same save and brief path as Research."},
+    {"id":"07","highlight":"tab-k","say":"Intelligence — the knowledge base — holds everything you save. Search, filter, open a card, hit PDF. That's where a LifeReel summary lives after you save it."},
+    {"id":"08","highlight":"tab-b","say":"Briefs is the library of finished packets. Filter by type. Convert old notes if you want. PDF from here uses the same print engine as Generate PDF on a card."},
+    {"id":"09","highlight":"tabs-idea","say":"Now the other room. Diligence an idea. The tabs change: Diligence, Ideas, Briefs, Settings. Summarize hides, because an idea is not a URL summary job."},
+    {"id":"10","highlight":"r-prd-btn,rq-row","say":"Start simple or go all in — your choice. Put as little or as much as you want in this field, or tap the mic and talk it through. You can also attach a PRD, an MRD, Word, Markdown, or a PDF. One, the other, or both."},
+    {"id":"11","highlight":"vbadge","say":"First the desk gathers the record — agnostic, unbiased, unvarnished. No spin. Then the skeptic reads that record and issues a verdict: kill, personal only, commercial, or both. This LifeReel sample is personal only — build it for yourself, do not sell it as a consumer product."},
+    {"id":"12","highlight":"rbr-wrap,rbr","say":"Idea briefs are marketing, technical, full research, or a short summary. Those PDFs print burgundy and sand, so a stack of printouts is obviously diligence, not a company memo."},
+    {"id":"13","highlight":"tab-ii","say":"Ideas is the shelf of every idea you've diligenced — status, verdict, reopen later. Hit PDF on a summary card while you're on this desk and it stays burgundy."},
+    {"id":"14","highlight":"setup-guide","say":"That's the whole desk. The demo stops here so you can decide if you want it. If you do, you will need your own xAI key and your own Firebase project — not someone else's. The step-by-step is in the document you were sent: Research Agent Setup. There is a link to that same document on this Settings page. I'll stop here."}
+  ];
+  var idx = -1;
+  var audio = null;
+  var timer = null;
+  var running = false;
+  var queue = STEPS;
+
+  function playlist(mode) {
+    if (mode === "research") return STEPS.slice(0, 8);
+    if (mode === "diligence") return STEPS.slice(8);
+    return STEPS;
+  }
+
+  function hidePick() {
+    var p = $("demo-pick");
+    if (p) {
+      p.hidden = true;
+      p.classList.remove("open");
+    }
+  }
+
+  function placePick() {
+    var btn = $("demo-launch");
+    var p = $("demo-pick");
+    if (!btn || !p) return;
+    var r = btn.getBoundingClientRect();
+    p.style.top = Math.round(r.bottom + 6) + "px";
+    p.style.right = Math.max(8, Math.round(window.innerWidth - r.right)) + "px";
+    p.style.left = "auto";
+  }
+
+  var COMPANY = [
+    "CONSTELLATION SOFTWARE (TSX: CSU.TO) — canned demo, not a live search.",
+    "",
+    "Vertical-market software. Compounder. The full deep dive is in Knowledge Base on this desk.",
+    "",
+    "This sample exists so the tour never spends API credits."
+  ].join("\n");
+
+  var IDEA = [
+    "LIFEREEL — Track B diligence (canned demo).",
+    "",
+    "The record: unvarnished. What the idea is, who it is for, what the market actually looks like. No spin.",
+    "",
+    "Skeptic verdict: PERSONAL_ONLY.",
+    "The four-decision compiler has no commercial wedge. Build it if you want it.",
+    "Do not sell this as a consumer product. Later briefs do not reopen the commercial question.",
+    "",
+    "This sample exists so the tour never spends API credits."
+  ].join("\n");
+
+  function $(id) { return document.getElementById(id); }
+
+  function showApp() {
+    try { sessionStorage.setItem("ra-preview", "1"); } catch (e) {}
+    if ($("setup")) $("setup").style.display = "none";
+    if ($("app")) $("app").style.display = "flex";
+    if (window.START_APP) window.START_APP();
+  }
+
+  function fillResearch(text, idea) {
+    var rw = $("rw"), res = $("rres"), rst = $("rst");
+    if (rw) rw.style.display = "block";
+    if (res) {
+      res.className = "res";
+      res.textContent = text;
+    }
+    if (rst) rst.style.display = "none";
+    window.LR = text;
+    if (idea && window.SHOW_VBADGE) window.SHOW_VBADGE("PERSONAL_ONLY");
+    else if (window.SHOW_VBADGE) window.SHOW_VBADGE("");
+  }
+
+  function clearMenus() {
+    if (window.CM) window.CM();
+  }
+
+  var ACTIONS = {
+    "01": function () {
+      if (window.SET_TRACK) window.SET_TRACK("company");
+      if (window.TAB) window.TAB("r");
+      clearMenus();
+    },
+    "02": function () {
+      if (window.SET_TRACK) window.SET_TRACK("company");
+      if (window.TAB) window.TAB("r");
+    },
+    "03": function () {
+      var q = $("rq");
+      if (q) q.value = "Constellation Software (TSX: CSU.TO) — what do they sell, and should I watch or pass?";
+      var m = $("rmode");
+      if (m) m.value = "overview";
+    },
+    "04": function () {
+      fillResearch(COMPANY, false);
+    },
+    "05": function () {
+      fillResearch(COMPANY, false);
+      if (window.AM) window.AM("rbr");
+    },
+    "06": function () {
+      clearMenus();
+      if (window.TAB) window.TAB("s");
+      var u = $("surl");
+      if (u) u.value = "https://www.csisoftware.com";
+    },
+    "07": function () {
+      if (window.TAB) window.TAB("k");
+    },
+    "08": function () {
+      if (window.TAB) window.TAB("b");
+    },
+    "09": function () {
+      if (window.SET_TRACK) window.SET_TRACK("idea");
+      if (window.TAB) window.TAB("r");
+      var q = $("rq");
+      if (q) q.value = "LifeReel commercial viability. Is there a commercial wedge?";
+    },
+    "10": function () {
+      if (window.SET_TRACK) window.SET_TRACK("idea");
+      if (window.TAB) window.TAB("r");
+    },
+    "11": function () {
+      fillResearch(IDEA, true);
+    },
+    "12": function () {
+      fillResearch(IDEA, true);
+      if (window.AM) window.AM("rbr");
+    },
+    "13": function () {
+      clearMenus();
+      if (window.SET_TRACK) window.SET_TRACK("idea");
+      if (window.TAB) window.TAB("k");
+    },
+    "14": function () {
+      if (window.TAB) window.TAB("x");
+    }
+  };
+
+  var spotSel = "";
+  var spotTimer = null;
+
+  function visibleBox(el) {
+    if (!el) return null;
+    var cs = window.getComputedStyle(el);
+    if (cs.display === "none" || cs.visibility === "hidden") return null;
+    var r = el.getBoundingClientRect();
+    if (r.width < 2 && r.height < 2) return null;
+    var box = { top: r.top, left: r.left, right: r.right, bottom: r.bottom };
+    var extra = el.querySelectorAll(".amenu.on, .amenu2.on");
+    for (var i = 0; i < extra.length; i++) {
+      var kr = extra[i].getBoundingClientRect();
+      if (kr.width < 2 || kr.height < 2) continue;
+      box.top = Math.min(box.top, kr.top);
+      box.left = Math.min(box.left, kr.left);
+      box.right = Math.max(box.right, kr.right);
+      box.bottom = Math.max(box.bottom, kr.bottom);
+    }
+    return box;
+  }
+
+  function unionSel(sel) {
+    var ids = String(sel || "").split(",");
+    var box = null;
+    for (var i = 0; i < ids.length; i++) {
+      var b = visibleBox($(ids[i].trim()));
+      if (!b) continue;
+      if (!box) box = b;
+      else {
+        box.top = Math.min(box.top, b.top);
+        box.left = Math.min(box.left, b.left);
+        box.right = Math.max(box.right, b.right);
+        box.bottom = Math.max(box.bottom, b.bottom);
+      }
+    }
+    return box;
+  }
+
+  function applySpot(sel) {
+    var ring = $("demo-spot");
+    if (!ring) return;
+    var box = unionSel(sel);
+    if (!box) {
+      ring.style.display = "none";
+      return;
+    }
+    var pad = 10;
+    var top = box.top - pad;
+    var left = box.left - pad;
+    var width = (box.right - box.left) + pad * 2;
+    var height = (box.bottom - box.top) + pad * 2;
+    ring.style.display = "block";
+    ring.style.top = top + "px";
+    ring.style.left = left + "px";
+    ring.style.width = width + "px";
+    ring.style.height = height + "px";
+  }
+
+  function spot(sel) {
+    spotSel = sel;
+    var first = String(sel || "").split(",")[0].trim();
+    var el = $(first);
+    if (el && el.scrollIntoView) {
+      el.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+    }
+    applySpot(sel);
+    requestAnimationFrame(function () {
+      applySpot(sel);
+      requestAnimationFrame(function () { applySpot(sel); });
+    });
+    if (spotTimer) clearTimeout(spotTimer);
+    spotTimer = setTimeout(function () { applySpot(sel); }, 160);
+  }
+
+  function caption(step, n, total) {
+    var k = $("demo-kicker");
+    var b = $("demo-copy");
+    var p = $("demo-prog");
+    if (k) k.textContent = "Rex  ·  " + n + " of " + total;
+    if (b) b.textContent = step.say;
+    if (p) p.textContent = (n < total ? "Playing" : "Last stop");
+  }
+
+  function stopAudio() {
+    if (timer) { clearTimeout(timer); timer = null; }
+    if (audio) {
+      audio.pause();
+      audio.onended = null;
+      audio = null;
+    }
+  }
+
+  function finish() {
+    running = false;
+    idx = -1;
+    stopAudio();
+    clearMenus();
+    if (spotTimer) { clearTimeout(spotTimer); spotTimer = null; }
+    var bar = $("demo-bar");
+    var ring = $("demo-spot");
+    var veil = $("demo-veil");
+    if (bar) bar.hidden = true;
+    if (ring) ring.style.display = "none";
+    if (veil) veil.hidden = true;
+    hidePick();
+    document.body.classList.remove("demo-on");
+  }
+
+  function playStep() {
+    if (!running || idx < 0 || idx >= queue.length) {
+      finish();
+      return;
+    }
+    var step = queue[idx];
+    var act = ACTIONS[step.id];
+    if (act) act();
+    caption(step, idx + 1, queue.length);
+    requestAnimationFrame(function () { spot(step.highlight); });
+    stopAudio();
+    var src = BASE + "rex/" + step.id + ".wav";
+    audio = new Audio(src);
+    var advanced = false;
+    function fallback() {
+      if (advanced || !running) return;
+      advanced = true;
+      var words = (step.say || "").split(/\s+/).length;
+      timer = setTimeout(next, Math.max(4000, words * 420));
+    }
+    audio.onended = function () { if (!advanced) { advanced = true; next(); } };
+    audio.onerror = fallback;
+    var play = audio.play();
+    if (play && play.catch) play.catch(fallback);
+  }
+
+  function next() {
+    if (!running) return;
+    idx += 1;
+    if (idx >= queue.length) finish();
+    else playStep();
+  }
+
+  function prev() {
+    if (!running) return;
+    idx = Math.max(0, idx - 1);
+    playStep();
+  }
+
+  window.DEMO_PICK = function (ev) {
+    if (ev && ev.stopPropagation) ev.stopPropagation();
+    if (document.body.classList.contains("demo-on")) return;
+    var p = $("demo-pick");
+    if (!p) {
+      window.START_DEMO("full");
+      return;
+    }
+    var open = p.classList.contains("open");
+    if (open) hidePick();
+    else {
+      placePick();
+      p.hidden = false;
+      p.classList.add("open");
+    }
+  };
+
+  window.START_DEMO = function (mode) {
+    hidePick();
+    showApp();
+    queue = playlist(mode);
+    running = true;
+    idx = 0;
+    document.body.classList.add("demo-on");
+    if ($("demo-bar")) $("demo-bar").hidden = false;
+    if ($("demo-veil")) $("demo-veil").hidden = false;
+    playStep();
+  };
+
+  window.DEMO_NEXT = next;
+  window.DEMO_PREV = function () { prev(); };
+  window.STOP_DEMO = finish;
+
+  window.addEventListener("resize", function () {
+    if (running && spotSel) applySpot(spotSel);
+    var p = $("demo-pick");
+    if (p && p.classList.contains("open")) placePick();
+  });
+  window.addEventListener("scroll", function () {
+    if (running && spotSel) applySpot(spotSel);
+  }, true);
+  document.addEventListener("click", function (e) {
+    var p = $("demo-pick");
+    if (!p || !p.classList.contains("open")) return;
+    if (e.target.closest && (e.target.closest("#demo-pick") || e.target.closest("#demo-launch"))) return;
+    hidePick();
+  });
+
+  window.DEMO_PAUSE = function () {
+    var btn = $("demo-pause");
+    if (audio && !audio.paused) {
+      audio.pause();
+      if (btn) btn.textContent = "Play";
+    } else if (audio) {
+      audio.play();
+      if (btn) btn.textContent = "Pause";
+    }
+  };
+})();
+
+</script>
 </body>
 </html>
