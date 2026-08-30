@@ -186,6 +186,22 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
 #cos-sheet .hint{font-size:13px;color:var(--text3);margin-bottom:16px}
 #cos-sheet .btn{margin-top:0}
 #cos-sheet .btn + .btn{margin-top:8px}
+#demo-launch,.setup-demo{height:32px;padding:0 12px;font-size:12px;font-weight:600;border-radius:99px;border:1px solid var(--accent);background:transparent;color:var(--accent);flex-shrink:0}
+.setup-demo{width:100%;max-width:460px;height:44px;margin-top:8px;font-size:15px}
+#demo-veil{position:fixed;inset:0;z-index:900;background:transparent;pointer-events:auto}
+#demo-spot{position:fixed;z-index:901;border:2px solid var(--accent);border-radius:14px;box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 26%, transparent);pointer-events:none;display:none;transition:top .3s,left .3s,width .3s,height .3s}
+#demo-bar{position:fixed;left:auto;right:12px;bottom:calc(12px + var(--sb));z-index:1001;width:min(340px, calc(100vw - 24px));background:linear-gradient(165deg, color-mix(in srgb, var(--accent) 16%, var(--bg2)) 0%, var(--bg2) 38%, var(--bg3) 100%);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px 10px;color:var(--text);margin:0;box-shadow:0 12px 32px color-mix(in srgb, var(--bg) 45%, transparent)}
+#demo-kicker{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
+#demo-copy{font-size:14px;line-height:1.45;margin-bottom:10px;color:var(--text)}
+#demo-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#demo-controls button{height:32px;padding:0 12px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:12px}
+#demo-controls .primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+#demo-prog{margin-left:auto;font-size:11px;color:var(--text3)}
+#demo-pick{display:none;position:fixed;top:calc(var(--st) + 58px);right:12px;z-index:1002;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:6px;min-width:196px;box-shadow:0 10px 28px rgba(0,0,0,0.35)}
+#demo-pick.open{display:block}
+#demo-pick button{display:block;width:100%;text-align:left;height:40px;padding:0 12px;border:none;background:transparent;color:var(--text);font-size:14px;border-radius:8px}
+#demo-pick button:active{background:var(--bg3)}
+body.demo-on #demo-launch{opacity:0.4;pointer-events:none}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
@@ -200,6 +216,9 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
   <div id="key-count" style="font-size:12px;color:var(--accent);min-height:18px;text-align:right;width:100%;max-width:460px;margin-bottom:4px"></div>
   <div id="setup-err"></div>
   <button id="setup-btn" onclick="doSetup()">Save &amp; Start &#8594;</button>
+  <button type="button" class="setup-demo" onclick="START_DEMO('full')">Full demo</button>
+  <button type="button" class="setup-demo" onclick="START_DEMO('research')">Demo research</button>
+  <button type="button" class="setup-demo" onclick="START_DEMO('diligence')">Demo diligence</button>
   <button type="button" class="btn" onclick="LOOK_AROUND()" style="width:100%;max-width:460px;margin-top:8px;background:transparent;color:var(--text2)">Look around first</button>
   <p style="font-size:12px;color:var(--text3);margin-top:16px;text-align:center">Firebase sync is pre-configured. Key saved only on this device.</p>
 </div>
@@ -229,6 +248,7 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <span id="stxt">Connecting...</span>
       </div>
     </div>
+    <button type="button" id="demo-launch" onclick="DEMO_PICK(event)">Demo</button>
   </div>
   <div class="tabs" id="tabs">
     <button class="tab on" onclick="TAB('r')" id="tab-r">Research</button>
@@ -265,13 +285,14 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
         <button class="arm" onclick="RM_AT('r')">&#215;</button>
       </div>
       <div class="lbl" id="r-notes-lbl" style="display:none;margin-top:10px">Your comments (type or mic)</div>
-      <div class="row">
+      <div class="row" id="rq-row">
         <textarea class="inp" id="rq" placeholder="Company name, ticker, or what you need to know about an existing firm..." rows="3" style="flex:1"></textarea>
         <button class="ibtn" onclick="MIC('rq','rqm')" id="rqm" style="color:var(--accent);align-self:flex-start">&#127908;</button>
         <button style="width:36px;height:36px;background:transparent;border:none;color:var(--text3);font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start" onclick="CLR_R()">&#10005;</button>
       </div>
-      <div id="r-att-hint" class="att-hint" style="display:none">Drop a PRD, Word (.docx), Markdown, or PDF — then type or speak comments in the box. Diligence uses both.</div>
-      <button type="button" id="r-prd-btn" class="att-btn" onclick="AT('r','f')">Attach PRD, Word, or Markdown</button>
+      <div id="r-filings-hint" class="att-hint">US listed name: one Research pass already includes 10-K / 10-Q, what changed, comps, and sourced valuation. Idea diligence does not.</div>
+      <div id="r-att-hint" class="att-hint" style="display:none">Type or speak as little or as much as you want. Attach a PRD, MRD, Word, Markdown, or PDF if you have one. Either works. Both works.</div>
+      <button type="button" id="r-prd-btn" class="att-btn" onclick="AT('r','f')">Attach PRD, MRD, Word, or PDF</button>
       </div>
       <div class="gap"></div>
       <div id="rmode-wrap">
@@ -500,6 +521,10 @@ input:checked + .togl::before{transform:translateX(20px);background:#fff}
           <div><div class="slbl">Firebase sync</div><div class="ssub" id="fbstat">Checking...</div></div>
           <button class="btn small" onclick="CHG_FB()">Change</button>
         </div>
+        <div class="srow" id="setup-guide">
+          <div><div class="slbl">Research Agent Setup</div><div class="ssub">Step-by-step for your own key and Firebase. Same document as in the pack you were sent.</div></div>
+          <button class="btn small" onclick="window.open('docs/setup.html','_blank')">Open</button>
+        </div>
         <div class="srow">
           <div><div class="slbl">Last API call</div><div class="ssub" id="usage-line">No calls yet</div></div>
         </div>
@@ -573,10 +598,18 @@ function PRINT_TRACK(data, type, explicit){
 function ENTRY_TRACK(e){
   if(!e) return PRINT_TRACK(null, null, null);
   if(e.track==='idea') return 'idea';
-  if(e.track==='company'||e.track==='summary') return 'company';
+  if(e.track==='company') return 'company';
   if(typeof IS_IDEA_KB==='function' && IS_IDEA_KB(e)) return 'idea';
   if(typeof IS_IDEA_BR==='function' && IS_IDEA_BR(e)) return 'idea';
-  return 'company';
+  try{
+    var raw=e.briefJson||e.content;
+    if(raw){
+      var d=(typeof raw==='object')?raw:PARSE_BRIEF(raw);
+      if(d && d.track==='idea') return 'idea';
+      if(d && (d.type==='technical'||d.type==='full')) return 'idea';
+    }
+  }catch(err){}
+  return (window.TRACK==='idea')?'idea':'company';
 }
 window.PRINT_SCHEME=PRINT_SCHEME;
 window.PRINT_TRACK=PRINT_TRACK;
@@ -790,6 +823,8 @@ window.SET_TRACK=function(t){
     if(mw) mw.style.display='none';
     if(bw) bw.style.display='';
     if(hint) hint.style.display='block';
+    var fh=document.getElementById('r-filings-hint');
+    if(fh) fh.style.display='none';
     if(prd) prd.style.display='inline-flex';
     if(desk) desk.classList.add('open');
     if(grow) grow.classList.remove('idea');
@@ -805,6 +840,8 @@ window.SET_TRACK=function(t){
     if(mw) mw.style.display='block';
     if(bw) bw.style.display='';
     if(hint) hint.style.display='none';
+    var fh2=document.getElementById('r-filings-hint');
+    if(fh2) fh2.style.display='block';
     if(prd) prd.style.display='none';
     if(desk) desk.classList.add('open');
     if(grow) grow.classList.remove('idea');
@@ -846,12 +883,12 @@ function SYNC_RQ_UI(){
     if(lbl) lbl.textContent='PRD attached';
     if(nl) nl.style.display='block';
     if(ta) ta.placeholder='Type or tap the mic — comments, constraints, what to weigh, what you would kill…';
-    if(hint) hint.textContent='Comments in the box (or the mic) ride along with the attached PRD. Diligence uses both.';
+    if(hint) hint.textContent='Comments in the box (or the mic) ride along with the file. As little or as much as you want.';
   } else {
     if(lbl) lbl.textContent='Idea to diligence';
     if(nl) nl.style.display='none';
-    if(ta) ta.placeholder='One paragraph, or attach a PRD first — then type or speak comments here.';
-    if(hint) hint.textContent='Drop a PRD, Word (.docx), Markdown, or PDF — then type or speak comments in the box. Diligence uses both.';
+    if(ta) ta.placeholder='As little or as much as you want — type here or use the mic. Attach a PRD or MRD if you have one.';
+    if(hint) hint.textContent='Type or speak as little or as much as you want. Attach a PRD, MRD, Word, Markdown, or PDF if you have one. Either works. Both works.';
   }
 }
 function SHOW_VBADGE(code, extra){
@@ -1487,7 +1524,21 @@ window.TAB=function(t){
 };
 window.CHG_KEY=function(){var k=prompt('New xAI API key (console.x.ai):');if(k&&k.trim()){localStorage.setItem('ra-k',k.trim());UKS();}};
 window.SET_AUTO_CVT=function(on){localStorage.setItem('ra-auto-cvt',on?'1':'');};
-window.CHG_FB=function(){var p=prompt('Firebase Project ID:','research-agent-83fe8');if(p){localStorage.setItem('ra-fp',p.trim());location.reload();}};
+window.CHG_FB=function(){
+  var curP=(localStorage.getItem('ra-fp')||'').trim();
+  var curK=(localStorage.getItem('ra-fk')||'').trim();
+  var p=prompt('Firebase Project ID (from Firebase console → Project settings):', curP);
+  if(p==null) return;
+  p=p.trim();
+  if(!p){ alert('Project ID is required. See Research Agent Setup.'); return; }
+  var k=prompt('Firebase Web API key (Project settings → General):', curK);
+  if(k==null) return;
+  k=k.trim();
+  if(!k){ alert('Web API key is required. See Research Agent Setup.'); return; }
+  localStorage.setItem('ra-fp',p);
+  localStorage.setItem('ra-fk',k);
+  location.reload();
+};
 window.CLR_R=function(){
   STOP_SPK();M_STOP();document.getElementById('rq').value='';
   document.getElementById('rw').style.display='none';document.getElementById('rsv').style.display='none';
@@ -1589,7 +1640,7 @@ function APPLY_AT(f,t){
   var pdf=f.type==='application/pdf'||/\.pdf$/i.test(f.name||'');
   var txt=IS_TEXT_FILE(f);
   if(!img&&!pdf&&!txt){
-    alert('Attach a PRD as Word (.docx), Markdown, text, HTML, PDF, or an image.');
+    alert('Attach a PRD or MRD as Word (.docx), Markdown, text, HTML, PDF, or an image.');
     return;
   }
   var rd=new FileReader();
@@ -1871,7 +1922,7 @@ window.DO_R=async function(){
       SHOW_VBADGE(v,(window.LAST_CONF?('confidence '+window.LAST_CONF):''));
     } else {
       document.getElementById('rstx').textContent='Generating...';
-      var coSys='You are a rigorous research assistant on Track A (established companies). '+modes[mode]+' Use web_search and x_search for current info. Be thorough. No filler. Answer: what is this company and what should I do with that knowledge? Output a sourced company memo: snapshot, findings, risks, sourced numbers, open questions, and watch/pass/engage/value. NEVER use idea verdicts KILL, PERSONAL_ONLY, COMMERCIAL, BOTH, or INSUFFICIENT_EVIDENCE.';
+      var coSys='You are a rigorous research assistant on Track A (established companies). '+modes[mode]+' Use web_search and x_search for current info. Be thorough. No filler. Answer: what is this company and what should I do with that knowledge? Output a sourced company memo: snapshot, findings, risks, sourced numbers, open questions, and watch/pass/engage/value. NEVER use idea verdicts KILL, PERSONAL_ONLY, COMMERCIAL, BOTH, or INSUFFICIENT_EVIDENCE. SAME PASS — filings and valuation live in this memo, not a second run and not a local service. If the company is a US listed 10-K/10-Q filer (NYSE or Nasdaq ticker named or identified via web_search), you MUST add these exact headings, with source URL+date on every number: ## Latest filings (latest 10-K and 10-Q, filed dates, SEC EDGAR index URLs); ## What changed (material QoQ or YoY from those filings: revenue, operating income, net income, cash from operations; comparable periods only); ## Comps (2-4 US listed peers, dated P/S or P/E, not a thesis); ## Valuation (any DCF or multiple: label WACC and growth as ASSUMPTION, not a 10-K line; if a number has no URL+date write UNSOURCED). If the name is Canadian-only (.TO, TSX, SEDAR) or files 20-F/40-F instead of 10-K/10-Q, under ## Latest filings write only: US 10-K/10-Q only — filings block not run. Do not invent SEDAR numbers. If private or no US ticker, omit those four headings and say in one line that the filings block does not apply.';
       full=await CALL(coSys,BLD_C(pt,rAt),true,function(c){document.getElementById('rres').textContent=c;},{tools:SEARCH_TOOLS});
       if(!full||full.trim().length<20)throw new Error('Empty response. Please try again.');
       if(PARSE_VERDICT(full)) full=STRIP_IDEA_VERDICT_TRAILER(full);
@@ -2674,5 +2725,24 @@ function OPN_BW(briefData, type, entry) {
 }
 window.OPN_BW=OPN_BW;
 </script>
+<div id="demo-veil" hidden></div>
+<div id="demo-spot"></div>
+<div id="demo-pick">
+  <button type="button" onclick="START_DEMO('full')">Full demo</button>
+  <button type="button" onclick="START_DEMO('research')">Demo research</button>
+  <button type="button" onclick="START_DEMO('diligence')">Demo diligence</button>
+</div>
+<div id="demo-bar" hidden>
+  <div id="demo-kicker">Rex</div>
+  <div id="demo-copy">Starting…</div>
+  <div id="demo-controls">
+    <button type="button" onclick="DEMO_PREV()">Back</button>
+    <button type="button" id="demo-pause" class="primary" onclick="DEMO_PAUSE()">Pause</button>
+    <button type="button" onclick="DEMO_NEXT()">Next</button>
+    <button type="button" onclick="STOP_DEMO()">Stop</button>
+    <span id="demo-prog"></span>
+  </div>
+</div>
+<script src="demo/tour.js?v=7"></script>
 </body>
 </html>
