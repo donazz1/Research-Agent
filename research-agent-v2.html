@@ -535,9 +535,13 @@ body.demo-on #demo-launch{opacity:0.4;pointer-events:none}
       </div>
       <div class="lbl">Appearance</div>
       <div class="sbox">
-        <div class="srow" style="padding-top:0;padding-bottom:0">
+        <div class="srow" style="padding-top:0">
           <div><div class="slbl">Theme</div><div class="ssub" id="theme-stat">Auto</div></div>
           <button class="btn small" onclick="CYCLE_THEME()">Change</button>
+        </div>
+        <div class="srow" style="padding-bottom:0">
+          <div><div class="slbl">Read voice</div><div class="ssub">Locked English voice for Read. Rex is the Demo tour (pre-recorded), not live Read.</div></div>
+          <select class="inp" id="ra-voice-sel" onchange="SET_VOICE(this.value)" style="width:auto;max-width:220px;height:36px;padding:0 10px"></select>
         </div>
       </div>
       <div class="lbl">Conversion</div>
@@ -1088,8 +1092,84 @@ function doSetup() {
   }
 }
 
-var _U=null,_PA=false,_PT=null,_PV=0,_SC=null;
+var _U=null,_PA=false,_PT=null,_PV=0,_SC=null,_Q=[];
+function VOICE_SKIP(n){
+  return /compact|novelty|eloquence|whisper|zarvox|trinoids|boing|bells|cellos|organ|bad news|good news|pipe organ|bahh|bubbles|jester|junior|kathy|princess|albert|agnes|deranged/i.test(n||'');
+}
+function PICK_VOICE(){
+  var list=speechSynthesis.getVoices()||[];
+  if(!list.length) return null;
+  var saved=localStorage.getItem('ra-voice')||'', i, n;
+  if(saved){
+    for(i=0;i<list.length;i++) if(list[i].name===saved) return list[i];
+  }
+  var prefer=['Samantha','Reed','Nicky','Evan','Flo','Susan','Alex','Google US English','Microsoft Aria','Microsoft Guy'];
+  for(i=0;i<prefer.length;i++){
+    var p=prefer[i].toLowerCase();
+    for(var j=0;j<list.length;j++){
+      n=list[j].name||'';
+      if(VOICE_SKIP(n)) continue;
+      if(n.toLowerCase()===p || n.toLowerCase().indexOf(p)===0) return list[j];
+    }
+  }
+  for(i=0;i<list.length;i++){
+    n=list[i].name||'';
+    if(VOICE_SKIP(n)) continue;
+    if(/^en(-|_|$)/i.test(list[i].lang||'')) return list[i];
+  }
+  return list[0];
+}
+function FILL_VOICES(){
+  var sel=document.getElementById('ra-voice-sel');
+  if(!sel) return;
+  var list=(speechSynthesis.getVoices()||[]).filter(function(v){return !VOICE_SKIP(v.name);});
+  var pick=PICK_VOICE();
+  sel.innerHTML='';
+  list.forEach(function(v){
+    var o=document.createElement('option');
+    o.value=v.name;
+    o.textContent=v.name+(v.lang?' · '+v.lang:'');
+    sel.appendChild(o);
+  });
+  if(pick) sel.value=pick.name;
+}
+function SET_VOICE(name){
+  if(name) localStorage.setItem('ra-voice', name);
+  if(_SC && _U){
+    var t=_SC.tab, text=t==='r'?window.LR:t==='s'?window.LS:null;
+    if(text && (t==='r'||t==='s')) CH_SPD(t);
+  }
+}
+if('speechSynthesis' in window){
+  speechSynthesis.addEventListener('voiceschanged', FILL_VOICES);
+}
+function SPK_BUSY(){
+  var el=document.getElementById('rst');
+  return !!(el && el.style.display==='flex');
+}
+function SPK_CLEAN(text){
+  return String(text||'')
+    .replace(/https?:\/\/\S+/gi,' ')
+    .replace(/\[[^\]]*\]\([^)]*\)/g,' ')
+    .replace(/[#*_`>]+/g,' ')
+    .replace(/\|/g,', ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function SPK_CHUNKS(text){
+  var out=[], buf='';
+  for(var i=0;i<text.length;i++){
+    buf+=text.charAt(i);
+    if(buf.length>900 && /[.!?]/.test(text.charAt(i))){
+      out.push(buf.trim());
+      buf='';
+    }
+  }
+  if(buf.trim()) out.push(buf.trim());
+  return out.length?out:[text];
+}
 function STOP_SPK(){
+  _Q=[];
   if(_PT){clearInterval(_PT);_PT=null;}
   if(_U){try{speechSynthesis.cancel();}catch(e){}_U=null;}
   _PA=false;_PV=0;
@@ -1103,19 +1183,39 @@ function STOP_SPK(){
   document.querySelectorAll('.kbpl').forEach(function(b){b.classList.remove('on');});
   _SC=null;
 }
+function _NEXT_CHUNK(){
+  if(!_Q.length){ STOP_SPK(); return; }
+  var piece=_Q.shift();
+  var u=new SpeechSynthesisUtterance(piece);
+  var spd=(_SC && _SC.spd) ? _SC.spd : 1;
+  u.rate=spd; u.lang='en-US'; u.pitch=1;
+  var v=PICK_VOICE();
+  if(v) u.voice=v;
+  u.onend=function(){ if(!_PA) _NEXT_CHUNK(); };
+  u.onerror=STOP_SPK;
+  _U=u;
+  speechSynthesis.speak(u);
+}
 function _DO_SPK(text,spd,ctx){
-  if(!text)return;STOP_SPK();
+  if(!text)return;
+  if(ctx && ctx.tab==='r' && SPK_BUSY()){
+    alert('Wait until the report finishes, then tap Read.');
+    return;
+  }
+  STOP_SPK();
   try{
-    var u=new SpeechSynthesisUtterance(text);
-    u.rate=spd||1;u.lang='en-US';u.pitch=1;
-    var w=text.split(/\s+/).length,s=(w/150)*60/(spd||1);
-    _PV=0;_PT=setInterval(function(){if(!_PA){_PV=Math.min(99,_PV+(100/s));var pf=document.getElementById(ctx.pfid);if(pf)pf.style.width=_PV+'%';}},1000);
-    u.onend=STOP_SPK;u.onerror=STOP_SPK;
-    _U=u;_SC=ctx;_PA=false;
+    var clean=SPK_CLEAN(text);
+    if(!clean)return;
+    _Q=SPK_CHUNKS(clean);
+    ctx=ctx||{};
+    ctx.spd=spd||1;
+    _SC=ctx;_PA=false;_PV=0;
+    var w=clean.split(/\s+/).length,s=(w/150)*60/(spd||1);
+    _PT=setInterval(function(){if(!_PA){_PV=Math.min(99,_PV+(100/s));var pf=document.getElementById(ctx.pfid);if(pf)pf.style.width=_PV+'%';}},1000);
     var pb=document.getElementById(ctx.pid);if(pb)pb.classList.add('on');
     var rd=document.getElementById(ctx.rid);if(rd){rd.textContent='\u23f9 Stop';rd.classList.add('on');}
     var pp2=document.getElementById(ctx.ppid);if(pp2)pp2.textContent='\u23f8';
-    speechSynthesis.speak(u);
+    _NEXT_CHUNK();
   }catch(e){}
 }
 function SPK(t){
@@ -2573,6 +2673,7 @@ document.getElementById('cvt-btn').addEventListener('click', function(){
 window.START_APP = async function(){
   APPLY_THEME();
   WIRE_DROP();
+  FILL_VOICES();
   var ac=document.getElementById('acvt');
   if(ac) ac.checked=localStorage.getItem('ra-auto-cvt')==='1';
   await IFB();await LD_KB();UKS();
